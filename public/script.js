@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainContent = document.getElementById('main-content');
     const onlineCounter = document.getElementById('online-counter');
     const userCountEl = document.getElementById('user-count');
+    const userProfilePanel = document.getElementById('user-profile');
+    const userNameDisplay = document.getElementById('user-name-display');
     const btnGoogle = document.getElementById('btn-google-login');
     const btnAnon = document.getElementById('btn-anon-login');
 
@@ -53,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!result.user.displayName) {
                 const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
                 await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
+                userNameDisplay.textContent = auth.currentUser.displayName;
             }
         } catch(err) {
             console.error("Anon login failed", err);
@@ -73,6 +76,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             loginSection.classList.add('hidden');
             mainContent.classList.remove('hidden');
             onlineCounter.classList.remove('hidden');
+            userProfilePanel.classList.remove('hidden');
+
+            userNameDisplay.textContent = user.displayName || 'Loading...';
 
             console.log("Logged in as:", user.displayName || 'User');
 
@@ -95,6 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loginSection.classList.remove('hidden');
             mainContent.classList.add('hidden');
             onlineCounter.classList.add('hidden');
+            userProfilePanel.classList.add('hidden');
 
             if (userPresenceRef) {
                 remove(userPresenceRef);
@@ -106,8 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. Track Total Online Users
     const presenceRef = ref(db, 'presence');
     onValue(presenceRef, (snapshot) => {
-        const onlineUsersCount = snapshot.numChildren();
+        const onlineUsersCount = snapshot.size;
         userCountEl.textContent = onlineUsersCount;
+    }, (error) => {
+        console.error("Presence read failed - check database rules and instance:", error);
     });
 
     // Existing Interaction logic
