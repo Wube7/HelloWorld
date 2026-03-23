@@ -10,12 +10,30 @@
 <body>
     <div class="background-animation"></div>
     <div class="container">
-        <header class="glass-panel">
-            <h1>Next-Gen Web Dev</h1>
-            <p>Mastering the trinity: Antigravity, GitHub, and Firebase</p>
+        <header class="glass-panel header-flex">
+            <div>
+                <h1>Next-Gen Web Dev</h1>
+                <p>Mastering the trinity: Antigravity, GitHub, and Firebase</p>
+            </div>
+            <div id="online-counter" class="hidden glass-panel-small">
+                <span class="pulse-dot"></span> <span id="user-count">0</span> online
+            </div>
         </header>
 
-        <main>
+        <div id="login-section" class="glass-panel text-center">
+            <h2>Welcome to the App</h2>
+            <p class="mb-2">Choose how you would like to sign in:</p>
+            <div class="auth-buttons">
+                <button id="btn-google-login" class="primary-btn btn-google">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google logo"> Sign in with Google
+                </button>
+                <button id="btn-anon-login" class="primary-btn btn-anon">
+                    🐾 Use Temp Animal Account
+                </button>
+            </div>
+        </div>
+
+        <main id="main-content" class="hidden">
             <section class="cards-grid">
                 <div class="card glass-panel" id="card-antigravity">
                     <h2>🚀 Antigravity</h2>
@@ -47,6 +65,6 @@
             <p>Built by Antigravity AI.</p>
         </footer>
     </div>
-    <script src="script.js"></script>
+    <script type="module" src="script.js?v=4"></script>
 </body>
 </html>
