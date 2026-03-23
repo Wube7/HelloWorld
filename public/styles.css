@@ -263,7 +263,43 @@ footer {
     border-color: rgba(96, 165, 250, 0.3);
 }
 
+.qr-code-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    padding: 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.qr-code-container:hover {
+    transform: scale(1.05);
+}
+
+.qr-code-container img {
+    width: 80px;
+    height: 80px;
+    display: block;
+    border-radius: 8px;
+}
+
 @media (max-width: 768px) {
+    .qr-code-container {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin: 1rem auto 0 auto;
+        display: flex;
+        justify-content: center;
+        width: fit-content;
+    }
+
     .header-flex {
         flex-direction: column;
         gap: 1.5rem;
