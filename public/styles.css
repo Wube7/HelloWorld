@@ -433,4 +433,17 @@ footer {
 .send-btn {
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .chat-input-area {
+        padding: 0.5rem;
+    }
+    .send-btn {
+        padding: 0.8rem 1rem;
+    }
+    #chat-input {
+        padding: 0.8rem 1rem;
+    }
 }
