@@ -148,9 +148,7 @@ header p {
 }
 
 .hidden {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.5s ease;
+    display: none !important;
 }
 
 .visible {
