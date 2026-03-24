@@ -57,6 +57,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
                 await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
                 userNameDisplay.textContent = auth.currentUser.displayName;
+                
+                // Immediately sync the newly assigned animal name to the DB to overwrite the generic 'User'
+                const userProfileRef = ref(db, `users/${result.user.uid}`);
+                set(userProfileRef, {
+                    uid: result.user.uid,
+                    name: auth.currentUser.displayName,
+                    isAnonymous: true
+                }).catch(console.error);
             }
         } catch(err) {
             console.error("Anon login failed", err);
@@ -71,6 +79,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
             try {
+                // Must manually clean up presence perfectly BEFORE signing out, otherwise DB rejects the write
+                if (userPresenceRef) {
+                    await remove(userPresenceRef);
+                    userPresenceRef = null;
+                }
                 await signOut(auth);
             } catch (err) {
                 console.error("Sign out error", err);
@@ -80,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Auth State & Presence Logic
     let userPresenceRef = null;
+    let connectedUnsubscribe = null;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -107,7 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             userPresenceRef = ref(db, `presence/${user.uid}`);
             const connectedRef = ref(db, '.info/connected');
             
-            onValue(connectedRef, (snap) => {
+            if (connectedUnsubscribe) connectedUnsubscribe();
+            connectedUnsubscribe = onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     // On disconnect, remove our node
                     onDisconnect(userPresenceRef).remove().then(() => {
@@ -125,8 +140,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             userProfilePanel.classList.add('hidden');
             if(btnLogout) btnLogout.classList.add('hidden');
 
+            if (connectedUnsubscribe) {
+                connectedUnsubscribe();
+                connectedUnsubscribe = null;
+            }
             if (userPresenceRef) {
-                remove(userPresenceRef);
+                remove(userPresenceRef).catch(e => {
+                    // Ignore error: write might be rejected since user is already signed out
+                });
                 userPresenceRef = null;
             }
         }
