@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -84,7 +84,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await remove(userPresenceRef);
                     userPresenceRef = null;
                 }
-                await signOut(auth);
+                
+                if (auth.currentUser) {
+                    const isTemp = auth.currentUser.isAnonymous || (auth.currentUser.displayName && auth.currentUser.displayName.startsWith('Anonymous'));
+                    if (isTemp) {
+                        // Delete their profile from the persistent /users list so they don't linger
+                        await remove(ref(db, `users/${auth.currentUser.uid}`));
+                        // Destroy the anonymous account from Firebase Authentication
+                        await deleteUser(auth.currentUser);
+                    } else {
+                        await signOut(auth);
+                    }
+                }
             } catch (err) {
                 console.error("Sign out error", err);
             }
