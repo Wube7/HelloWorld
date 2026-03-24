@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-import { getDatabase, ref, onValue, onDisconnect, set, remove } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -140,4 +140,64 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         }, 1500);
     });
+
+    // 5. Global Chat Logic
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    if (chatForm) {
+        // Send message
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text || !auth.currentUser) return;
+            
+            chatInput.value = '';
+            
+            const msgRef = ref(db, 'messages');
+            try {
+                await push(msgRef, {
+                    text: text,
+                    uid: auth.currentUser.uid,
+                    name: auth.currentUser.displayName || 'Unknown',
+                    timestamp: serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Error sending message:", err);
+                alert("Failed to send message: " + err.message);
+            }
+        });
+
+        // Receive messages
+        const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
+        
+        onChildAdded(recentMessagesQuery, (snapshot) => {
+            const data = snapshot.val();
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('chat-message');
+            // If the current user sent this, align it to the right
+            if (auth.currentUser && data.uid === auth.currentUser.uid) {
+                msgDiv.classList.add('self');
+            }
+            
+            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+            
+            // XSS Safe HTML Generation
+            msgDiv.innerHTML = `
+                <div class="msg-header">
+                    <span class="msg-name"></span>
+                    <span class="msg-time"></span>
+                </div>
+                <div class="msg-text"></div>
+            `;
+            msgDiv.querySelector('.msg-name').textContent = data.name;
+            msgDiv.querySelector('.msg-time').textContent = timeString;
+            msgDiv.querySelector('.msg-text').textContent = data.text;
+
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        });
+    }
 });

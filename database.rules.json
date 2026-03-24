@@ -5,6 +5,13 @@
       "$uid": {
         ".write": "auth != null && auth.uid == $uid"
       }
+    },
+    "messages": {
+      ".read": true,
+      ".write": "auth != null",
+      "$messageId": {
+        ".validate": "newData.hasChildren(['text', 'uid', 'name']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length < 500"
+      }
     }
   }
 }

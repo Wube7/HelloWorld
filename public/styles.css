@@ -310,3 +310,127 @@ footer {
         gap: 0.8rem;
     }
 }
+
+/* Chat UI Styles */
+.chat-demo {
+    text-align: left;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+    animation: fadeIn 1s ease-out backwards 1s;
+}
+
+.chat-demo h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.chat-demo p {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.chat-container {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Custom Scrollbar */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.chat-message {
+    background: var(--glass-bg);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    max-width: 80%;
+    animation: fadeIn 0.3s ease-out;
+    border: 1px solid var(--glass-border);
+}
+
+.msg-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    gap: 1rem;
+}
+
+.msg-name {
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.msg-time {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.msg-text {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.chat-message.self {
+    align-self: flex-end;
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.chat-message.self .msg-name {
+    color: #a78bfa;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 1rem;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid var(--glass-border);
+}
+
+#chat-input {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 0.8rem 1.2rem;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+#chat-input:focus {
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.send-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+}
