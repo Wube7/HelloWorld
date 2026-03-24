@@ -43,8 +43,9 @@
             </div>
         </div>
 
-        <main id="main-content" class="hidden">
-            <section class="cards-grid">
+        <main id="main-content" class="hidden main-layout">
+            <div class="main-left">
+                <section class="cards-grid">
                 <div class="card glass-panel" id="card-antigravity">
                     <h2>🚀 Antigravity</h2>
                     <p>Your AI pair programmer. Describe your desired application, and let Antigravity generate the code, UI, and logic for you. It writes modern HTML/CSS/JS or complex React applications.</p>
@@ -83,6 +84,21 @@
                     <p id="status-message" class="hidden">Waiting for action...</p>
                 </div>
             </section>
+            </div>
+
+            <aside id="user-sidebar" class="main-right glass-panel">
+                <h2>Users</h2>
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="hide-anon-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Hide Anonymous</span>
+                </div>
+                <ul id="user-list" class="user-list">
+                    <!-- Users get populated here -->
+                </ul>
+            </aside>
         </main>
         
         <footer>

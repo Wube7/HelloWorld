@@ -1,6 +1,12 @@
 {
   "rules": {
     ".read": true,
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
     "presence": {
       "$uid": {
         ".write": "auth != null && auth.uid == $uid"

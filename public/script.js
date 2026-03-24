@@ -82,6 +82,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("Logged in as:", user.displayName || 'User');
 
+            // Save user profile
+            const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
+            const userProfileRef = ref(db, `users/${user.uid}`);
+            set(userProfileRef, {
+                uid: user.uid,
+                name: user.displayName || 'User',
+                isAnonymous: isAnon
+            }).catch(console.error);
+
             // Setup Presence Write
             userPresenceRef = ref(db, `presence/${user.uid}`);
             const connectedRef = ref(db, '.info/connected');
@@ -199,5 +208,72 @@ document.addEventListener('DOMContentLoaded', async () => {
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
         });
+    }
+
+    // 6. User Sidebar Logic
+    const userListEl = document.getElementById('user-list');
+    const hideAnonToggle = document.getElementById('hide-anon-toggle');
+    
+    let allUsers = {};
+    let onlinePresence = {};
+    let hideAnon = false;
+
+    if (userListEl && hideAnonToggle) {
+        hideAnonToggle.addEventListener('change', (e) => {
+            hideAnon = e.target.checked;
+            renderUserList();
+        });
+
+        const usersRef = ref(db, 'users');
+        onValue(usersRef, (snapshot) => {
+            allUsers = snapshot.val() || {};
+            renderUserList();
+        });
+
+        const presenceListRef = ref(db, 'presence');
+        onValue(presenceListRef, (snapshot) => {
+            onlinePresence = snapshot.val() || {};
+            renderUserList();
+        });
+
+        function renderUserList() {
+            if (!auth.currentUser) return; // Wait until authenticated state to render correctly
+            
+            userListEl.innerHTML = '';
+            
+            let userArray = Object.values(allUsers);
+            if (hideAnon) {
+                userArray = userArray.filter(u => !u.isAnonymous);
+            }
+            
+            // Sort: online first, then by name alphabetically
+            userArray.sort((a, b) => {
+                const aOnline = !!onlinePresence[a.uid];
+                const bOnline = !!onlinePresence[b.uid];
+                if (aOnline === bOnline) {
+                    return a.name.localeCompare(b.name);
+                }
+                return aOnline ? -1 : 1;
+            });
+
+            userArray.forEach(u => {
+                const isOnline = !!onlinePresence[u.uid];
+                
+                const li = document.createElement('li');
+                li.className = 'user-list-item';
+                
+                const dot = document.createElement('div');
+                dot.className = `status-indicator ${isOnline ? 'online' : 'offline'}`;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'user-list-name';
+                nameSpan.textContent = u.name;
+
+                li.appendChild(dot);
+                li.appendChild(nameSpan);
+                
+                userListEl.appendChild(li);
+            });
+        }
     }
 });
