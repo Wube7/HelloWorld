@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userNameDisplay = document.getElementById('user-name-display');
     const btnGoogle = document.getElementById('btn-google-login');
     const btnAnon = document.getElementById('btn-anon-login');
+    const btnLogout = document.getElementById('btn-logout');
 
     const actionBtn = document.getElementById('action-btn');
     const statusMessage = document.getElementById('status-message');
@@ -67,6 +68,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (err) {
+                console.error("Sign out error", err);
+            }
+        });
+    }
+
     // 3. Auth State & Presence Logic
     let userPresenceRef = null;
 
@@ -77,6 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             mainContent.classList.remove('hidden');
             onlineCounter.classList.remove('hidden');
             userProfilePanel.classList.remove('hidden');
+            if(btnLogout) btnLogout.classList.remove('hidden');
 
             userNameDisplay.textContent = user.displayName || 'Loading...';
 
@@ -111,6 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             mainContent.classList.add('hidden');
             onlineCounter.classList.add('hidden');
             userProfilePanel.classList.add('hidden');
+            if(btnLogout) btnLogout.classList.add('hidden');
 
             if (userPresenceRef) {
                 remove(userPresenceRef);
