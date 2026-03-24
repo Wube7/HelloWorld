@@ -241,7 +241,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             userListEl.innerHTML = '';
             
-            let userArray = Object.values(allUsers);
+            // Merge legacy users from presence tracking who might not be in the new /users node
+            const combinedUsers = { ...allUsers };
+            for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+                if (isOnline && !combinedUsers[uid]) {
+                    combinedUsers[uid] = { uid: uid, name: 'Anonymous/Legacy User', isAnonymous: true };
+                }
+            }
+            
+            let userArray = Object.values(combinedUsers);
             if (hideAnon) {
                 userArray = userArray.filter(u => !u.isAnonymous);
             }
