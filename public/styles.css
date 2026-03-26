@@ -360,6 +360,11 @@ footer {
     flex-direction: column;
     height: 400px;
     overflow: hidden;
+    transition: height 0.5s ease;
+}
+
+.chat-container.big-chat-mode {
+    height: 75vh;
 }
 
 .chat-messages {

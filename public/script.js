@@ -34,6 +34,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const actionBtn = document.getElementById('action-btn');
     const statusMessage = document.getElementById('status-message');
 
+    // Admin & Global View UI Elements
+    const adminPanel = document.getElementById('admin-panel');
+    const globalViewToggle = document.getElementById('global-view-toggle');
+    const cardsGrid = document.querySelector('.cards-grid');
+    const interactiveDemo = document.querySelector('.interactive-demo');
+    const chatContainer = document.querySelector('.chat-container');
+
+    const ADMIN_EMAILS = ['wube8816@gmail.com'];
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -119,6 +128,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("Logged in as:", user.displayName || 'User');
 
+            // Admin Check
+            if (user.email && ADMIN_EMAILS.includes(user.email)) {
+                adminPanel.classList.remove('hidden');
+            } else {
+                adminPanel.classList.add('hidden');
+            }
+
             // Save user profile
             const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
             const userProfileRef = ref(db, `users/${user.uid}`);
@@ -150,6 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             onlineCounter.classList.add('hidden');
             userProfilePanel.classList.add('hidden');
             if(btnLogout) btnLogout.classList.add('hidden');
+            adminPanel.classList.add('hidden');
 
             if (connectedUnsubscribe) {
                 connectedUnsubscribe();
@@ -171,6 +188,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         userCountEl.textContent = onlineUsersCount;
     }, (error) => {
         console.error("Presence read failed - check database rules and instance:", error);
+    });
+
+    // Admin View Toggle Logic
+    if (globalViewToggle) {
+        globalViewToggle.addEventListener('change', (e) => {
+            if (!auth.currentUser || !auth.currentUser.email || !ADMIN_EMAILS.includes(auth.currentUser.email)) {
+                e.target.checked = !e.target.checked; // revert
+                return;
+            }
+            set(ref(db, 'admin/globalView'), {
+                view: e.target.checked ? 'chat' : 'main',
+                updatedBy: auth.currentUser.uid,
+                timestamp: serverTimestamp()
+            }).catch(err => {
+                console.error("Failed to update global view:", err);
+                alert("Only admins can change the global view! Check Firebase rules.");
+                e.target.checked = !e.target.checked; // revert
+            });
+        });
+    }
+
+    // Listen to Global View
+    const globalViewRef = ref(db, 'admin/globalView');
+    onValue(globalViewRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.view === 'chat') {
+            if (cardsGrid) cardsGrid.classList.add('hidden');
+            if (interactiveDemo) interactiveDemo.classList.add('hidden');
+            if (chatContainer) chatContainer.classList.add('big-chat-mode');
+            if (globalViewToggle) globalViewToggle.checked = true;
+        } else {
+            if (cardsGrid) cardsGrid.classList.remove('hidden');
+            if (interactiveDemo) interactiveDemo.classList.remove('hidden');
+            if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+            if (globalViewToggle) globalViewToggle.checked = false;
+        }
     });
 
     // Existing Interaction logic
