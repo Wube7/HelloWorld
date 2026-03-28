@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What does CSS stand for?",
+    "options": [
+      "Computer Style Sheets",
+      "Creative Style Sheets",
+      "Cascading Style Sheets",
+      "Colorful Style Sheets"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "Which of these is NOT a Javascript framework?",
+    "options": [
+      "Django",
+      "React",
+      "Vue",
+      "Angular"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "question": "Which company developed the Firebase platform?",
+    "options": [
+      "Facebook",
+      "Google",
+      "Amazon",
+      "Apple"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "What is the primary function of a GitHub Action?",
+    "options": [
+      "CI/CD and task automation",
+      "Web hosting for static files",
+      "Source code versioning",
+      "Database management"
+    ],
+    "correctIndex": 0
+  }
+]

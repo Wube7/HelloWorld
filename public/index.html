@@ -48,12 +48,25 @@
             <div class="main-left">
                 <div id="admin-panel" class="hidden glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b;">
                     <h2 style="color: #f59e0b; margin-bottom: 1rem;">👑 Admin Controls</h2>
-                    <div class="toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="global-view-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                        <span>Enable Big Chat Room View for All Users</span>
+                    
+                    <div class="flex-row">
+                        <div class="toggle-container" style="flex: 1;">
+                            <label class="switch">
+                                <input type="checkbox" id="global-view-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                            <span>Enable Big Chat Room View</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h3 style="margin-bottom: 1rem; color: #a78bfa;">🎯 Quiz Master</h3>
+                        <div class="admin-quiz-controls">
+                            <button id="btn-quiz-start" class="primary-btn btn-sm">Start Quiz</button>
+                            <button id="btn-quiz-next" class="primary-btn btn-sm" disabled>Next Question</button>
+                            <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
+                            <button id="btn-quiz-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
+                        </div>
                     </div>
                 </div>
 
@@ -96,6 +109,46 @@
                     <p id="status-message" class="hidden">Waiting for action...</p>
                 </div>
             </section>
+
+            <!-- Quiz View -->
+            <section id="quiz-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <h2 id="quiz-question" style="font-size: 2rem; margin-bottom: 2rem; color: #60a5fa;">Loading Question...</h2>
+                <div class="quiz-grid">
+                    <button class="quiz-btn" data-index="0">Option 1</button>
+                    <button class="quiz-btn" data-index="1">Option 2</button>
+                    <button class="quiz-btn" data-index="2">Option 3</button>
+                    <button class="quiz-btn" data-index="3">Option 4</button>
+                </div>
+            </section>
+
+            <!-- Podium View -->
+            <section id="podium-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 2rem; color: #f59e0b;">🏆 Quiz Podium 🏆</h2>
+                <div class="podium-top3">
+                    <div class="podium-spot place-2">
+                        <div class="medal">🥈</div>
+                        <div class="name" id="podium-2-name">-</div>
+                        <div class="score" id="podium-2-score">0</div>
+                    </div>
+                    <div class="podium-spot place-1">
+                        <div class="medal">🥇</div>
+                        <div class="name" id="podium-1-name">-</div>
+                        <div class="score" id="podium-1-score">0</div>
+                    </div>
+                    <div class="podium-spot place-3">
+                        <div class="medal">🥉</div>
+                        <div class="name" id="podium-3-name">-</div>
+                        <div class="score" id="podium-3-score">0</div>
+                    </div>
+                </div>
+                <div class="podium-list">
+                    <h3>All Players</h3>
+                    <ul id="podium-full-list" class="user-list">
+                        <!-- Sorted players populated here -->
+                    </ul>
+                </div>
+            </section>
+
             </div>
 
             <aside id="user-sidebar" class="main-right glass-panel">
@@ -117,6 +170,6 @@
             <p>Built by Antigravity AI.</p>
         </footer>
     </div>
-    <script type="module" src="script.js?v=7"></script>
+    <script type="module" src="script.js?v=8"></script>
 </body>
 </html>

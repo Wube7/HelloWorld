@@ -634,3 +634,113 @@ input:checked + .slider:before {
         grid-template-columns: 1fr;
     }
 }
+
+/* Quiz UI Styles */
+.admin-quiz-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.quiz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.quiz-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.quiz-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--accent-1);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.quiz-btn.selected {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: var(--accent-1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    transform: scale(1.02);
+}
+
+@media (max-width: 600px) {
+    .quiz-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Podium Styles */
+.podium-top3 {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    min-height: 250px;
+}
+
+.podium-spot {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px 12px 0 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 120px;
+    transition: all 0.5s ease;
+}
+
+.podium-spot .medal {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.podium-spot .name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.podium-spot .score {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-1);
+}
+
+.place-1 { height: 220px; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
+.place-2 { height: 180px; background: rgba(156, 163, 175, 0.1); border-color: rgba(156, 163, 175, 0.3); }
+.place-3 { height: 150px; background: rgba(180, 83, 9, 0.1); border-color: rgba(180, 83, 9, 0.3); }
+
+.podium-list {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+.podium-list h3 {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.5rem;
+}

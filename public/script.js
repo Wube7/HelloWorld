@@ -43,6 +43,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
 
+    // Quiz Elements
+    const quizContainer = document.getElementById('quiz-container');
+    const quizQuestionEl = document.getElementById('quiz-question');
+    const quizBtns = document.querySelectorAll('.quiz-btn');
+    const podiumContainer = document.getElementById('podium-container');
+    
+    // Admin Quiz Buttons
+    const btnQuizStart = document.getElementById('btn-quiz-start');
+    const btnQuizNext = document.getElementById('btn-quiz-next');
+    const btnQuizEnd = document.getElementById('btn-quiz-end');
+    const btnQuizReset = document.getElementById('btn-quiz-reset');
+
+    // Extra Elements to Hide During Quiz
+    const headerEl = document.querySelector('header');
+    const qrCodeEl = document.querySelector('.qr-code-container');
+    const chatDemoSection = document.querySelector('.chat-demo');
+    const userSidebar = document.getElementById('user-sidebar');
+
+    let quizData = [];
+    try {
+        const res = await fetch('quiz.json');
+        quizData = await res.json();
+    } catch(e) { console.error("Could not load quiz.json"); }
+
+    let oldQuizState = null;
+    let currentSelectedAnswer = null;
+    let answeredQuestions = new Set();
+    let myScore = 0;
+    let userScoreListener = null;
+
+    let allUsers = {};
+    let onlinePresence = {};
+    let allQuizScores = {};
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -144,6 +178,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 isAnonymous: isAnon
             }).catch(console.error);
 
+            if (userScoreListener) { userScoreListener(); }
+            userScoreListener = onValue(ref(db, `quizScores/${user.uid}`), (snap) => {
+                myScore = snap.val()?.score || 0;
+            });
+
             // Setup Presence Write
             userPresenceRef = ref(db, `presence/${user.uid}`);
             const connectedRef = ref(db, '.info/connected');
@@ -167,6 +206,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             userProfilePanel.classList.add('hidden');
             if(btnLogout) btnLogout.classList.add('hidden');
             adminPanel.classList.add('hidden');
+
+            if (userScoreListener) {
+                userScoreListener();
+                userScoreListener = null;
+                myScore = 0;
+            }
 
             if (connectedUnsubscribe) {
                 connectedUnsubscribe();
@@ -308,12 +353,202 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // --- QUIZ LOGIC ---
+    quizBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (oldQuizState?.phase !== 'question') return;
+            const index = parseInt(e.target.dataset.index);
+            currentSelectedAnswer = index;
+            quizBtns.forEach(b => b.classList.remove('selected'));
+            e.target.classList.add('selected');
+        });
+    });
+
+    if (btnQuizStart) {
+        btnQuizStart.addEventListener('click', () => {
+            set(ref(db, 'admin/quizState'), { active: true, phase: 'question', questionIndex: 0 });
+        });
+        btnQuizNext.addEventListener('click', () => {
+            if (!oldQuizState) return;
+            const nextIdx = (oldQuizState.questionIndex || 0) + 1;
+            if (nextIdx >= quizData.length) {
+                set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+            } else {
+                set(ref(db, 'admin/quizState'), { active: true, phase: 'question', questionIndex: nextIdx });
+            }
+        });
+        btnQuizEnd.addEventListener('click', () => {
+            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+        });
+        btnQuizReset.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to delete all scores and reset the quiz?")) {
+                await set(ref(db, 'admin/quizState'), { active: false });
+                await remove(ref(db, 'quizScores'));
+                answeredQuestions.clear();
+                alert("Quiz reset!");
+            }
+        });
+    }
+
+    onValue(ref(db, 'admin/quizState'), (snapshot) => {
+        const state = snapshot.val();
+        
+        // Evaluate previous answer if phase changed or question advanced
+        if (oldQuizState && oldQuizState.phase === 'question') {
+            const hasMovedOn = !state || state.phase !== 'question' || state.questionIndex > oldQuizState.questionIndex;
+            if (hasMovedOn && currentSelectedAnswer !== null && auth.currentUser) {
+                const correctIdx = quizData[oldQuizState.questionIndex].correctIndex;
+                if (currentSelectedAnswer === correctIdx && !answeredQuestions.has(oldQuizState.questionIndex)) {
+                    answeredQuestions.add(oldQuizState.questionIndex);
+                    set(ref(db, `quizScores/${auth.currentUser.uid}`), {
+                        score: myScore + 1,
+                        name: auth.currentUser.displayName || 'Unknown'
+                    });
+                }
+            }
+        }
+        
+        if (state && state.phase === 'question' && state.questionIndex !== oldQuizState?.questionIndex) {
+            currentSelectedAnswer = null;
+            quizBtns.forEach(b => b.classList.remove('selected'));
+        }
+
+        oldQuizState = state;
+
+        if (!state || !state.active) {
+            if (quizContainer) quizContainer.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (cardsGrid) cardsGrid.classList.remove('hidden');
+            if (interactiveDemo) interactiveDemo.classList.remove('hidden');
+            if (headerEl) headerEl.classList.remove('hidden');
+            if (qrCodeEl) qrCodeEl.classList.remove('hidden');
+            if (chatDemoSection) chatDemoSection.classList.remove('hidden');
+            if (userSidebar) userSidebar.classList.remove('hidden');
+            
+            if (btnQuizStart) btnQuizStart.disabled = false;
+            if (btnQuizNext) btnQuizNext.disabled = true;
+            if (btnQuizEnd) btnQuizEnd.disabled = true;
+            
+        } else if (state.phase === 'question') {
+            if (cardsGrid) cardsGrid.classList.add('hidden');
+            if (interactiveDemo) interactiveDemo.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (headerEl) headerEl.classList.add('hidden');
+            if (qrCodeEl) qrCodeEl.classList.add('hidden');
+            if (chatDemoSection) chatDemoSection.classList.add('hidden');
+            if (userSidebar) userSidebar.classList.add('hidden');
+            if (quizContainer) quizContainer.classList.remove('hidden');
+            
+            if (quizData[state.questionIndex]) {
+                const q = quizData[state.questionIndex];
+                if (quizQuestionEl) quizQuestionEl.textContent = `Q${state.questionIndex + 1}: ${q.question}`;
+                quizBtns.forEach((btn, idx) => {
+                    btn.textContent = q.options[idx];
+                });
+            }
+            
+            if (btnQuizStart) btnQuizStart.disabled = true;
+            if (btnQuizNext) btnQuizNext.disabled = false;
+            if (btnQuizEnd) btnQuizEnd.disabled = false;
+            
+        } else if (state.phase === 'podium') {
+            if (cardsGrid) cardsGrid.classList.add('hidden');
+            if (interactiveDemo) interactiveDemo.classList.add('hidden');
+            if (quizContainer) quizContainer.classList.add('hidden');
+            if (headerEl) headerEl.classList.add('hidden');
+            if (qrCodeEl) qrCodeEl.classList.add('hidden');
+            if (chatDemoSection) chatDemoSection.classList.add('hidden');
+            if (userSidebar) userSidebar.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.remove('hidden');
+            
+            if (btnQuizStart) btnQuizStart.disabled = false;
+            if (btnQuizNext) btnQuizNext.disabled = true;
+            if (btnQuizEnd) btnQuizEnd.disabled = true;
+            
+            renderPodium();
+        }
+    });
+
+    onValue(ref(db, 'quizScores'), (snapshot) => {
+        allQuizScores = snapshot.val() || {};
+        if (oldQuizState?.phase === 'podium') renderPodium();
+    });
+
+    onValue(ref(db, 'users'), (snapshot) => {
+        allUsers = snapshot.val() || {};
+        if (oldQuizState?.phase === 'podium') renderPodium();
+        if (typeof window.renderUserList === 'function') window.renderUserList();
+    });
+
+    onValue(ref(db, 'presence'), (snapshot) => {
+        onlinePresence = snapshot.val() || {};
+        if (oldQuizState?.phase === 'podium') renderPodium();
+        if (typeof window.renderUserList === 'function') window.renderUserList();
+    });
+
+    function renderPodium() {
+        const combinedUsers = [];
+        
+        // Merge online users with their scores
+        for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+            if (isOnline) {
+                const userObj = allUsers[uid] || { name: 'Anonymous/Legacy' };
+                const userScoreObj = allQuizScores[uid] || { score: 0 };
+                // Also default anonymous temp users correctly
+                let nameToUse = userObj.name;
+                if (!nameToUse && userObj.isAnonymous) nameToUse = 'Anonymous';
+                
+                combinedUsers.push({
+                    name: nameToUse,
+                    score: userScoreObj.score || 0
+                });
+            }
+        }
+        
+        // Include users who have scores but are offline
+        for (const [uid, scoreData] of Object.entries(allQuizScores)) {
+            if (!onlinePresence[uid]) {
+                combinedUsers.push({
+                    name: scoreData.name || 'Offline User',
+                    score: scoreData.score || 0
+                });
+            }
+        }
+
+        const scoresArr = combinedUsers.sort((a, b) => {
+            if (b.score === a.score) return a.name.localeCompare(b.name);
+            return b.score - a.score;
+        });
+        
+        for (let i = 1; i <= 3; i++) {
+            const spotName = document.getElementById(`podium-${i}-name`);
+            const spotScore = document.getElementById(`podium-${i}-score`);
+            if (scoresArr[i-1]) {
+                if (spotName) spotName.textContent = scoresArr[i-1].name;
+                if (spotScore) spotScore.textContent = scoresArr[i-1].score;
+            } else {
+                if (spotName) spotName.textContent = '-';
+                if (spotScore) spotScore.textContent = '0';
+            }
+        }
+        
+        const listEl = document.getElementById('podium-full-list');
+        if (listEl) {
+            listEl.innerHTML = '';
+            scoresArr.forEach((userScore, idx) => {
+                const li = document.createElement('li');
+                li.className = 'user-list-item';
+                li.innerHTML = `<span style="width: 30px; font-weight: bold;">#${idx+1}</span> <span class="user-list-name" style="flex:1;">${userScore.name}</span> <span style="color: #60a5fa; font-weight: bold;">${userScore.score} pts</span>`;
+                listEl.appendChild(li);
+            });
+        }
+    }
+    // -------------------
+
     // 6. User Sidebar Logic
     const userListEl = document.getElementById('user-list');
     const hideAnonToggle = document.getElementById('hide-anon-toggle');
     
-    let allUsers = {};
-    let onlinePresence = {};
     let hideAnon = false;
 
     if (userListEl && hideAnonToggle) {
@@ -322,19 +557,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderUserList();
         });
 
-        const usersRef = ref(db, 'users');
-        onValue(usersRef, (snapshot) => {
-            allUsers = snapshot.val() || {};
-            renderUserList();
-        });
-
-        const presenceListRef = ref(db, 'presence');
-        onValue(presenceListRef, (snapshot) => {
-            onlinePresence = snapshot.val() || {};
-            renderUserList();
-        });
-
-        function renderUserList() {
+        // make renderUserList global so the hoisted listeners can call it
+        window.renderUserList = function() {
             if (!auth.currentUser) return; // Wait until authenticated state to render correctly
             
             userListEl.innerHTML = '';
