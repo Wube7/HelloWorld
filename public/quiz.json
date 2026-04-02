@@ -1,42 +1,102 @@
 [
   {
-    "question": "What does CSS stand for?",
+    "question": "What is Google's most advanced AI model family that comes in Nano, Pro, and Ultra sizes?",
     "options": [
-      "Computer Style Sheets",
-      "Creative Style Sheets",
-      "Cascading Style Sheets",
-      "Colorful Style Sheets"
-    ],
-    "correctIndex": 2
-  },
-  {
-    "question": "Which of these is NOT a Javascript framework?",
-    "options": [
-      "Django",
-      "React",
-      "Vue",
-      "Angular"
-    ],
-    "correctIndex": 0
-  },
-  {
-    "question": "Which company developed the Firebase platform?",
-    "options": [
-      "Facebook",
-      "Google",
-      "Amazon",
-      "Apple"
+      "LamDA",
+      "Gemini",
+      "PaLM 2",
+      "Gemma"
     ],
     "correctIndex": 1
   },
   {
-    "question": "What is the primary function of a GitHub Action?",
+    "question": "Which Pixel 8 series feature uses AI to reduce unwanted background sounds in videos?",
     "options": [
-      "CI/CD and task automation",
-      "Web hosting for static files",
-      "Source code versioning",
-      "Database management"
+      "Audio Magic Eraser",
+      "Video Boost",
+      "Clear Calling",
+      "Noise Cancel Pro"
     ],
     "correctIndex": 0
+  },
+  {
+    "question": "Which open-weight AI models did Google release in 2024 for developers and researchers?",
+    "options": [
+      "Llama",
+      "Mistral",
+      "Gemma",
+      "Claude"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "Which AI-powered Pixel camera feature lets you combine multiple group photos to get the perfect shot where everyone is smiling?",
+    "options": [
+      "Magic Editor",
+      "Best Take",
+      "Face Unblur",
+      "Top Shot"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "What component inside the Google Tensor chip is specifically optimized for running machine learning tasks on-device?",
+    "options": [
+      "Neural Engine",
+      "Tensor Processing Unit (TPU)",
+      "Adreno GPU",
+      "Cortex AI core"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "Which revolutionary Google DeepMind AI system solved the grand challenge of predicting 3D protein structures?",
+    "options": [
+      "AlphaGo",
+      "AlphaFold",
+      "AlphaCode",
+      "AlphaStar"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "What is the name of the generative AI tool in Google Photos that lets you dramatically alter lighting or move subjects?",
+    "options": [
+      "Magic Editor",
+      "Photo Unblur",
+      "Generative Fill",
+      "Magic Eraser"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "question": "Which Google AI assistant is being integrated deeply into Android to help with writing, summarizing, and complex reasoning?",
+    "options": [
+      "Google Assistant",
+      "Gemini",
+      "Duplex",
+      "Allo"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "What platform does Google provide specifically for developers to quickly prototype and build apps using the Gemini API?",
+    "options": [
+      "Google AI Studio",
+      "Colab",
+      "Kaggle",
+      "TensorFlow Hub"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "question": "Which Pixel phone was the very first to feature Google's custom-built Tensor SoC?",
+    "options": [
+      "Pixel 4",
+      "Pixel 5",
+      "Pixel 6",
+      "Pixel 7"
+    ],
+    "correctIndex": 2
   }
 ]
