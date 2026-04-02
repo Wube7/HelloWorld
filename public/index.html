@@ -67,6 +67,12 @@
                             <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
                             <button id="btn-quiz-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
                         </div>
+                        <div class="admin-timer-controls" style="margin-top: 1rem; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;">
+                            <label for="auto-jump-slider" style="color:#e2e8f0; font-size:0.9rem; flex-shrink: 0;">Auto-Jump Timer (sec):</label>
+                            <input type="range" id="auto-jump-slider" min="0" max="300" value="0" step="5" style="flex:1;">
+                            <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white;">
+                        </div>
+                        <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.5rem; text-align: right;">(0 = manual next page only)</div>
                     </div>
                 </div>
 
@@ -112,7 +118,8 @@
 
             <!-- Quiz View -->
             <section id="quiz-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
-                <h2 id="quiz-question" style="font-size: 2rem; margin-bottom: 2rem; color: #60a5fa;">Loading Question...</h2>
+                <h2 id="quiz-question" style="font-size: 2rem; margin-bottom: 1rem; color: #60a5fa;">Loading Question...</h2>
+                <div id="quiz-timer-display" class="hidden" style="font-size: 1.5rem; font-weight: bold; color: #ef4444; margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.1); display: inline-block; padding: 4px 16px; border: 2px solid #ef4444; border-radius: 20px;">⏱️ <span id="quiz-timer-seconds">0</span>s</div>
                 <div class="quiz-grid">
                     <button class="quiz-btn" data-index="0">Option 1</button>
                     <button class="quiz-btn" data-index="1">Option 2</button>

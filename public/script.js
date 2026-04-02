@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnQuizNext = document.getElementById('btn-quiz-next');
     const btnQuizEnd = document.getElementById('btn-quiz-end');
     const btnQuizReset = document.getElementById('btn-quiz-reset');
+    
+    // Admin Auto-Jump Timer
+    const autoJumpSlider = document.getElementById('auto-jump-slider');
+    const autoJumpInput = document.getElementById('auto-jump-input');
 
     // Extra Elements to Hide During Quiz
     const headerEl = document.querySelector('header');
@@ -72,6 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let answeredQuestions = new Set();
     let myScore = 0;
     let userScoreListener = null;
+    let autoJumpTimeoutId = null;
+    let clientTimerIntervalId = null;
 
     let allUsers = {};
     let onlinePresence = {};
@@ -366,7 +372,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnQuizStart) {
         btnQuizStart.addEventListener('click', () => {
-            set(ref(db, 'admin/quizState'), { active: true, phase: 'question', questionIndex: 0 });
+            const timerSecs = parseInt(autoJumpInput?.value) || 0;
+            const stateObj = { active: true, phase: 'question', questionIndex: 0 };
+            if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
+            set(ref(db, 'admin/quizState'), stateObj);
         });
         btnQuizNext.addEventListener('click', () => {
             if (!oldQuizState) return;
@@ -374,7 +383,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (nextIdx >= quizData.length) {
                 set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
             } else {
-                set(ref(db, 'admin/quizState'), { active: true, phase: 'question', questionIndex: nextIdx });
+                const timerSecs = parseInt(autoJumpInput?.value) || 0;
+                const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
+                if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
+                set(ref(db, 'admin/quizState'), stateObj);
             }
         });
         btnQuizEnd.addEventListener('click', () => {
@@ -388,6 +400,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert("Quiz reset!");
             }
         });
+
+        // Sync slider and input
+        if (autoJumpSlider && autoJumpInput) {
+            autoJumpSlider.addEventListener('input', (e) => {
+                autoJumpInput.value = e.target.value;
+            });
+            autoJumpInput.addEventListener('input', (e) => {
+                let val = parseInt(e.target.value) || 0;
+                if (val < 0) val = 0;
+                if (val > 300) val = 300;
+                autoJumpSlider.value = val;
+            });
+        }
+    }
+
+    function clearAutoJump() {
+        if (autoJumpTimeoutId) {
+            clearTimeout(autoJumpTimeoutId);
+            autoJumpTimeoutId = null;
+        }
+    }
+
+    function clearClientTimer() {
+        if (clientTimerIntervalId) {
+            clearInterval(clientTimerIntervalId);
+            clientTimerIntervalId = null;
+        }
+        const timerDisplay = document.getElementById('quiz-timer-display');
+        if (timerDisplay) timerDisplay.classList.add('hidden');
     }
 
     onValue(ref(db, 'admin/quizState'), (snapshot) => {
@@ -411,11 +452,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (state && state.phase === 'question' && state.questionIndex !== oldQuizState?.questionIndex) {
             currentSelectedAnswer = null;
             quizBtns.forEach(b => b.classList.remove('selected'));
+            
+            clearAutoJump();
+            if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
+                const timerSecs = parseInt(autoJumpInput?.value) || 0;
+                if (timerSecs > 0) {
+                    autoJumpTimeoutId = setTimeout(() => {
+                        const nextIdx = state.questionIndex + 1;
+                        if (nextIdx >= quizData.length) {
+                            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+                        } else {
+                            const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
+                            if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
+                            set(ref(db, 'admin/quizState'), stateObj);
+                        }
+                    }, timerSecs * 1000);
+                }
+            }
         }
 
         oldQuizState = state;
 
         if (!state || !state.active) {
+            clearAutoJump();
+            clearClientTimer();
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
             if (cardsGrid) cardsGrid.classList.remove('hidden');
@@ -439,6 +499,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (userSidebar) userSidebar.classList.add('hidden');
             if (quizContainer) quizContainer.classList.remove('hidden');
             
+            const timerDisplay = document.getElementById('quiz-timer-display');
+            const timerSecondsEl = document.getElementById('quiz-timer-seconds');
+            clearClientTimer();
+            if (state.timerEnd && state.timerEnd > Date.now()) {
+                if (timerDisplay) timerDisplay.classList.remove('hidden');
+                
+                const updateTimer = () => {
+                    const remaining = Math.ceil((state.timerEnd - Date.now()) / 1000);
+                    if (remaining > 0) {
+                        if (timerSecondsEl) timerSecondsEl.textContent = remaining;
+                    } else {
+                        if (timerSecondsEl) timerSecondsEl.textContent = "0";
+                        if (clientTimerIntervalId) {
+                            clearInterval(clientTimerIntervalId);
+                            clientTimerIntervalId = null;
+                        }
+                    }
+                };
+                updateTimer();
+                clientTimerIntervalId = setInterval(updateTimer, 1000);
+            } else {
+                if (timerDisplay) timerDisplay.classList.add('hidden');
+            }
+            
             if (quizData[state.questionIndex]) {
                 const q = quizData[state.questionIndex];
                 if (quizQuestionEl) quizQuestionEl.textContent = `Q${state.questionIndex + 1}: ${q.question}`;
@@ -452,6 +536,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (btnQuizEnd) btnQuizEnd.disabled = false;
             
         } else if (state.phase === 'podium') {
+            clearAutoJump();
+            clearClientTimer();
             if (cardsGrid) cardsGrid.classList.add('hidden');
             if (interactiveDemo) interactiveDemo.classList.add('hidden');
             if (quizContainer) quizContainer.classList.add('hidden');
