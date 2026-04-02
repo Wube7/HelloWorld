@@ -10,12 +10,12 @@
     "correctIndex": 0
   },
   {
-    "question": "After years of planning to completely deprecate third-party cookies in Chrome, what did Google recently decide to do instead?",
+    "question": "Which open-weight AI models did Google release in 2024 for developers and researchers?",
     "options": [
-      "Ban all ad-tracking entirely",
-      "Replace them with FLoC permanently",
-      "Keep them but introduce a new user-choice prompt",
-      "Remove cookies only for mobile users"
+      "Llama",
+      "Mistral",
+      "Gemma",
+      "Claude"
     ],
     "correctIndex": 2
   },
@@ -30,12 +30,12 @@
     "correctIndex": 2
   },
   {
-    "question": "What historic scientific breakthrough was achieved by Google DeepMind's AlphaFold 3?",
+    "question": "What component inside the Google Tensor chip is specifically optimized for running machine learning tasks on-device?",
     "options": [
-      "Mapping the human brain",
-      "Predicting structures of all life's molecules including DNA and RNA",
-      "Finding the origin of dark matter",
-      "Achieving AGI"
+      "Neural Engine",
+      "Tensor Processing Unit (TPU)",
+      "Adreno GPU",
+      "Cortex AI core"
     ],
     "correctIndex": 1
   },
@@ -60,17 +60,17 @@
     "correctIndex": 1
   },
   {
-    "question": "In 2017, Google paid $1.1 billion to acquire a massive engineering team to turbocharge Pixel development. Which smartphone company did they acquire this team from?",
+    "question": "What platform does Google provide specifically for developers to quickly prototype and build apps using the Gemini API?",
     "options": [
-      "Motorola",
-      "LG",
-      "Nokia",
-      "HTC"
+      "Google AI Studio",
+      "Colab",
+      "Kaggle",
+      "TensorFlow Hub"
     ],
-    "correctIndex": 3
+    "correctIndex": 0
   },
   {
-    "question": "The striking horizontal 'Camera Bar' design that defines the modern look of Google phones was first introduced on which model?",
+    "question": "Which Pixel phone was the very first to feature Google's custom-built Tensor SoC?",
     "options": [
       "Pixel 4",
       "Pixel 5",
