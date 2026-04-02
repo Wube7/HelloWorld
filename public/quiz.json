@@ -1,101 +1,101 @@
 [
   {
-    "question": "What is Google's most advanced AI model family that comes in Nano, Pro, and Ultra sizes?",
+    "question": "Google recently integrated generative AI directly into its core Search experience to provide summaries for complex queries. What is this feature called?",
     "options": [
-      "Twin2",
-      "Gemini",
-      "PaLM 2",
-      "Gemma"
-    ],
-    "correctIndex": 1
-  },
-  {
-    "question": "Which Pixel 8 series feature uses AI to reduce unwanted background sounds in videos?",
-    "options": [
-      "Audio Magic Eraser",
-      "Video Boost",
-      "Clear Calling",
-      "Noise Cancel Pro"
+      "AI Overviews",
+      "SearchGPT",
+      "Gemini Search",
+      "Smart Answers"
     ],
     "correctIndex": 0
   },
   {
-    "question": "Which open-weight AI models did Google release in 2024 for developers and researchers?",
+    "question": "After years of planning to completely deprecate third-party cookies in Chrome, what did Google recently decide to do instead?",
     "options": [
-      "Llama",
-      "Mistral",
-      "Gemma",
-      "Claude"
+      "Ban all ad-tracking entirely",
+      "Replace them with FLoC permanently",
+      "Keep them but introduce a new user-choice prompt",
+      "Remove cookies only for mobile users"
     ],
     "correctIndex": 2
   },
   {
-    "question": "Which AI-powered Pixel camera feature lets you combine multiple group photos to get the perfect shot where everyone is smiling?",
+    "question": "Google recently merged its hardware teams (Pixel/Nest) and software teams (Android/Chrome) into one unified division. What is this new group called?",
     "options": [
-      "Magic Editor",
-      "Best Take",
-      "Face Unblur",
-      "Top Shot"
+      "Hardware & Android Nexus",
+      "Google Consumer Tech",
+      "Platforms & Devices",
+      "Pixel Systems Group"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "What historic scientific breakthrough was achieved by Google DeepMind's AlphaFold 3?",
+    "options": [
+      "Mapping the human brain",
+      "Predicting structures of all life's molecules including DNA and RNA",
+      "Finding the origin of dark matter",
+      "Achieving AGI"
     ],
     "correctIndex": 1
   },
   {
-    "question": "What component inside the Google Tensor chip is specifically optimized for running machine learning tasks on-device?",
+    "question": "Google's Gemini 1.5 Pro made headlines for its massive 'context window'. How much information can it process in a single prompt?",
     "options": [
-      "Neural Engine",
-      "Tensor Processing Unit (TPU)",
-      "Adreno GPU",
-      "Cortex AI core"
+      "100,000 tokens",
+      "500,000 tokens",
+      "Up to 2 million tokens (hours of video/audio)",
+      "Unlimited size"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "At Google I/O, DeepMind showcased 'Project Astra'. What is the goal of this breakthrough project?",
+    "options": [
+      "Building a fully autonomous self-driving car",
+      "A real-time AI agent that can see, hear, remember, and talk to you",
+      "Creating the world's most powerful quantum computer",
+      "Replacing all software engineers"
     ],
     "correctIndex": 1
   },
   {
-    "question": "Which revolutionary Google DeepMind AI system solved the grand challenge of predicting 3D protein structures?",
+    "question": "In 2017, Google paid $1.1 billion to acquire a massive engineering team to turbocharge Pixel development. Which smartphone company did they acquire this team from?",
     "options": [
-      "AlphaGo",
-      "AlphaFold",
-      "AlphaCode",
-      "AlphaStar"
+      "Motorola",
+      "LG",
+      "Nokia",
+      "HTC"
     ],
-    "correctIndex": 1
+    "correctIndex": 3
   },
   {
-    "question": "What is the name of the generative AI tool in Google Photos that lets you dramatically alter lighting or move subjects?",
-    "options": [
-      "Magic Editor",
-      "Photo Unblur",
-      "Generative Fill",
-      "Magic Eraser"
-    ],
-    "correctIndex": 0
-  },
-  {
-    "question": "Which Google AI assistant is being integrated deeply into Android to help with writing, summarizing, and complex reasoning?",
-    "options": [
-      "Google Assistant",
-      "Gemini",
-      "Duplex",
-      "Allo"
-    ],
-    "correctIndex": 1
-  },
-  {
-    "question": "What platform does Google provide specifically for developers to quickly prototype and build apps using the Gemini API?",
-    "options": [
-      "Google AI Studio",
-      "Colab",
-      "Kaggle",
-      "TensorFlow Hub"
-    ],
-    "correctIndex": 0
-  },
-  {
-    "question": "Which Pixel phone was the very first to feature Google's custom-built Tensor SoC?",
+    "question": "The striking horizontal 'Camera Bar' design that defines the modern look of Google phones was first introduced on which model?",
     "options": [
       "Pixel 4",
       "Pixel 5",
       "Pixel 6",
       "Pixel 7"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "The original Google Pixel phone from 2016 came with a highly coveted, exclusive perk that Google eventually stopped offering. What was it?",
+    "options": [
+      "Free YouTube Premium for life",
+      "Free unlimited original-quality Google Photos storage",
+      "A built-in physical keyboard attachment",
+      "A removable battery pack"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "Before they created the 'Pixel' brand, Google partnered with companies like LG and Samsung to build pure Android developer reference phones. What was this beloved series called?",
+    "options": [
+      "Android One",
+      "Google Play Edition",
+      "Nexus",
+      "Galaxy Google Edition"
     ],
     "correctIndex": 2
   }
