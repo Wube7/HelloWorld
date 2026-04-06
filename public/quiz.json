@@ -13,90 +13,90 @@
     "question": "What is Google's parent company called?",
     "options": [
       "Meta",
-      "Alphabet",
       "Android Inc",
+      "Alphabet",
       "Google Group"
     ],
-    "correctIndex": 1
+    "correctIndex": 2
   },
   {
     "question": "Which 2026 AI model improved core reasoning and agentic workflows?",
     "options": [
       "Gemini 1.0",
-      "Gemini 2.0",
       "Gemini 3.1 Pro",
+      "Gemini 2.0",
       "PaLM 2"
     ],
-    "correctIndex": 2
+    "correctIndex": 1
   },
   {
     "question": "What is the name of Google's headquarters in Mountain View?",
     "options": [
       "The Sphere",
       "Apple Park",
-      "Googleplex",
-      "The Hub"
+      "The Hub",
+      "Googleplex"
     ],
-    "correctIndex": 2
+    "correctIndex": 3
   },
   {
     "question": "Which custom chip will power the 2026 Pixel 11 series?",
     "options": [
       "Tensor G4",
-      "Tensor G5",
       "Tensor G6",
+      "Tensor G5",
       "Snapdragon 8"
     ],
-    "correctIndex": 2
+    "correctIndex": 1
   },
   {
     "question": "What feature guides Pixel users on lighting and photo composition?",
     "options": [
       "Magic Eraser",
-      "Camera Coach",
       "Photo Unblur",
-      "Best Take"
+      "Best Take",
+      "Camera Coach"
     ],
-    "correctIndex": 1
+    "correctIndex": 3
   },
   {
     "question": "Which open model series supports high-fidelity translation across 55 languages?",
     "options": [
-      "TranslateGemma",
       "Llama Translate",
+      "TranslateGemma",
       "Google Voice",
       "Babel Fish"
     ],
-    "correctIndex": 0
+    "correctIndex": 1
   },
   {
     "question": "What magnetic wireless charging standard was added to Pixel 10?",
     "options": [
-      "MagSafe",
       "Qi2",
+      "MagSafe",
       "AirPower",
       "FlashCharge"
     ],
-    "correctIndex": 1
+    "correctIndex": 0
   },
   {
     "question": "Which AI feature proactively suggests relevant actions across different apps?",
     "options": [
       "Smart Link",
-      "Magic Cue",
       "Action Center",
+      "Magic Cue",
       "Task Master"
     ],
-    "correctIndex": 1
+    "correctIndex": 2
   },
   {
     "question": "What is the massive, tent-like Google campus addition called?",
     "options": [
       "The Quad",
-      "North Bayshore",
       "Bay View",
+      "North Bayshore",
       "Google East"
     ],
-    "correctIndex": 2
+    "correctIndex": 1
   }
 ]
