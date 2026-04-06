@@ -1,101 +1,101 @@
 [
   {
-    "question": "Google recently integrated generative AI directly into its core Search experience to provide summaries for complex queries. What is this feature called?",
+    "question": "Who is the current CEO of both Google and Alphabet?",
     "options": [
-      "AI Overviews",
-      "SearchGPT",
-      "Gemini Search",
-      "Smart Answers"
+      "Sundar Pichai",
+      "Demis Hassabis",
+      "Larry Page",
+      "Sergey Brin"
     ],
     "correctIndex": 0
   },
   {
-    "question": "Which open-weight AI models did Google release in 2024 for developers and researchers?",
+    "question": "What is Google's parent company called?",
     "options": [
-      "Llama",
-      "Mistral",
-      "Gemma",
-      "Claude"
-    ],
-    "correctIndex": 2
-  },
-  {
-    "question": "Google recently merged its hardware teams (Pixel/Nest) and software teams (Android/Chrome) into one unified division. What is this new group called?",
-    "options": [
-      "Hardware & Android Nexus",
-      "Google Consumer Tech",
-      "Platforms & Devices",
-      "Pixel Systems Group"
-    ],
-    "correctIndex": 2
-  },
-  {
-    "question": "What component inside the Google Tensor chip is specifically optimized for running machine learning tasks on-device?",
-    "options": [
-      "Neural Engine",
-      "Tensor Processing Unit (TPU)",
-      "Adreno GPU",
-      "Cortex AI core"
+      "Meta",
+      "Alphabet",
+      "Android Inc",
+      "Google Group"
     ],
     "correctIndex": 1
   },
   {
-    "question": "Google's Gemini 1.5 Pro made headlines for its massive 'context window'. How much information can it process in a single prompt?",
+    "question": "Which 2026 AI model improved core reasoning and agentic workflows?",
     "options": [
-      "100,000 tokens",
-      "500,000 tokens",
-      "Up to 2 million tokens (hours of video/audio)",
-      "Unlimited size"
+      "Gemini 1.0",
+      "Gemini 2.0",
+      "Gemini 3.1 Pro",
+      "PaLM 2"
     ],
     "correctIndex": 2
   },
   {
-    "question": "At Google I/O, DeepMind showcased 'Project Astra'. What is the goal of this breakthrough project?",
+    "question": "What is the name of Google's headquarters in Mountain View?",
     "options": [
-      "Building a fully autonomous self-driving car",
-      "A real-time AI agent that can see, hear, remember, and talk to you",
-      "Creating the world's most powerful quantum computer",
-      "Replacing all software engineers"
+      "The Sphere",
+      "Apple Park",
+      "Googleplex",
+      "The Hub"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "Which custom chip will power the 2026 Pixel 11 series?",
+    "options": [
+      "Tensor G4",
+      "Tensor G5",
+      "Tensor G6",
+      "Snapdragon 8"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "question": "What feature guides Pixel users on lighting and photo composition?",
+    "options": [
+      "Magic Eraser",
+      "Camera Coach",
+      "Photo Unblur",
+      "Best Take"
     ],
     "correctIndex": 1
   },
   {
-    "question": "What platform does Google provide specifically for developers to quickly prototype and build apps using the Gemini API?",
+    "question": "Which open model series supports high-fidelity translation across 55 languages?",
     "options": [
-      "Google AI Studio",
-      "Colab",
-      "Kaggle",
-      "TensorFlow Hub"
+      "TranslateGemma",
+      "Llama Translate",
+      "Google Voice",
+      "Babel Fish"
     ],
     "correctIndex": 0
   },
   {
-    "question": "Which Pixel phone was the very first to feature Google's custom-built Tensor SoC?",
+    "question": "What magnetic wireless charging standard was added to Pixel 10?",
     "options": [
-      "Pixel 4",
-      "Pixel 5",
-      "Pixel 6",
-      "Pixel 7"
-    ],
-    "correctIndex": 2
-  },
-  {
-    "question": "The original Google Pixel phone from 2016 came with a highly coveted, exclusive perk that Google eventually stopped offering. What was it?",
-    "options": [
-      "Free YouTube Premium for life",
-      "Free unlimited original-quality Google Photos storage",
-      "A built-in physical keyboard attachment",
-      "A removable battery pack"
+      "MagSafe",
+      "Qi2",
+      "AirPower",
+      "FlashCharge"
     ],
     "correctIndex": 1
   },
   {
-    "question": "Before they created the 'Pixel' brand, Google partnered with companies like LG and Samsung to build pure Android developer reference phones. What was this beloved series called?",
+    "question": "Which AI feature proactively suggests relevant actions across different apps?",
     "options": [
-      "Android One",
-      "Google Play Edition",
-      "Nexus",
-      "Galaxy Google Edition"
+      "Smart Link",
+      "Magic Cue",
+      "Action Center",
+      "Task Master"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "question": "What is the massive, tent-like Google campus addition called?",
+    "options": [
+      "The Quad",
+      "North Bayshore",
+      "Bay View",
+      "Google East"
     ],
     "correctIndex": 2
   }
