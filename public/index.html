@@ -181,32 +181,49 @@
             <!-- KBC Input View -->
             <section id="kbc-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
                 <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: #f472b6;">🎲 Keynesian Beauty Contest</h2>
-                <div id="kbc-round-display" style="font-size: 1.2rem; color: #e2e8f0; margin-bottom: 1rem;">Round <span id="kbc-round-num">1</span></div>
-                <div id="kbc-my-points" class="kbc-points-badge">Your Points: <span id="kbc-my-points-val">10</span></div>
                 
-                <div id="kbc-input-area">
-                    <p style="color: #94a3b8; margin-bottom: 1rem;">Pick an integer from 0 to 100. The winner is closest to ⅔ of the average!</p>
-                    <div class="kbc-slider-area">
-                        <input type="range" id="kbc-slider" min="0" max="100" value="50" step="1">
-                        <input type="number" id="kbc-number-input" min="0" max="100" value="50" style="width: 65px; padding: 6px; border-radius: 8px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white; font-size: 1.2rem; text-align: center;">
+                <!-- Game / History Toggle -->
+                <div class="kbc-view-toggle" style="margin-bottom: 1rem;">
+                    <button id="kbc-tab-game" class="kbc-tab active" onclick="document.getElementById('kbc-game-view').classList.remove('hidden'); document.getElementById('kbc-history-view').classList.add('hidden'); this.classList.add('active'); document.getElementById('kbc-tab-history').classList.remove('active');">🎮 Game</button>
+                    <button id="kbc-tab-history" class="kbc-tab" onclick="document.getElementById('kbc-history-view').classList.remove('hidden'); document.getElementById('kbc-game-view').classList.add('hidden'); this.classList.add('active'); document.getElementById('kbc-tab-game').classList.remove('active');">📜 History</button>
+                </div>
+
+                <!-- Game View -->
+                <div id="kbc-game-view">
+                    <div id="kbc-round-display" style="font-size: 1.2rem; color: #e2e8f0; margin-bottom: 1rem;">Round <span id="kbc-round-num">1</span></div>
+                    <div id="kbc-my-points" class="kbc-points-badge">Your Points: <span id="kbc-my-points-val">10</span></div>
+                    
+                    <div id="kbc-input-area">
+                        <p style="color: #94a3b8; margin-bottom: 1rem;">Pick an integer from 0 to 100. The winner is closest to ⅔ of the average!</p>
+                        <div class="kbc-slider-area">
+                            <input type="range" id="kbc-slider" min="0" max="100" value="50" step="1">
+                            <input type="number" id="kbc-number-input" min="0" max="100" value="50" style="width: 65px; padding: 6px; border-radius: 8px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white; font-size: 1.2rem; text-align: center;">
+                        </div>
+                        <button id="btn-kbc-submit" class="primary-btn" style="margin-top: 1.5rem; background: linear-gradient(135deg, #ec4899, #f472b6);">Submit Number</button>
                     </div>
-                    <button id="btn-kbc-submit" class="primary-btn" style="margin-top: 1.5rem; background: linear-gradient(135deg, #ec4899, #f472b6);">Submit Number</button>
+
+                    <div id="kbc-waiting" class="hidden" style="margin-top: 1.5rem;">
+                        <p style="font-size: 1.3rem; color: #a78bfa;">✅ You picked <span id="kbc-my-pick" style="font-weight: 800; color: #f472b6;">—</span></p>
+                        <p style="color: #94a3b8; margin-top: 0.5rem;">Waiting for other players... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
+                    </div>
+
+                    <div id="kbc-eliminated" class="hidden" style="margin-top: 1.5rem;">
+                        <p style="font-size: 1.3rem; color: #ef4444;">💀 You have 0 points — eliminated!</p>
+                        <p style="color: #94a3b8; margin-top: 0.5rem;">Watch the remaining players battle it out.</p>
+                    </div>
+
+                    <!-- Scoreboard always visible during game -->
+                    <div id="kbc-scoreboard" style="margin-top: 2rem; text-align: left;">
+                        <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Scoreboard</h3>
+                        <ul id="kbc-score-list" class="user-list"></ul>
+                    </div>
                 </div>
 
-                <div id="kbc-waiting" class="hidden" style="margin-top: 1.5rem;">
-                    <p style="font-size: 1.3rem; color: #a78bfa;">✅ You picked <span id="kbc-my-pick" style="font-weight: 800; color: #f472b6;">—</span></p>
-                    <p style="color: #94a3b8; margin-top: 0.5rem;">Waiting for other players... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
-                </div>
-
-                <div id="kbc-eliminated" class="hidden" style="margin-top: 1.5rem;">
-                    <p style="font-size: 1.3rem; color: #ef4444;">💀 You have 0 points — eliminated!</p>
-                    <p style="color: #94a3b8; margin-top: 0.5rem;">Watch the remaining players battle it out.</p>
-                </div>
-
-                <!-- Scoreboard always visible during game -->
-                <div id="kbc-scoreboard" style="margin-top: 2rem; text-align: left;">
-                    <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Scoreboard</h3>
-                    <ul id="kbc-score-list" class="user-list"></ul>
+                <!-- History View -->
+                <div id="kbc-history-view" class="hidden" style="text-align: left;">
+                    <div id="kbc-history-content" style="overflow-x: auto;">
+                        <p style="color: #94a3b8; text-align: center;">No rounds played yet.</p>
+                    </div>
                 </div>
             </section>
 
@@ -265,6 +282,6 @@
             <p>Built by Antigravity AI.</p>
         </footer>
     </div>
-    <script type="module" src="script.js?v=8"></script>
+    <script type="module" src="script.js?v=9"></script>
 </body>
 </html>

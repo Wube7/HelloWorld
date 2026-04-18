@@ -884,6 +884,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Helper: render KBC round history as a table
+    function renderKbcHistory(history, players) {
+        const container = document.getElementById('kbc-history-content');
+        if (!container) return;
+
+        if (!history || history.length === 0) {
+            container.innerHTML = '<p style="color: #94a3b8; text-align: center;">No rounds played yet.</p>';
+            return;
+        }
+
+        // Collect all unique player UIDs from history
+        const allPlayerUids = [];
+        const playerNameMap = {};
+        if (players) {
+            for (const [uid, p] of Object.entries(players)) {
+                if (!allPlayerUids.includes(uid)) allPlayerUids.push(uid);
+                playerNameMap[uid] = p.name;
+            }
+        }
+        history.forEach(entry => {
+            if (entry.submissions) {
+                for (const [uid, s] of Object.entries(entry.submissions)) {
+                    if (!allPlayerUids.includes(uid)) allPlayerUids.push(uid);
+                    if (!playerNameMap[uid]) playerNameMap[uid] = s.name;
+                }
+            }
+        });
+
+        let html = '<table class="kbc-history-table"><thead><tr><th>Round</th>';
+        allPlayerUids.forEach(uid => {
+            html += `<th>${playerNameMap[uid] || '?'}</th>`;
+        });
+        html += '<th>Avg</th><th>⅔×Avg</th></tr></thead><tbody>';
+
+        history.forEach(entry => {
+            html += '<tr>';
+            html += `<td style="font-weight: 700; color: #f472b6;">R${entry.round}</td>`;
+            allPlayerUids.forEach(uid => {
+                const sub = entry.submissions?.[uid];
+                if (!sub || sub.pick === null || sub.pick === undefined) {
+                    html += '<td style="color: #64748b;">—</td>';
+                } else if (sub.isWinner) {
+                    html += `<td class="kbc-winner-cell">🏆 ${sub.pick}</td>`;
+                } else {
+                    html += `<td>${sub.pick}</td>`;
+                }
+            });
+            html += `<td class="kbc-round-info">${entry.average}</td>`;
+            html += `<td class="kbc-round-info">${entry.target}</td>`;
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
     // Admin: Start Contest
     if (btnKbcStart) {
         btnKbcStart.addEventListener('click', () => {
@@ -1034,6 +1090,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 winnerPicks: winnerPicks.join(', ')
             };
 
+            // Build history entry for this round
+            const historyEntry = {
+                round: state.round,
+                average: lastResult.average,
+                target: lastResult.target,
+                winnerUids: Array.from(winnerUids),
+                submissions: {}
+            };
+            for (const [uid, p] of Object.entries(players)) {
+                historyEntry.submissions[uid] = {
+                    name: p.name,
+                    pick: typeof p.submitted === 'number' ? p.submitted : null,
+                    isWinner: winnerUids.has(uid)
+                };
+            }
+            const existingHistory = state.history || [];
+            existingHistory.push(historyEntry);
+
             if (remainingActive.length <= 1) {
                 // Game over
                 await set(ref(db, 'admin/kbcState'), {
@@ -1041,7 +1115,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     round: state.round,
                     phase: 'ended',
                     players: updatedPlayers,
-                    lastResult: lastResult
+                    lastResult: lastResult,
+                    history: existingHistory
                 });
             } else {
                 // Show result, then auto-advance to next round after a delay
@@ -1050,7 +1125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     round: state.round,
                     phase: 'result',
                     players: updatedPlayers,
-                    lastResult: lastResult
+                    lastResult: lastResult,
+                    history: existingHistory
                 });
                 // After 6 seconds, advance to next input round
                 setTimeout(async () => {
@@ -1063,7 +1139,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         active: true,
                         round: state.round + 1,
                         phase: 'input',
-                        players: nextPlayers
+                        players: nextPlayers,
+                        history: existingHistory
                     });
                 }, 6000);
             }
@@ -1149,6 +1226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Render scoreboard
             renderKbcScoreboard(document.getElementById('kbc-score-list'), players);
+            renderKbcHistory(state.history, players);
 
             // Check if all active players submitted → admin auto-resolves
             if (submittedCount >= activePlayers.length && activePlayers.length > 0) {
@@ -1172,6 +1250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (winnerPickEl) winnerPickEl.textContent = r.winnerPicks || '—';
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
+            renderKbcHistory(state.history, players);
 
         } else if (state.phase === 'ended') {
             currentQuizPhase = 'kbc-ended';
@@ -1197,6 +1276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             renderKbcScoreboard(document.getElementById('kbc-final-score-list'), players);
+            renderKbcHistory(state.history, players);
         }
     });
 });
