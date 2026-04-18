@@ -266,20 +266,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Listen to Global View
+    let currentGlobalViewMode = 'main';
+    let currentQuizPhase = 'idle';
+
+    function updateVisibilityState() {
+        if (currentQuizPhase === 'question') {
+            if (cardsGrid) cardsGrid.classList.add('hidden');
+            if (interactiveDemo) interactiveDemo.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (headerEl) headerEl.classList.add('hidden');
+            if (qrCodeEl) qrCodeEl.classList.add('hidden');
+            if (chatDemoSection) chatDemoSection.classList.add('hidden');
+            if (userSidebar) userSidebar.classList.add('hidden');
+            if (quizContainer) quizContainer.classList.remove('hidden');
+            if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+        } else if (currentQuizPhase === 'podium') {
+            if (cardsGrid) cardsGrid.classList.add('hidden');
+            if (interactiveDemo) interactiveDemo.classList.add('hidden');
+            if (quizContainer) quizContainer.classList.add('hidden');
+            if (headerEl) headerEl.classList.add('hidden');
+            if (qrCodeEl) qrCodeEl.classList.add('hidden');
+            if (chatDemoSection) chatDemoSection.classList.add('hidden');
+            if (userSidebar) userSidebar.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.remove('hidden');
+            if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+        } else {
+            // Idle Phase (Quiz inactive)
+            if (quizContainer) quizContainer.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (headerEl) headerEl.classList.remove('hidden');
+            if (qrCodeEl) qrCodeEl.classList.remove('hidden');
+            if (chatDemoSection) chatDemoSection.classList.remove('hidden');
+            if (userSidebar) userSidebar.classList.remove('hidden');
+
+            if (currentGlobalViewMode === 'chat') {
+                if (cardsGrid) cardsGrid.classList.add('hidden');
+                if (interactiveDemo) interactiveDemo.classList.add('hidden');
+                if (chatContainer) chatContainer.classList.add('big-chat-mode');
+            } else {
+                if (cardsGrid) cardsGrid.classList.remove('hidden');
+                if (interactiveDemo) interactiveDemo.classList.remove('hidden');
+                if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+            }
+        }
+    }
+
     const globalViewRef = ref(db, 'admin/globalView');
     onValue(globalViewRef, (snapshot) => {
         const data = snapshot.val();
-        if (data && data.view === 'chat') {
-            if (cardsGrid) cardsGrid.classList.add('hidden');
-            if (interactiveDemo) interactiveDemo.classList.add('hidden');
-            if (chatContainer) chatContainer.classList.add('big-chat-mode');
-            if (globalViewToggle) globalViewToggle.checked = true;
-        } else {
-            if (cardsGrid) cardsGrid.classList.remove('hidden');
-            if (interactiveDemo) interactiveDemo.classList.remove('hidden');
-            if (chatContainer) chatContainer.classList.remove('big-chat-mode');
-            if (globalViewToggle) globalViewToggle.checked = false;
-        }
+        currentGlobalViewMode = (data && data.view) || 'main';
+        if (globalViewToggle) globalViewToggle.checked = (currentGlobalViewMode === 'chat');
+        updateVisibilityState();
     });
 
     // Existing Interaction logic
@@ -481,28 +518,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!state || !state.active) {
             clearAutoJump();
             clearClientTimer();
-            if (quizContainer) quizContainer.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (cardsGrid) cardsGrid.classList.remove('hidden');
-            if (interactiveDemo) interactiveDemo.classList.remove('hidden');
-            if (headerEl) headerEl.classList.remove('hidden');
-            if (qrCodeEl) qrCodeEl.classList.remove('hidden');
-            if (chatDemoSection) chatDemoSection.classList.remove('hidden');
-            if (userSidebar) userSidebar.classList.remove('hidden');
+            currentQuizPhase = 'idle';
+            updateVisibilityState();
             
             if (btnQuizStart) btnQuizStart.disabled = false;
             if (btnQuizNext) btnQuizNext.disabled = true;
             if (btnQuizEnd) btnQuizEnd.disabled = true;
             
         } else if (state.phase === 'question') {
-            if (cardsGrid) cardsGrid.classList.add('hidden');
-            if (interactiveDemo) interactiveDemo.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (headerEl) headerEl.classList.add('hidden');
-            if (qrCodeEl) qrCodeEl.classList.add('hidden');
-            if (chatDemoSection) chatDemoSection.classList.add('hidden');
-            if (userSidebar) userSidebar.classList.add('hidden');
-            if (quizContainer) quizContainer.classList.remove('hidden');
+            currentQuizPhase = 'question';
+            updateVisibilityState();
             
             const timerDisplay = document.getElementById('quiz-timer-display');
             const timerSecondsEl = document.getElementById('quiz-timer-seconds');
@@ -543,14 +568,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (state.phase === 'podium') {
             clearAutoJump();
             clearClientTimer();
-            if (cardsGrid) cardsGrid.classList.add('hidden');
-            if (interactiveDemo) interactiveDemo.classList.add('hidden');
-            if (quizContainer) quizContainer.classList.add('hidden');
-            if (headerEl) headerEl.classList.add('hidden');
-            if (qrCodeEl) qrCodeEl.classList.add('hidden');
-            if (chatDemoSection) chatDemoSection.classList.add('hidden');
-            if (userSidebar) userSidebar.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.remove('hidden');
+            currentQuizPhase = 'podium';
+            updateVisibilityState();
             
             if (btnQuizStart) btnQuizStart.disabled = false;
             if (btnQuizNext) btnQuizNext.disabled = true;
