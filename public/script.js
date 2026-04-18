@@ -726,6 +726,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const btnQuizTemplate = document.getElementById('btn-quiz-template');
+    if (btnQuizTemplate) {
+        btnQuizTemplate.addEventListener('click', () => {
+            const template = [
+                {
+                    "question": "What is the capital of the Moon?",
+                    "options": ["Crater City", "Sea of Tranquility", "Dark Side Town", "Cheese Village"],
+                    "correctIndex": 1
+                },
+                {
+                    "question": "How many legs does a programmer's chair have?",
+                    "options": ["4, but one is wobbly", "3 and a stack of books", "5 spinning wheels", "Who needs a chair?"],
+                    "correctIndex": 2
+                },
+                {
+                    "question": "What does AI stand for?",
+                    "options": ["Absolutely Incredible", "Artificial Intelligence", "Always Indecisive", "Another Invoice"],
+                    "correctIndex": 1
+                }
+            ];
+
+            const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quiz_template.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+
     // 6. User Sidebar Logic
     const userListEl = document.getElementById('user-list');
     const hideAnonToggle = document.getElementById('hide-anon-toggle');
