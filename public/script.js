@@ -1185,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     history: existingHistory,
                     zeroRuleActive: nextZeroRuleActive
                 });
-                // After 6 seconds, advance to next input round
+                // After 3 seconds, advance to next input round
                 setTimeout(async () => {
                     // Clear submitted and advance round
                     const nextPlayers = {};
@@ -1200,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         history: existingHistory,
                         zeroRuleActive: nextZeroRuleActive
                     });
-                }, 6000);
+                }, 3000);
             }
         } catch (err) {
             console.error('KBC resolve error:', err);
