@@ -667,17 +667,19 @@ input:checked + .slider:before {
     font-family: inherit;
 }
 
-.quiz-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    border-color: var(--accent-1);
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+@media (hover: hover) {
+    .quiz-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+    }
 }
 
 .quiz-btn.selected {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.3);
     border-color: var(--accent-1);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
     transform: scale(1.02);
 }
 

@@ -509,7 +509,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (state && state.phase === 'question' && state.questionIndex !== oldQuizState?.questionIndex) {
             currentSelectedAnswer = null;
-            quizBtns.forEach(b => b.classList.remove('selected'));
+            quizBtns.forEach(b => {
+                b.classList.remove('selected');
+                b.blur();
+            });
             
             clearAutoJump();
             if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
