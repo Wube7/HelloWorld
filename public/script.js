@@ -1048,15 +1048,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             const avg = sum / submittedPlayers.length;
             const target = avg * 2 / 3;
 
+            const zeroPickCount = submittedPlayers.filter(([, p]) => p.submitted === 0).length;
+            const disqualifyZero = zeroPickCount > 2;
+
+            let eligiblePlayers = submittedPlayers;
+            if (disqualifyZero) {
+                const nonZeroPlayers = submittedPlayers.filter(([, p]) => p.submitted !== 0);
+                // If there are other players who picked >0, make them the only eligible winners
+                if (nonZeroPlayers.length > 0) {
+                    eligiblePlayers = nonZeroPlayers;
+                } else {
+                    // Everyone picked 0, so nobody wins (clean empty set)
+                    eligiblePlayers = [];
+                }
+            }
+
             // Find closest
             let minDist = Infinity;
-            submittedPlayers.forEach(([, p]) => {
+            eligiblePlayers.forEach(([, p]) => {
                 const dist = Math.abs(p.submitted - target);
                 if (dist < minDist) minDist = dist;
             });
 
             const winnerUids = new Set();
-            submittedPlayers.forEach(([uid, p]) => {
+            eligiblePlayers.forEach(([uid, p]) => {
                 if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
             });
 
