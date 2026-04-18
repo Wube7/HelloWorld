@@ -67,6 +67,11 @@
                             <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
                             <button id="btn-quiz-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
                         </div>
+                        <div class="admin-quiz-controls" style="margin-top: 0.5rem;">
+                            <input type="file" id="quiz-upload-input" accept=".json" style="display: none;">
+                            <button id="btn-quiz-upload" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5);">Upload Custom Quiz JSON</button>
+                            <button id="btn-quiz-default" class="primary-btn btn-sm" style="background: rgba(107, 114, 128, 0.2); border: 1px solid rgba(107, 114, 128, 0.5);">Revert to Default Quiz</button>
+                        </div>
                         <div class="admin-timer-controls" style="margin-top: 1rem; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;">
                             <label for="auto-jump-slider" style="color:#e2e8f0; font-size:0.9rem; flex-shrink: 0;">Auto-Jump Timer (sec):</label>
                             <input type="range" id="auto-jump-slider" min="0" max="300" value="0" step="5" style="flex:1;">

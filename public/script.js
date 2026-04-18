@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnQuizNext = document.getElementById('btn-quiz-next');
     const btnQuizEnd = document.getElementById('btn-quiz-end');
     const btnQuizReset = document.getElementById('btn-quiz-reset');
+    const btnQuizUpload = document.getElementById('btn-quiz-upload');
+    const btnQuizDefault = document.getElementById('btn-quiz-default');
+    const quizUploadInput = document.getElementById('quiz-upload-input');
     
     // Admin Auto-Jump Timer
     const autoJumpSlider = document.getElementById('auto-jump-slider');
@@ -71,10 +74,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userSidebar = document.getElementById('user-sidebar');
 
     let quizData = [];
+    let defaultQuizData = [];
     try {
         const res = await fetch('quiz.json');
-        quizData = await res.json();
-    } catch(e) { console.error("Could not load quiz.json"); }
+        defaultQuizData = await res.json();
+        quizData = defaultQuizData;
+    } catch(e) { console.error("Could not load quiz.json fallback"); }
 
     let oldQuizState = null;
     let currentSelectedAnswer = null;
@@ -270,6 +275,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentQuizPhase = 'idle';
 
     function updateVisibilityState() {
+        if (btnQuizUpload) btnQuizUpload.disabled = (currentQuizPhase === 'question');
+        if (btnQuizDefault) btnQuizDefault.disabled = (currentQuizPhase === 'question');
+
         if (currentQuizPhase === 'question') {
             if (cardsGrid) cardsGrid.classList.add('hidden');
             if (interactiveDemo) interactiveDemo.classList.add('hidden');
@@ -310,6 +318,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     }
+
+    onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
+        if (snapshot.exists() && Array.isArray(snapshot.val())) {
+            quizData = snapshot.val();
+        } else {
+            quizData = defaultQuizData;
+        }
+    });
 
     const globalViewRef = ref(db, 'admin/globalView');
     onValue(globalViewRef, (snapshot) => {
@@ -654,6 +670,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     // -------------------
+
+    // Quiz Upload Logic
+    if (btnQuizUpload) {
+        btnQuizUpload.addEventListener('click', () => {
+            quizUploadInput.click();
+        });
+    }
+
+    if (quizUploadInput) {
+        quizUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("JSON must be a non-empty array.");
+                    
+                    parsed.forEach((q, idx) => {
+                        if (!q.question || typeof q.question !== 'string') throw new Error(`Question ${idx + 1} is missing a valid 'question' string.`);
+                        if (!Array.isArray(q.options) || q.options.length < 2) throw new Error(`Question ${idx + 1} must have an 'options' array with at least 2 items.`);
+                        if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new Error(`Question ${idx + 1} has an invalid 'correctIndex'.`);
+                    });
+
+                    set(ref(db, 'admin/currentQuizData'), parsed)
+                        .then(() => {
+                            alert("Custom quiz uploaded and deployed successfully!");
+                            e.target.value = ''; // reset
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert("Failed to save to database. Check permissions.");
+                        });
+                } catch(error) {
+                    alert("Invalid Quiz JSON format: \n" + error.message);
+                    e.target.value = ''; // reset
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    if (btnQuizDefault) {
+        btnQuizDefault.addEventListener('click', () => {
+            if (confirm("Are you sure you want to revert to the default quiz data? All participants will immediately sync.")) {
+                remove(ref(db, 'admin/currentQuizData'))
+                    .then(() => alert("Reverted to default quiz successfully!"))
+                    .catch(err => alert("Failed to revert: " + err.message));
+            }
+        });
+    }
 
     // 6. User Sidebar Logic
     const userListEl = document.getElementById('user-list');

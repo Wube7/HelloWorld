@@ -35,6 +35,10 @@
       "quizState": {
         ".read": true,
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
+      "currentQuizData": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
       }
     }
   }
