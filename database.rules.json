@@ -39,6 +39,17 @@
       "currentQuizData": {
         ".read": true,
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
+      "kbcState": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
+        "players": {
+          "$uid": {
+            "submitted": {
+              ".write": "auth != null && auth.uid == $uid"
+            }
+          }
+        }
       }
     }
   }

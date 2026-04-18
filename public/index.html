@@ -86,6 +86,16 @@
                             </div>
                         </div>
                     </div>
+
+                    <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h3 style="margin-bottom: 1rem; color: #f472b6;">🎲 Keynesian Beauty Contest</h3>
+                        <div class="admin-quiz-controls">
+                            <button id="btn-kbc-start" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5);">Start Contest</button>
+                            <button id="btn-kbc-end" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5);" disabled>End Contest</button>
+                            <button id="btn-kbc-force" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);" disabled>Force Resolve</button>
+                            <button id="btn-kbc-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
+                        </div>
+                    </div>
                 </div>
 
                 <section class="cards-grid">
@@ -165,6 +175,72 @@
                     <ul id="podium-full-list" class="user-list">
                         <!-- Sorted players populated here -->
                     </ul>
+                </div>
+            </section>
+
+            <!-- KBC Input View -->
+            <section id="kbc-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: #f472b6;">🎲 Keynesian Beauty Contest</h2>
+                <div id="kbc-round-display" style="font-size: 1.2rem; color: #e2e8f0; margin-bottom: 1rem;">Round <span id="kbc-round-num">1</span></div>
+                <div id="kbc-my-points" class="kbc-points-badge">Your Points: <span id="kbc-my-points-val">10</span></div>
+                
+                <div id="kbc-input-area">
+                    <p style="color: #94a3b8; margin-bottom: 1rem;">Pick an integer from 0 to 100. The winner is closest to ⅔ of the average!</p>
+                    <div class="kbc-slider-area">
+                        <input type="range" id="kbc-slider" min="0" max="100" value="50" step="1">
+                        <input type="number" id="kbc-number-input" min="0" max="100" value="50" style="width: 65px; padding: 6px; border-radius: 8px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white; font-size: 1.2rem; text-align: center;">
+                    </div>
+                    <button id="btn-kbc-submit" class="primary-btn" style="margin-top: 1.5rem; background: linear-gradient(135deg, #ec4899, #f472b6);">Submit Number</button>
+                </div>
+
+                <div id="kbc-waiting" class="hidden" style="margin-top: 1.5rem;">
+                    <p style="font-size: 1.3rem; color: #a78bfa;">✅ You picked <span id="kbc-my-pick" style="font-weight: 800; color: #f472b6;">—</span></p>
+                    <p style="color: #94a3b8; margin-top: 0.5rem;">Waiting for other players... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
+                </div>
+
+                <div id="kbc-eliminated" class="hidden" style="margin-top: 1.5rem;">
+                    <p style="font-size: 1.3rem; color: #ef4444;">💀 You have 0 points — eliminated!</p>
+                    <p style="color: #94a3b8; margin-top: 0.5rem;">Watch the remaining players battle it out.</p>
+                </div>
+
+                <!-- Scoreboard always visible during game -->
+                <div id="kbc-scoreboard" style="margin-top: 2rem; text-align: left;">
+                    <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Scoreboard</h3>
+                    <ul id="kbc-score-list" class="user-list"></ul>
+                </div>
+            </section>
+
+            <!-- KBC Result View -->
+            <section id="kbc-result-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem; color: #f472b6;">🎲 Round Result</h2>
+                <div class="kbc-result-card">
+                    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <div class="kbc-stat">
+                            <div class="kbc-stat-label">Average (X)</div>
+                            <div class="kbc-stat-value" id="kbc-res-avg">—</div>
+                        </div>
+                        <div class="kbc-stat">
+                            <div class="kbc-stat-label">Target (⅔ × X)</div>
+                            <div class="kbc-stat-value" id="kbc-res-target" style="color: #f472b6;">—</div>
+                        </div>
+                    </div>
+                    <div id="kbc-res-winner" style="font-size: 1.5rem; margin-bottom: 1rem;">
+                        🏆 <span id="kbc-res-winner-name" style="font-weight: 800; color: #fbbf24;">—</span> wins with <span id="kbc-res-winner-pick" style="color: #60a5fa;">—</span>!
+                    </div>
+                </div>
+                <div id="kbc-res-scoreboard" style="margin-top: 1.5rem; text-align: left;">
+                    <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Updated Scores</h3>
+                    <ul id="kbc-res-score-list" class="user-list"></ul>
+                </div>
+            </section>
+
+            <!-- KBC Game Over View -->
+            <section id="kbc-gameover-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: #fbbf24;">🏆 Contest Over! 🏆</h2>
+                <div id="kbc-final-winner" style="font-size: 1.8rem; margin-bottom: 2rem;"></div>
+                <div style="text-align: left;">
+                    <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Final Standings</h3>
+                    <ul id="kbc-final-score-list" class="user-list"></ul>
                 </div>
             </section>
 

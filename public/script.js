@@ -93,6 +93,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let onlinePresence = {};
     let allQuizScores = {};
 
+    // KBC (Keynesian Beauty Contest) Elements
+    const kbcContainer = document.getElementById('kbc-container');
+    const kbcResultContainer = document.getElementById('kbc-result-container');
+    const kbcGameoverContainer = document.getElementById('kbc-gameover-container');
+    const btnKbcStart = document.getElementById('btn-kbc-start');
+    const btnKbcEnd = document.getElementById('btn-kbc-end');
+    const btnKbcForce = document.getElementById('btn-kbc-force');
+    const btnKbcReset = document.getElementById('btn-kbc-reset');
+    const kbcSlider = document.getElementById('kbc-slider');
+    const kbcNumberInput = document.getElementById('kbc-number-input');
+    const btnKbcSubmit = document.getElementById('btn-kbc-submit');
+    let kbcResolving = false; // guard to prevent double-resolve
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -278,30 +291,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnQuizUpload) btnQuizUpload.disabled = (currentQuizPhase === 'question');
         if (btnQuizDefault) btnQuizDefault.disabled = (currentQuizPhase === 'question');
 
-        if (currentQuizPhase === 'question') {
-            if (cardsGrid) cardsGrid.classList.add('hidden');
-            if (interactiveDemo) interactiveDemo.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (headerEl) headerEl.classList.add('hidden');
-            if (qrCodeEl) qrCodeEl.classList.add('hidden');
-            if (chatDemoSection) chatDemoSection.classList.add('hidden');
-            if (userSidebar) userSidebar.classList.add('hidden');
-            if (quizContainer) quizContainer.classList.remove('hidden');
-            if (chatContainer) chatContainer.classList.remove('big-chat-mode');
-        } else if (currentQuizPhase === 'podium') {
+        // Helper to hide all fullscreen sections
+        const hideAll = () => {
             if (cardsGrid) cardsGrid.classList.add('hidden');
             if (interactiveDemo) interactiveDemo.classList.add('hidden');
             if (quizContainer) quizContainer.classList.add('hidden');
+            if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (kbcContainer) kbcContainer.classList.add('hidden');
+            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
+            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.remove('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+        };
+
+        if (currentQuizPhase === 'question') {
+            hideAll();
+            if (quizContainer) quizContainer.classList.remove('hidden');
+        } else if (currentQuizPhase === 'podium') {
+            hideAll();
+            if (podiumContainer) podiumContainer.classList.remove('hidden');
+        } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result') {
+            hideAll();
+            if (currentQuizPhase === 'kbc-input') {
+                if (kbcContainer) kbcContainer.classList.remove('hidden');
+            } else {
+                if (kbcResultContainer) kbcResultContainer.classList.remove('hidden');
+            }
+        } else if (currentQuizPhase === 'kbc-ended') {
+            hideAll();
+            if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
+            if (kbcContainer) kbcContainer.classList.add('hidden');
+            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
+            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
@@ -823,4 +851,352 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     }
+
+    // ============================
+    // 7. KEYNESIAN BEAUTY CONTEST
+    // ============================
+
+    // Slider <-> Number input sync
+    if (kbcSlider && kbcNumberInput) {
+        kbcSlider.addEventListener('input', (e) => {
+            kbcNumberInput.value = e.target.value;
+        });
+        kbcNumberInput.addEventListener('input', (e) => {
+            let val = parseInt(e.target.value) || 0;
+            if (val < 0) val = 0;
+            if (val > 100) val = 100;
+            kbcSlider.value = val;
+        });
+    }
+
+    // Helper: render a KBC scoreboard into a <ul> element
+    function renderKbcScoreboard(listEl, players) {
+        if (!listEl || !players) return;
+        listEl.innerHTML = '';
+        const sorted = Object.entries(players).sort((a, b) => b[1].points - a[1].points);
+        sorted.forEach(([uid, p], idx) => {
+            const li = document.createElement('li');
+            li.className = 'user-list-item';
+            const pointColor = p.points > 0 ? '#f472b6' : '#64748b';
+            const strikeStyle = p.points <= 0 ? 'text-decoration: line-through; opacity: 0.5;' : '';
+            li.innerHTML = `<span style="width: 30px; font-weight: bold;">#${idx+1}</span> <span class="user-list-name" style="flex:1; ${strikeStyle}">${p.name}</span> <span style="color: ${pointColor}; font-weight: bold;">${p.points} pts</span>`;
+            listEl.appendChild(li);
+        });
+    }
+
+    // Admin: Start Contest
+    if (btnKbcStart) {
+        btnKbcStart.addEventListener('click', () => {
+            const players = {};
+            // Snapshot current online users
+            for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+                if (isOnline) {
+                    const userObj = allUsers[uid] || {};
+                    players[uid] = {
+                        name: userObj.name || 'Anonymous',
+                        points: 10
+                    };
+                }
+            }
+            if (Object.keys(players).length < 2) {
+                alert('Need at least 2 online users to start a contest!');
+                return;
+            }
+            set(ref(db, 'admin/kbcState'), {
+                active: true,
+                round: 1,
+                phase: 'input',
+                players: players
+            });
+        });
+    }
+
+    // Admin: End Contest
+    if (btnKbcEnd) {
+        btnKbcEnd.addEventListener('click', () => {
+            set(ref(db, 'admin/kbcState/phase'), 'ended');
+        });
+    }
+
+    // Admin: Reset Contest
+    if (btnKbcReset) {
+        btnKbcReset.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset the Keynesian Beauty Contest?')) {
+                remove(ref(db, 'admin/kbcState'));
+            }
+        });
+    }
+
+    // Admin: Force Resolve (end round early with only submitted numbers)
+    if (btnKbcForce) {
+        btnKbcForce.addEventListener('click', () => {
+            // Trigger resolution manually via the listener by reading current state
+            const kbcRef = ref(db, 'admin/kbcState');
+            onValue(kbcRef, (snapshot) => {
+                // one-shot read — we only want to run this once
+            }, { onlyOnce: true });
+            // Actually perform the force
+            resolveKbcRound(true);
+        });
+    }
+
+    // Player: Submit number
+    if (btnKbcSubmit) {
+        btnKbcSubmit.addEventListener('click', () => {
+            if (!auth.currentUser) return;
+            const val = parseInt(kbcNumberInput.value);
+            if (isNaN(val) || val < 0 || val > 100) {
+                alert('Please pick a number between 0 and 100.');
+                return;
+            }
+            set(ref(db, `admin/kbcState/players/${auth.currentUser.uid}/submitted`), val)
+                .catch(err => {
+                    console.error('KBC submit failed:', err);
+                    alert('Failed to submit: ' + err.message);
+                });
+        });
+    }
+
+    // Resolve a KBC round
+    async function resolveKbcRound(force = false) {
+        if (kbcResolving) return;
+        kbcResolving = true;
+
+        try {
+            // Read current state
+            const snap = await new Promise(resolve => {
+                onValue(ref(db, 'admin/kbcState'), resolve, { onlyOnce: true });
+            });
+            const state = snap.val();
+            if (!state || !state.active || state.phase !== 'input' || !state.players) {
+                kbcResolving = false;
+                return;
+            }
+
+            const players = state.players;
+            const activePlayers = Object.entries(players).filter(([, p]) => p.points > 0);
+            const submittedPlayers = activePlayers.filter(([, p]) => typeof p.submitted === 'number');
+
+            if (!force && submittedPlayers.length < activePlayers.length) {
+                kbcResolving = false;
+                return;
+            }
+
+            if (submittedPlayers.length === 0) {
+                kbcResolving = false;
+                return;
+            }
+
+            // Calculate
+            const sum = submittedPlayers.reduce((acc, [, p]) => acc + p.submitted, 0);
+            const avg = sum / submittedPlayers.length;
+            const target = avg * 2 / 3;
+
+            // Find closest
+            let minDist = Infinity;
+            submittedPlayers.forEach(([, p]) => {
+                const dist = Math.abs(p.submitted - target);
+                if (dist < minDist) minDist = dist;
+            });
+
+            const winnerUids = new Set();
+            submittedPlayers.forEach(([uid, p]) => {
+                if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
+            });
+
+            // Update points: losers (submitted but not winner) lose 1 point
+            // Non-submitters (force resolve) also lose 1 point
+            const updatedPlayers = {};
+            for (const [uid, p] of Object.entries(players)) {
+                const newP = { name: p.name, points: p.points };
+                if (p.points > 0 && !winnerUids.has(uid)) {
+                    newP.points = Math.max(0, p.points - 1);
+                }
+                // Clear submitted for next round
+                updatedPlayers[uid] = newP;
+            }
+
+            // Check game over
+            const remainingActive = Object.values(updatedPlayers).filter(p => p.points > 0);
+
+            const winnerNames = [];
+            const winnerPicks = [];
+            winnerUids.forEach(uid => {
+                winnerNames.push(players[uid].name);
+                winnerPicks.push(players[uid].submitted);
+            });
+
+            const lastResult = {
+                round: state.round,
+                average: Math.round(avg * 100) / 100,
+                target: Math.round(target * 100) / 100,
+                winnerNames: winnerNames.join(', '),
+                winnerPicks: winnerPicks.join(', ')
+            };
+
+            if (remainingActive.length <= 1) {
+                // Game over
+                await set(ref(db, 'admin/kbcState'), {
+                    active: true,
+                    round: state.round,
+                    phase: 'ended',
+                    players: updatedPlayers,
+                    lastResult: lastResult
+                });
+            } else {
+                // Show result, then auto-advance to next round after a delay
+                await set(ref(db, 'admin/kbcState'), {
+                    active: true,
+                    round: state.round,
+                    phase: 'result',
+                    players: updatedPlayers,
+                    lastResult: lastResult
+                });
+                // After 6 seconds, advance to next input round
+                setTimeout(async () => {
+                    // Clear submitted and advance round
+                    const nextPlayers = {};
+                    for (const [uid, p] of Object.entries(updatedPlayers)) {
+                        nextPlayers[uid] = { name: p.name, points: p.points };
+                    }
+                    await set(ref(db, 'admin/kbcState'), {
+                        active: true,
+                        round: state.round + 1,
+                        phase: 'input',
+                        players: nextPlayers
+                    });
+                }, 6000);
+            }
+        } catch (err) {
+            console.error('KBC resolve error:', err);
+        } finally {
+            kbcResolving = false;
+        }
+    }
+
+    // Real-time KBC state listener
+    onValue(ref(db, 'admin/kbcState'), (snapshot) => {
+        const state = snapshot.val();
+
+        if (!state || !state.active) {
+            currentQuizPhase = (currentQuizPhase.startsWith('kbc')) ? 'idle' : currentQuizPhase;
+            if (btnKbcStart) btnKbcStart.disabled = false;
+            if (btnKbcEnd) btnKbcEnd.disabled = true;
+            if (btnKbcForce) btnKbcForce.disabled = true;
+            updateVisibilityState();
+            return;
+        }
+
+        // Admin buttons
+        if (btnKbcStart) btnKbcStart.disabled = true;
+        if (btnKbcEnd) btnKbcEnd.disabled = false;
+        if (btnKbcForce) btnKbcForce.disabled = (state.phase !== 'input');
+
+        const uid = auth.currentUser?.uid;
+        const players = state.players || {};
+        const myPlayer = uid ? players[uid] : null;
+
+        if (state.phase === 'input') {
+            currentQuizPhase = 'kbc-input';
+            updateVisibilityState();
+
+            // Update round
+            const roundEl = document.getElementById('kbc-round-num');
+            if (roundEl) roundEl.textContent = state.round || 1;
+
+            // Update my points
+            const myPointsEl = document.getElementById('kbc-my-points-val');
+            const inputArea = document.getElementById('kbc-input-area');
+            const waitingArea = document.getElementById('kbc-waiting');
+            const eliminatedArea = document.getElementById('kbc-eliminated');
+
+            if (myPlayer) {
+                if (myPointsEl) myPointsEl.textContent = myPlayer.points;
+
+                if (myPlayer.points <= 0) {
+                    // Eliminated
+                    if (inputArea) inputArea.classList.add('hidden');
+                    if (waitingArea) waitingArea.classList.add('hidden');
+                    if (eliminatedArea) eliminatedArea.classList.remove('hidden');
+                } else if (typeof myPlayer.submitted === 'number') {
+                    // Already submitted
+                    if (inputArea) inputArea.classList.add('hidden');
+                    if (eliminatedArea) eliminatedArea.classList.add('hidden');
+                    if (waitingArea) waitingArea.classList.remove('hidden');
+                    const myPickEl = document.getElementById('kbc-my-pick');
+                    if (myPickEl) myPickEl.textContent = myPlayer.submitted;
+                } else {
+                    // Can submit
+                    if (inputArea) inputArea.classList.remove('hidden');
+                    if (waitingArea) waitingArea.classList.add('hidden');
+                    if (eliminatedArea) eliminatedArea.classList.add('hidden');
+                }
+            } else {
+                // Not a player (joined late)
+                if (myPointsEl) myPointsEl.textContent = '0';
+                if (inputArea) inputArea.classList.add('hidden');
+                if (waitingArea) waitingArea.classList.add('hidden');
+                if (eliminatedArea) eliminatedArea.classList.remove('hidden');
+            }
+
+            // Update submitted/active counts
+            const activePlayers = Object.values(players).filter(p => p.points > 0);
+            const submittedCount = activePlayers.filter(p => typeof p.submitted === 'number').length;
+            const subCountEl = document.getElementById('kbc-submitted-count');
+            const actCountEl = document.getElementById('kbc-active-count');
+            if (subCountEl) subCountEl.textContent = submittedCount;
+            if (actCountEl) actCountEl.textContent = activePlayers.length;
+
+            // Render scoreboard
+            renderKbcScoreboard(document.getElementById('kbc-score-list'), players);
+
+            // Check if all active players submitted → admin auto-resolves
+            if (submittedCount >= activePlayers.length && activePlayers.length > 0) {
+                if (auth.currentUser?.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
+                    resolveKbcRound(false);
+                }
+            }
+
+        } else if (state.phase === 'result') {
+            currentQuizPhase = 'kbc-result';
+            updateVisibilityState();
+
+            const r = state.lastResult || {};
+            const avgEl = document.getElementById('kbc-res-avg');
+            const targetEl = document.getElementById('kbc-res-target');
+            const winnerNameEl = document.getElementById('kbc-res-winner-name');
+            const winnerPickEl = document.getElementById('kbc-res-winner-pick');
+            if (avgEl) avgEl.textContent = r.average ?? '—';
+            if (targetEl) targetEl.textContent = r.target ?? '—';
+            if (winnerNameEl) winnerNameEl.textContent = r.winnerNames || '—';
+            if (winnerPickEl) winnerPickEl.textContent = r.winnerPicks || '—';
+
+            renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
+
+        } else if (state.phase === 'ended') {
+            currentQuizPhase = 'kbc-ended';
+            updateVisibilityState();
+
+            // Find final winner(s)
+            const sorted = Object.values(players).sort((a, b) => b.points - a.points);
+            const finalWinnerEl = document.getElementById('kbc-final-winner');
+            if (finalWinnerEl) {
+                if (sorted.length > 0 && sorted[0].points > 0) {
+                    finalWinnerEl.innerHTML = `🎉 <span style="color: #fbbf24; font-weight: 800;">${sorted[0].name}</span> wins with ${sorted[0].points} points!`;
+                } else {
+                    finalWinnerEl.textContent = 'No winners — everyone was eliminated!';
+                }
+            }
+
+            // Show last round result if available
+            if (state.lastResult) {
+                const avgEl = document.getElementById('kbc-res-avg');
+                const targetEl = document.getElementById('kbc-res-target');
+                if (avgEl) avgEl.textContent = state.lastResult.average ?? '—';
+                if (targetEl) targetEl.textContent = state.lastResult.target ?? '—';
+            }
+
+            renderKbcScoreboard(document.getElementById('kbc-final-score-list'), players);
+        }
+    });
 });

@@ -746,3 +746,79 @@ input:checked + .slider:before {
     border-bottom: 1px solid var(--glass-border);
     padding-bottom: 0.5rem;
 }
+
+/* KBC (Keynesian Beauty Contest) Styles */
+.kbc-points-badge {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 999px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: rgba(244, 114, 182, 0.15);
+    border: 2px solid rgba(244, 114, 182, 0.5);
+    color: #f472b6;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(244, 114, 182, 0.2);
+    animation: kbc-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes kbc-glow {
+    from { box-shadow: 0 0 10px rgba(244, 114, 182, 0.2); }
+    to { box-shadow: 0 0 25px rgba(244, 114, 182, 0.4); }
+}
+
+.kbc-slider-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.kbc-slider-area input[type="range"] {
+    flex: 1;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(90deg, #ec4899, #8b5cf6);
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+}
+
+.kbc-slider-area input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #ec4899;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.kbc-result-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(244, 114, 182, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.kbc-stat {
+    text-align: center;
+}
+
+.kbc-stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+}
+
+.kbc-stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #60a5fa;
+}
