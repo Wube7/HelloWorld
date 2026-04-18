@@ -182,6 +182,10 @@
             <section id="kbc-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
                 <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: #f472b6;">🎲 Keynesian Beauty Contest</h2>
                 
+                <div id="kbc-deadlock-msg" class="hidden" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; color: #fca5a5; font-size: 1rem;">
+                    ⚠️ <b>Deadlock Rule Active:</b> If more than 1 player picks 0, they will be disqualified!
+                </div>
+
                 <!-- Game / History Toggle -->
                 <div class="kbc-view-toggle" style="margin-bottom: 1rem;">
                     <button id="kbc-tab-game" class="kbc-tab active" onclick="document.getElementById('kbc-game-view').classList.remove('hidden'); document.getElementById('kbc-history-view').classList.add('hidden'); this.classList.add('active'); document.getElementById('kbc-tab-history').classList.remove('active');">🎮 Game</button>
@@ -231,10 +235,6 @@
             <section id="kbc-result-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
                 <h2 style="font-size: 2rem; margin-bottom: 1rem; color: #f472b6;">🎲 Round Result</h2>
                 
-                <div id="kbc-deadlock-msg" class="hidden" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; color: #fca5a5; font-size: 1.1rem;">
-                    ⚠️ <b>Deadlock Rule Triggered!</b> More than 2 players picked 0. They are disqualified and the next closest wins!
-                </div>
-
                 <div class="kbc-result-card">
                     <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
                         <div class="kbc-stat">
@@ -287,6 +287,6 @@
             <p>Built by Antigravity AI.</p>
         </footer>
     </div>
-    <script type="module" src="script.js?v=11"></script>
+    <script type="module" src="script.js?v=12"></script>
 </body>
 </html>

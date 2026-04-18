@@ -920,13 +920,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         history.forEach(entry => {
             html += '<tr>';
-            html += `<td style="font-weight: 700; color: #f472b6;">R${entry.round}</td>`;
+            html += `<td style="font-weight: 700; color: #f472b6;">R${entry.round} ${entry.ruleActive ? '<span title="Deadlock Rule Active" style="font-size: 0.8rem;">⚠️</span>' : ''}</td>`;
             allPlayerUids.forEach(uid => {
                 const sub = entry.submissions?.[uid];
                 if (!sub || sub.pick === null || sub.pick === undefined) {
                     html += '<td style="color: #64748b;">—</td>';
                 } else if (sub.isWinner) {
                     html += `<td class="kbc-winner-cell">🏆 ${sub.pick}</td>`;
+                } else if (sub.pick === 0 && entry.disqualifiedZero) {
+                    html += `<td style="color: #ef4444; text-decoration: line-through;" title="Disqualified by Deadlock Rule">0</td>`;
                 } else {
                     html += `<td>${sub.pick}</td>`;
                 }
@@ -1048,27 +1050,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const avg = sum / submittedPlayers.length;
             const target = avg * 2 / 3;
 
+            const zeroRuleActive = !!state.zeroRuleActive; // Set from previous rounds
             const zeroPickCount = submittedPlayers.filter(([, p]) => p.submitted === 0).length;
             
-            // First pass: find the normal winner distance
-            let normalMinDist = Infinity;
-            submittedPlayers.forEach(([, p]) => {
-                const dist = Math.abs(p.submitted - target);
-                if (dist < normalMinDist) normalMinDist = dist;
-            });
-
-            // Check if 0 is among the winners
-            let zeroWouldWin = false;
-            submittedPlayers.forEach(([, p]) => {
-                if (Math.abs(p.submitted - target) === normalMinDist && p.submitted === 0) {
-                    zeroWouldWin = true;
-                }
-            });
-
-            const triggerSpecialRule = zeroWouldWin && zeroPickCount > 2;
+            // Apply special rule if active and more than 1 person picked 0
+            const disqualifyZero = zeroRuleActive && (zeroPickCount > 1);
 
             let eligiblePlayers = submittedPlayers;
-            if (triggerSpecialRule) {
+            if (disqualifyZero) {
                 const nonZeroPlayers = submittedPlayers.filter(([, p]) => p.submitted !== 0);
                 if (nonZeroPlayers.length > 0) {
                     eligiblePlayers = nonZeroPlayers;
@@ -1088,6 +1077,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             eligiblePlayers.forEach(([uid, p]) => {
                 if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
             });
+
+            // State updates for rule
+            let zeroWonThisRound = false;
+            winnerUids.forEach(uid => {
+                if (players[uid].submitted === 0) zeroWonThisRound = true;
+            });
+            const nextZeroRuleActive = zeroRuleActive || zeroWonThisRound;
 
             // Update points: losers (submitted but not winner) lose 1 point
             // Non-submitters (force resolve) also lose 1 point
@@ -1116,8 +1112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 average: Math.round(avg * 100) / 100,
                 target: Math.round(target * 100) / 100,
                 winnerNames: winnerNames.join(', '),
-                winnerPicks: winnerPicks.join(', '),
-                specialRuleTriggered: triggerSpecialRule
+                winnerPicks: winnerPicks.join(', ')
             };
 
             // Build history entry for this round
@@ -1126,6 +1121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 average: lastResult.average,
                 target: lastResult.target,
                 winnerUids: Array.from(winnerUids),
+                ruleActive: zeroRuleActive,
+                disqualifiedZero: disqualifyZero,
                 submissions: {}
             };
             for (const [uid, p] of Object.entries(players)) {
@@ -1146,7 +1143,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     phase: 'ended',
                     players: updatedPlayers,
                     lastResult: lastResult,
-                    history: existingHistory
+                    history: existingHistory,
+                    zeroRuleActive: nextZeroRuleActive
                 });
             } else {
                 // Show result, then auto-advance to next round after a delay
@@ -1156,7 +1154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     phase: 'result',
                     players: updatedPlayers,
                     lastResult: lastResult,
-                    history: existingHistory
+                    history: existingHistory,
+                    zeroRuleActive: nextZeroRuleActive
                 });
                 // After 6 seconds, advance to next input round
                 setTimeout(async () => {
@@ -1170,7 +1169,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         round: state.round + 1,
                         phase: 'input',
                         players: nextPlayers,
-                        history: existingHistory
+                        history: existingHistory,
+                        zeroRuleActive: nextZeroRuleActive
                     });
                 }, 6000);
             }
@@ -1208,7 +1208,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateVisibilityState();
 
             const deadlockMsg = document.getElementById('kbc-deadlock-msg');
-            if (deadlockMsg) deadlockMsg.classList.add('hidden');
+            if (deadlockMsg) {
+                if (state.zeroRuleActive) {
+                    deadlockMsg.classList.remove('hidden');
+                } else {
+                    deadlockMsg.classList.add('hidden');
+                }
+            }
 
             // Update round
             const roundEl = document.getElementById('kbc-round-num');
@@ -1284,13 +1290,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
             renderKbcHistory(state.history, players);
-            
-            const deadlockMsg = document.getElementById('kbc-deadlock-msg');
-            if (deadlockMsg) {
-                if (r.specialRuleTriggered) deadlockMsg.classList.remove('hidden');
-                else deadlockMsg.classList.add('hidden');
-            }
-
         } else if (state.phase === 'ended') {
             currentQuizPhase = 'kbc-ended';
             updateVisibilityState();
