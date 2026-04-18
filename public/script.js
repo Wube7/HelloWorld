@@ -886,11 +886,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Helper: render KBC round history as a table
     function renderKbcHistory(history, players) {
-        const container = document.getElementById('kbc-history-content');
-        if (!container) return;
+        const container1 = document.getElementById('kbc-history-content');
+        const container2 = document.getElementById('kbc-history-content-end');
+        if (!container1 && !container2) return;
 
         if (!history || history.length === 0) {
-            container.innerHTML = '<p style="color: #94a3b8; text-align: center;">No rounds played yet.</p>';
+            const emptyHtml = '<p style="color: #94a3b8; text-align: center;">No rounds played yet.</p>';
+            if (container1) container1.innerHTML = emptyHtml;
+            if (container2) container2.innerHTML = emptyHtml;
             return;
         }
 
@@ -942,7 +945,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         html += '</tbody></table>';
-        container.innerHTML = html;
+        if (container1) container1.innerHTML = html;
+        if (container2) container2.innerHTML = html;
     }
 
     // Admin: Start Contest
@@ -1226,11 +1230,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateVisibilityState();
 
             const deadlockMsg = document.getElementById('kbc-deadlock-msg');
+            const dualMsg = document.getElementById('kbc-dual-msg');
             if (deadlockMsg) {
                 if (state.zeroRuleActive) {
                     deadlockMsg.classList.remove('hidden');
                 } else {
                     deadlockMsg.classList.add('hidden');
+                }
+            }
+
+            if (dualMsg) {
+                const activePlayers = Object.entries(players).filter(([, p]) => p.points > 0);
+                if (activePlayers.length === 2) {
+                    dualMsg.classList.remove('hidden');
+                } else {
+                    dualMsg.classList.add('hidden');
                 }
             }
 
