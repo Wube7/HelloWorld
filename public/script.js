@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (timerDisplay) timerDisplay.classList.remove('hidden');
                 
                 const updateTimer = () => {
-                    const remaining = Math.ceil((state.timerEnd - Date.now()) / 1000);
+                    const remaining = Math.floor((state.timerEnd - Date.now()) / 1000);
                     if (remaining > 0) {
                         if (timerSecondsEl) timerSecondsEl.textContent = remaining;
                     } else {
