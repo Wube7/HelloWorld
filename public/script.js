@@ -933,8 +933,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     html += '<td style="color: #64748b;">—</td>';
                 } else if (sub.isWinner) {
                     html += `<td class="kbc-winner-cell">🏆 ${sub.pick}</td>`;
-                } else if (sub.pick === 0 && entry.disqualifiedZero) {
-                    html += `<td style="color: #ef4444; text-decoration: line-through;" title="Disqualified by Deadlock Rule">0</td>`;
+                } else if (entry.disqualifiedNumbers && entry.disqualifiedNumbers.includes(sub.pick)) {
+                    html += `<td style="color: #ef4444; text-decoration: line-through;" title="Disqualified by Deadlock Rule">${sub.pick}</td>`;
                 } else {
                     html += `<td>${sub.pick}</td>`;
                 }
@@ -1058,32 +1058,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             const target = avg * 2 / 3;
 
             const zeroRuleActive = !!state.zeroRuleActive; // Set from previous rounds
-            const zeroPickCount = submittedPlayers.filter(([, p]) => p.submitted === 0).length;
             
-            // Apply special rule if active and more than 1 person picked 0
-            const disqualifyZero = zeroRuleActive && (zeroPickCount > 1);
+            const pickCounts = {};
+            submittedPlayers.forEach(([, p]) => {
+                pickCounts[p.submitted] = (pickCounts[p.submitted] || 0) + 1;
+            });
 
-            let eligiblePlayers = submittedPlayers;
-            if (disqualifyZero) {
-                const nonZeroPlayers = submittedPlayers.filter(([, p]) => p.submitted !== 0);
-                if (nonZeroPlayers.length > 0) {
-                    eligiblePlayers = nonZeroPlayers;
-                } else {
-                    eligiblePlayers = [];
+            const disqualifiedNumbers = new Set();
+            if (zeroRuleActive) {
+                for (const [numStr, count] of Object.entries(pickCounts)) {
+                    if (count > 1) {
+                        disqualifiedNumbers.add(Number(numStr));
+                    }
                 }
             }
 
+            let eligiblePlayers = submittedPlayers.filter(([, p]) => !disqualifiedNumbers.has(p.submitted));
+
             // Find actual closest among eligible
             let minDist = Infinity;
-            eligiblePlayers.forEach(([, p]) => {
-                const dist = Math.abs(p.submitted - target);
-                if (dist < minDist) minDist = dist;
-            });
+            if (eligiblePlayers.length > 0) {
+                eligiblePlayers.forEach(([, p]) => {
+                    const dist = Math.abs(p.submitted - target);
+                    if (dist < minDist) minDist = dist;
+                });
+            }
 
             const winnerUids = new Set();
-            eligiblePlayers.forEach(([uid, p]) => {
-                if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
-            });
+            if (eligiblePlayers.length > 0) {
+                eligiblePlayers.forEach(([uid, p]) => {
+                    if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
+                });
+            }
 
             // 2nd Special Rule: down to 2 players, choices are exactly 0 and 100 -> 100 wins
             let rule2Triggered = false;
@@ -1143,7 +1149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target: lastResult.target,
                 winnerUids: Array.from(winnerUids),
                 ruleActive: zeroRuleActive,
-                disqualifiedZero: disqualifyZero,
+                disqualifiedNumbers: Array.from(disqualifiedNumbers),
                 rule2Triggered: rule2Triggered,
                 submissions: {}
             };
@@ -1317,7 +1323,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const winnerPickEl = document.getElementById('kbc-res-winner-pick');
             if (avgEl) avgEl.textContent = r.average ?? '—';
             if (targetEl) targetEl.textContent = r.target ?? '—';
-            if (winnerNameEl) winnerNameEl.textContent = r.winnerNames || '—';
+            if (winnerNameEl) {
+                if (r.winnerNames) {
+                    winnerNameEl.textContent = r.winnerNames;
+                } else {
+                    winnerNameEl.textContent = 'Nobody';
+                }
+            }
             
             if (r.rule2Triggered) {
                 if (winnerPickEl) winnerPickEl.innerHTML = `100 <span style="font-size: 0.9rem; color: #fbbf24; display: block; margin-top: 0.5rem;">(2nd Special Rule! 100 beats 0)</span>`;
