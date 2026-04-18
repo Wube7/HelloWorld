@@ -920,7 +920,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         history.forEach(entry => {
             html += '<tr>';
-            html += `<td style="font-weight: 700; color: #f472b6;">R${entry.round} ${entry.ruleActive ? '<span title="Deadlock Rule Active" style="font-size: 0.8rem;">⚠️</span>' : ''}</td>`;
+            let rulesIndicator = '';
+            if (entry.ruleActive) rulesIndicator += '<span title="Deadlock Rule Active" style="font-size: 0.8rem;">⚠️</span>';
+            if (entry.rule2Triggered) rulesIndicator += '<span title="2nd Special Rule: 100 beats 0" style="font-size: 0.8rem;">⚔️</span>';
+            html += `<td style="font-weight: 700; color: #f472b6;">R${entry.round} ${rulesIndicator}</td>`;
             allPlayerUids.forEach(uid => {
                 const sub = entry.submissions?.[uid];
                 if (!sub || sub.pick === null || sub.pick === undefined) {
@@ -1078,6 +1081,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (Math.abs(p.submitted - target) === minDist) winnerUids.add(uid);
             });
 
+            // 2nd Special Rule: down to 2 players, choices are exactly 0 and 100 -> 100 wins
+            let rule2Triggered = false;
+            if (activePlayers.length === 2 && submittedPlayers.length === 2) {
+                const picks = submittedPlayers.map(([, p]) => p.submitted);
+                if (picks.includes(0) && picks.includes(100)) {
+                    winnerUids.clear();
+                    submittedPlayers.forEach(([uid, p]) => {
+                        if (p.submitted === 100) winnerUids.add(uid);
+                    });
+                    rule2Triggered = true;
+                }
+            }
+
             // State updates for rule
             let zeroWonThisRound = false;
             winnerUids.forEach(uid => {
@@ -1112,7 +1128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 average: Math.round(avg * 100) / 100,
                 target: Math.round(target * 100) / 100,
                 winnerNames: winnerNames.join(', '),
-                winnerPicks: winnerPicks.join(', ')
+                winnerPicks: winnerPicks.join(', '),
+                rule2Triggered: rule2Triggered
             };
 
             // Build history entry for this round
@@ -1123,6 +1140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 winnerUids: Array.from(winnerUids),
                 ruleActive: zeroRuleActive,
                 disqualifiedZero: disqualifyZero,
+                rule2Triggered: rule2Triggered,
                 submissions: {}
             };
             for (const [uid, p] of Object.entries(players)) {
@@ -1286,7 +1304,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (avgEl) avgEl.textContent = r.average ?? '—';
             if (targetEl) targetEl.textContent = r.target ?? '—';
             if (winnerNameEl) winnerNameEl.textContent = r.winnerNames || '—';
-            if (winnerPickEl) winnerPickEl.textContent = r.winnerPicks || '—';
+            
+            if (r.rule2Triggered) {
+                if (winnerPickEl) winnerPickEl.innerHTML = `100 <span style="font-size: 0.9rem; color: #fbbf24; display: block; margin-top: 0.5rem;">(2nd Special Rule! 100 beats 0)</span>`;
+            } else {
+                if (winnerPickEl) winnerPickEl.textContent = r.winnerPicks || '—';
+            }
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
             renderKbcHistory(state.history, players);
