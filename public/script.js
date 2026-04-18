@@ -1049,21 +1049,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             const target = avg * 2 / 3;
 
             const zeroPickCount = submittedPlayers.filter(([, p]) => p.submitted === 0).length;
-            const disqualifyZero = zeroPickCount > 2;
+            
+            // First pass: find the normal winner distance
+            let normalMinDist = Infinity;
+            submittedPlayers.forEach(([, p]) => {
+                const dist = Math.abs(p.submitted - target);
+                if (dist < normalMinDist) normalMinDist = dist;
+            });
+
+            // Check if 0 is among the winners
+            let zeroWouldWin = false;
+            submittedPlayers.forEach(([, p]) => {
+                if (Math.abs(p.submitted - target) === normalMinDist && p.submitted === 0) {
+                    zeroWouldWin = true;
+                }
+            });
+
+            const triggerSpecialRule = zeroWouldWin && zeroPickCount > 2;
 
             let eligiblePlayers = submittedPlayers;
-            if (disqualifyZero) {
+            if (triggerSpecialRule) {
                 const nonZeroPlayers = submittedPlayers.filter(([, p]) => p.submitted !== 0);
-                // If there are other players who picked >0, make them the only eligible winners
                 if (nonZeroPlayers.length > 0) {
                     eligiblePlayers = nonZeroPlayers;
                 } else {
-                    // Everyone picked 0, so nobody wins (clean empty set)
                     eligiblePlayers = [];
                 }
             }
 
-            // Find closest
+            // Find actual closest among eligible
             let minDist = Infinity;
             eligiblePlayers.forEach(([, p]) => {
                 const dist = Math.abs(p.submitted - target);
@@ -1102,7 +1116,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 average: Math.round(avg * 100) / 100,
                 target: Math.round(target * 100) / 100,
                 winnerNames: winnerNames.join(', '),
-                winnerPicks: winnerPicks.join(', ')
+                winnerPicks: winnerPicks.join(', '),
+                specialRuleTriggered: triggerSpecialRule
             };
 
             // Build history entry for this round
@@ -1192,6 +1207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentQuizPhase = 'kbc-input';
             updateVisibilityState();
 
+            const deadlockMsg = document.getElementById('kbc-deadlock-msg');
+            if (deadlockMsg) deadlockMsg.classList.add('hidden');
+
             // Update round
             const roundEl = document.getElementById('kbc-round-num');
             if (roundEl) roundEl.textContent = state.round || 1;
@@ -1266,6 +1284,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
             renderKbcHistory(state.history, players);
+            
+            const deadlockMsg = document.getElementById('kbc-deadlock-msg');
+            if (deadlockMsg) {
+                if (r.specialRuleTriggered) deadlockMsg.classList.remove('hidden');
+                else deadlockMsg.classList.add('hidden');
+            }
 
         } else if (state.phase === 'ended') {
             currentQuizPhase = 'kbc-ended';
