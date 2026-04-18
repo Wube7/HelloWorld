@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "helloworld777-fa78b"
-  }
+    "default": "helloworld777-fa78b",
+    "prod": "wube-world"
+  },
+  "targets": {},
+  "etags": {}
 }

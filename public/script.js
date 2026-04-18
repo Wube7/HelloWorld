@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!response.ok) throw new Error('Could not fetch init.json');
         const config = await response.json();
         // Force the absolute URL because init.json might provide an invalid non-absolute string
-        config.databaseURL = 'https://helloworld777-fa78b-default-rtdb.firebaseio.com';
+        // config.databaseURL = 'https://helloworld777-fa78b-default-rtdb.firebaseio.com';
         
         app = initializeApp(config);
         auth = getAuth(app);

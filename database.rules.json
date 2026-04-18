@@ -1,40 +1,6 @@
 {
   "rules": {
-    ".read": true,
-    "users": {
-      ".read": "auth != null",
-      "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
-      }
-    },
-    "presence": {
-      "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
-      }
-    },
-    "messages": {
-      ".read": true,
-      ".write": "auth != null",
-      "$messageId": {
-        ".validate": "newData.hasChildren(['text', 'uid', 'name']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length < 500"
-      }
-    },
-    "quizScores": {
-      ".read": true,
-      ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
-      "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
-      }
-    },
-    "admin": {
-      "globalView": {
-        ".read": true,
-        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
-      },
-      "quizState": {
-        ".read": true,
-        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
-      }
-    }
+    ".read": "auth != null",
+    ".write": "auth != null"
   }
 }

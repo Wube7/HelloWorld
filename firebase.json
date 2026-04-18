@@ -26,5 +26,14 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "NextGen Web Dev",
+        "supportEmail": "wube8816@gmail.com"
+      }
+    }
   }
 }
