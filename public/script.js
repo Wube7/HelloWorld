@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const quizUploadInput = document.getElementById('quiz-upload-input');
     
     // Admin Auto-Jump Timer
-    const autoJumpSlider = document.getElementById('auto-jump-slider');
+    const timerPresetBtns = document.querySelectorAll('.timer-preset-btn');
     const autoJumpInput = document.getElementById('auto-jump-input');
 
     // Extra Elements to Hide During Quiz
@@ -459,16 +459,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Sync slider and input
-        if (autoJumpSlider && autoJumpInput) {
-            autoJumpSlider.addEventListener('input', (e) => {
-                autoJumpInput.value = e.target.value;
+        // Preset timer buttons
+        timerPresetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const secs = parseInt(btn.dataset.seconds);
+                if (autoJumpInput) autoJumpInput.value = secs;
+                timerPresetBtns.forEach(b => b.style.outline = 'none');
+                btn.style.outline = '2px solid #60a5fa';
             });
-            autoJumpInput.addEventListener('input', (e) => {
-                let val = parseInt(e.target.value) || 0;
-                if (val < 0) val = 0;
-                if (val > 300) val = 300;
-                autoJumpSlider.value = val;
+        });
+
+        if (autoJumpInput) {
+            autoJumpInput.addEventListener('input', () => {
+                timerPresetBtns.forEach(b => b.style.outline = 'none');
             });
         }
     }

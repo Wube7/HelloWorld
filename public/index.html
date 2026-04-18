@@ -73,12 +73,18 @@
                             <button id="btn-quiz-default" class="primary-btn btn-sm" style="background: rgba(107, 114, 128, 0.2); border: 1px solid rgba(107, 114, 128, 0.5);">Revert to Default Quiz</button>
                             <button id="btn-quiz-template" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);">📥 Download Template</button>
                         </div>
-                        <div class="admin-timer-controls" style="margin-top: 1rem; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;">
-                            <label for="auto-jump-slider" style="color:#e2e8f0; font-size:0.9rem; flex-shrink: 0;">Auto-Jump Timer (sec):</label>
-                            <input type="range" id="auto-jump-slider" min="0" max="300" value="0" step="5" style="flex:1;">
-                            <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white;">
+                        <div class="admin-timer-controls" style="margin-top: 1rem; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                            <label style="color:#e2e8f0; font-size:0.9rem; display: block; margin-bottom: 8px;">⏱️ Auto-Jump Timer:</label>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="0" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">Off</button>
+                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="5" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">5s</button>
+                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="10" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">10s</button>
+                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="20" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">20s</button>
+                                <span style="color: #9ca3af; font-size: 0.8rem;">or</span>
+                                <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 55px; padding: 4px; border-radius: 4px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white; font-size: 0.85rem;">
+                                <span style="color: #9ca3af; font-size: 0.8rem;">sec</span>
+                            </div>
                         </div>
-                        <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.5rem; text-align: right;">(0 = manual next page only)</div>
                     </div>
                 </div>
 
