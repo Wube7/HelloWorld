@@ -1,9 +1,41 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
+    ".read": true,
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "presence": {
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
     "messages": {
-      ".indexOn": ["timestamp"]
+      ".read": true,
+      ".write": "auth != null",
+      ".indexOn": ["timestamp"],
+      "$messageId": {
+        ".validate": "newData.hasChildren(['text', 'uid', 'name']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length < 500"
+      }
+    },
+    "quizScores": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "admin": {
+      "globalView": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
+      "quizState": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      }
     }
   }
 }
