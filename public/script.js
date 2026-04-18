@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // 2. Initialize dynamic QR code based on environment
+    const currentUrl = window.location.origin;
+    document.getElementById('qr-code-link').href = currentUrl;
+    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}`;
+
     // UI Elements
     const loginSection = document.getElementById('login-section');
     const mainContent = document.getElementById('main-content');
