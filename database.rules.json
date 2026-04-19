@@ -1,6 +1,5 @@
 {
   "rules": {
-    ".read": true,
     "users": {
       ".read": "auth != null",
       "$uid": {
@@ -8,12 +7,13 @@
       }
     },
     "presence": {
+      ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && auth.uid == $uid"
       }
     },
     "messages": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": "auth != null",
       ".indexOn": ["timestamp"],
       "$messageId": {
@@ -21,7 +21,7 @@
       }
     },
     "quizScores": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
       "$uid": {
         ".write": "auth != null && auth.uid == $uid"
@@ -29,19 +29,19 @@
     },
     "admin": {
       "globalView": {
-        ".read": true,
+        ".read": "auth != null",
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
       },
       "quizState": {
-        ".read": true,
+        ".read": "auth != null",
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
       },
       "currentQuizData": {
-        ".read": true,
+        ".read": "auth != null",
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
       },
       "kbcState": {
-        ".read": true,
+        ".read": "auth != null",
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
         "players": {
           "$uid": {
