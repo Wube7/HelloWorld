@@ -919,7 +919,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         allPlayerUids.forEach(uid => {
             html += `<th>${playerNameMap[uid] || '?'}</th>`;
         });
-        html += '<th>Avg</th><th>⅔×Avg</th></tr></thead><tbody>';
+        html += '<th>Avg</th><th>0.8×Avg</th></tr></thead><tbody>';
 
         history.forEach(entry => {
             html += '<tr>';
@@ -1055,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Calculate
             const sum = submittedPlayers.reduce((acc, [, p]) => acc + p.submitted, 0);
             const avg = sum / submittedPlayers.length;
-            const target = avg * 2 / 3;
+            const target = avg * 0.8;
 
             const zeroRuleActive = !!state.zeroRuleActive; // Set from previous rounds
             
