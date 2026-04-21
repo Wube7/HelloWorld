@@ -1095,21 +1095,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Find worst pick
+            // Find worst pick (disabled in dual games with 2 or fewer players)
             let maxDist = -1;
-            submittedPlayers.forEach(([, p]) => {
-                const dist = Math.abs(p.submitted - target);
-                if (dist > maxDist) maxDist = dist;
-            });
-
             const worstUids = new Set();
-            submittedPlayers.forEach(([uid, p]) => {
-                if (Math.abs(p.submitted - target) === maxDist) {
-                    if (!winnerUids.has(uid)) {
-                        worstUids.add(uid);
+            
+            if (activePlayers.length > 2) {
+                submittedPlayers.forEach(([, p]) => {
+                    const dist = Math.abs(p.submitted - target);
+                    if (dist > maxDist) maxDist = dist;
+                });
+
+                submittedPlayers.forEach(([uid, p]) => {
+                    if (Math.abs(p.submitted - target) === maxDist) {
+                        if (!winnerUids.has(uid)) {
+                            worstUids.add(uid);
+                        }
                     }
-                }
-            });
+                });
+            }
 
             // 2nd Special Rule: down to 2 players, choices are exactly 0 and 100 -> 100 wins
             let rule2Triggered = false;
