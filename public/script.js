@@ -934,7 +934,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (sub.isWinner) {
                     html += `<td class="kbc-winner-cell">🏆 ${sub.pick}</td>`;
                 } else if (entry.disqualifiedNumbers && entry.disqualifiedNumbers.includes(sub.pick)) {
-                    html += `<td style="color: #ef4444; text-decoration: line-through;" title="Disqualified by Deadlock Rule">${sub.pick}</td>`;
+                    let extra = '';
+                    if (entry.worstUids && entry.worstUids.includes(uid)) extra = ' 💀';
+                    html += `<td style="color: #ef4444; text-decoration: line-through;" title="Disqualified by Deadlock Rule">${sub.pick}${extra}</td>`;
+                } else if (entry.worstUids && entry.worstUids.includes(uid)) {
+                    html += `<td style="color: #ef4444;" title="Lost 2 points (worst pick)">${sub.pick} 💀</td>`;
                 } else {
                     html += `<td>${sub.pick}</td>`;
                 }
@@ -1091,6 +1095,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
+            // Find worst pick
+            let maxDist = -1;
+            submittedPlayers.forEach(([, p]) => {
+                const dist = Math.abs(p.submitted - target);
+                if (dist > maxDist) maxDist = dist;
+            });
+
+            const worstUids = new Set();
+            submittedPlayers.forEach(([uid, p]) => {
+                if (Math.abs(p.submitted - target) === maxDist) {
+                    if (!winnerUids.has(uid)) {
+                        worstUids.add(uid);
+                    }
+                }
+            });
+
             // 2nd Special Rule: down to 2 players, choices are exactly 0 and 100 -> 100 wins
             let rule2Triggered = false;
             if (activePlayers.length === 2 && submittedPlayers.length === 2) {
@@ -1111,13 +1131,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const nextZeroRuleActive = zeroRuleActive || zeroWonThisRound;
 
-            // Update points: losers (submitted but not winner) lose 1 point
+            // Update points: losers (submitted but not winner) lose 1 point, worst pickers lose 2
             // Non-submitters (force resolve) also lose 1 point
             const updatedPlayers = {};
+            const heavilyPenalizedNames = [];
             for (const [uid, p] of Object.entries(players)) {
                 const newP = { name: p.name, points: p.points };
-                if (p.points > 0 && !winnerUids.has(uid)) {
-                    newP.points = Math.max(0, p.points - 1);
+                if (p.points > 0) {
+                    if (!winnerUids.has(uid)) {
+                        let deduction = 1;
+                        if (typeof p.submitted === 'number' && worstUids.has(uid)) {
+                            deduction = 2;
+                            heavilyPenalizedNames.push(p.name);
+                        }
+                        newP.points = p.points - deduction;
+                    }
                 }
                 // Clear submitted for next round
                 updatedPlayers[uid] = newP;
@@ -1139,7 +1167,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target: Math.round(target * 100) / 100,
                 winnerNames: winnerNames.join(', '),
                 winnerPicks: winnerPicks.join(', '),
-                rule2Triggered: rule2Triggered
+                rule2Triggered: rule2Triggered,
+                worstNames: heavilyPenalizedNames.join(', ')
             };
 
             // Build history entry for this round
@@ -1148,6 +1177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 average: lastResult.average,
                 target: lastResult.target,
                 winnerUids: Array.from(winnerUids),
+                worstUids: Array.from(worstUids),
                 ruleActive: zeroRuleActive,
                 disqualifiedNumbers: Array.from(disqualifiedNumbers),
                 rule2Triggered: rule2Triggered,
@@ -1335,6 +1365,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (winnerPickEl) winnerPickEl.innerHTML = `100 <span style="font-size: 0.9rem; color: #fbbf24; display: block; margin-top: 0.5rem;">(2nd Special Rule! 100 beats 0)</span>`;
             } else {
                 if (winnerPickEl) winnerPickEl.textContent = r.winnerPicks || '—';
+            }
+
+            if (r.worstNames) {
+                const penaltyEl = document.getElementById('kbc-res-penalty');
+                const penaltyNamesEl = document.getElementById('kbc-res-penalty-names');
+                if (penaltyEl && penaltyNamesEl) {
+                    penaltyNamesEl.textContent = r.worstNames;
+                    penaltyEl.classList.remove('hidden');
+                }
+            } else {
+                const penaltyEl = document.getElementById('kbc-res-penalty');
+                if (penaltyEl) penaltyEl.classList.add('hidden');
             }
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
