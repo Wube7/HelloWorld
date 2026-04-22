@@ -1128,9 +1128,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // State updates for deadlock rule
-            const allPickedSame = Object.keys(pickCounts).length === 1 && submittedPlayers.length === activePlayers.length && activePlayers.length > 1;
-            const deadlockTriggeredNow = !deadlockRuleActive && allPickedSame;
-            const nextDeadlockRuleActive = deadlockRuleActive || allPickedSame;
+            let noOneLostPoint = false;
+            if (activePlayers.length > 1 && winnerUids.size === activePlayers.length) {
+                noOneLostPoint = true;
+            }
+            const deadlockTriggeredNow = !deadlockRuleActive && noOneLostPoint;
+            const nextDeadlockRuleActive = deadlockRuleActive || noOneLostPoint;
 
             // Update points: losers (submitted but not winner) lose 1 point, worst pickers lose 2
             // Non-submitters (force resolve) also lose 1 point
