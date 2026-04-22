@@ -1061,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const avg = sum / submittedPlayers.length;
             const target = avg * 0.8;
 
-            const zeroRuleActive = !!state.zeroRuleActive; // Set from previous rounds
+            const deadlockRuleActive = !!(state.deadlockRuleActive || state.zeroRuleActive); // Support legacy name
             
             const pickCounts = {};
             submittedPlayers.forEach(([, p]) => {
@@ -1069,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             const disqualifiedNumbers = new Set();
-            if (zeroRuleActive) {
+            if (deadlockRuleActive) {
                 for (const [numStr, count] of Object.entries(pickCounts)) {
                     if (count > 1) {
                         disqualifiedNumbers.add(Number(numStr));
@@ -1127,12 +1127,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // State updates for rule
-            let zeroWonThisRound = false;
-            winnerUids.forEach(uid => {
-                if (players[uid].submitted === 0) zeroWonThisRound = true;
-            });
-            const nextZeroRuleActive = zeroRuleActive || zeroWonThisRound;
+            // State updates for deadlock rule
+            const allPickedSame = Object.keys(pickCounts).length === 1 && submittedPlayers.length === activePlayers.length && activePlayers.length > 1;
+            const deadlockTriggeredNow = !deadlockRuleActive && allPickedSame;
+            const nextDeadlockRuleActive = deadlockRuleActive || allPickedSame;
 
             // Update points: losers (submitted but not winner) lose 1 point, worst pickers lose 2
             // Non-submitters (force resolve) also lose 1 point
@@ -1171,7 +1169,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 winnerNames: winnerNames.join(', '),
                 winnerPicks: winnerPicks.join(', '),
                 rule2Triggered: rule2Triggered,
-                worstNames: heavilyPenalizedNames.join(', ')
+                worstNames: heavilyPenalizedNames.join(', '),
+                deadlockTriggeredNow: deadlockTriggeredNow
             };
 
             // Build history entry for this round
@@ -1181,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target: lastResult.target,
                 winnerUids: Array.from(winnerUids),
                 worstUids: Array.from(worstUids),
-                ruleActive: zeroRuleActive,
+                ruleActive: deadlockRuleActive,
                 disqualifiedNumbers: Array.from(disqualifiedNumbers),
                 rule2Triggered: rule2Triggered,
                 submissions: {}
@@ -1205,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     players: updatedPlayers,
                     lastResult: lastResult,
                     history: existingHistory,
-                    zeroRuleActive: nextZeroRuleActive
+                    deadlockRuleActive: nextDeadlockRuleActive
                 });
             } else {
                 // Show result, then auto-advance to next round after a delay
@@ -1216,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     players: updatedPlayers,
                     lastResult: lastResult,
                     history: existingHistory,
-                    zeroRuleActive: nextZeroRuleActive
+                    deadlockRuleActive: nextDeadlockRuleActive
                 });
                 // After 3 seconds, advance to next input round
                 setTimeout(async () => {
@@ -1231,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         phase: 'input',
                         players: nextPlayers,
                         history: existingHistory,
-                        zeroRuleActive: nextZeroRuleActive
+                        deadlockRuleActive: nextDeadlockRuleActive
                     });
                 }, 3000);
             }
@@ -1271,7 +1270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const deadlockMsg = document.getElementById('kbc-deadlock-msg');
             const dualMsg = document.getElementById('kbc-dual-msg');
             if (deadlockMsg) {
-                if (state.zeroRuleActive) {
+                if (state.deadlockRuleActive || state.zeroRuleActive) {
                     deadlockMsg.classList.remove('hidden');
                 } else {
                     deadlockMsg.classList.add('hidden');
@@ -1380,6 +1379,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 const penaltyEl = document.getElementById('kbc-res-penalty');
                 if (penaltyEl) penaltyEl.classList.add('hidden');
+            }
+
+            const deadlockTriggeredEl = document.getElementById('kbc-res-deadlock-triggered');
+            if (deadlockTriggeredEl) {
+                if (r.deadlockTriggeredNow) {
+                    deadlockTriggeredEl.classList.remove('hidden');
+                } else {
+                    deadlockTriggeredEl.classList.add('hidden');
+                }
             }
 
             renderKbcScoreboard(document.getElementById('kbc-res-score-list'), players);
