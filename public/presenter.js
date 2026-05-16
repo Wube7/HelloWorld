@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ideaPresenterQ = document.getElementById('idea-presenter-q');
     const ideaPresenterLockBanner = document.getElementById('idea-presenter-lock-banner');
     const ideaPresenterBoard = document.getElementById('idea-presenter-board');
+    let currentIdeaStateObj = null;
 
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
 
@@ -311,14 +312,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (ideaPresenterContainer) ideaPresenterContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
-            if (quizContainer) quizContainer.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (kbcPresenterArea) kbcPresenterArea.classList.add('hidden');
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
+            hideAll();
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
-            if (userSidebar) userSidebar.classList.add('hidden');
 
             if (currentGlobalViewMode === 'chat') {
                 if (cardsGrid) cardsGrid.classList.add('hidden');
@@ -1470,8 +1467,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Real-time Survey Ideas Presenter listener
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
-            const state = snapshot.val();
-            if (!state || !state.active) {
+            currentIdeaStateObj = snapshot.val();
+            if (!currentIdeaStateObj || !currentIdeaStateObj.active) {
                 currentQuizPhase = (currentQuizPhase.startsWith('idea')) ? 'idle' : currentQuizPhase;
                 updateVisibilityState();
                 return;
@@ -1479,15 +1476,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             currentQuizPhase = 'idea-active';
             updateVisibilityState();
-            if (ideaPresenterQ) ideaPresenterQ.textContent = state.question;
+            if (ideaPresenterQ) ideaPresenterQ.textContent = currentIdeaStateObj.question;
 
-            const isLocked = !!state.locked;
+            const isLocked = !!currentIdeaStateObj.locked;
             if (ideaPresenterLockBanner) {
                 if (isLocked) ideaPresenterLockBanner.classList.remove('hidden');
                 else ideaPresenterLockBanner.classList.add('hidden');
             }
 
-            renderIdeaPresenterBoard(state.ideas || {});
+            renderIdeaPresenterBoard(currentIdeaStateObj.ideas || {});
         }));
     });
 
@@ -1507,15 +1504,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const isAnonMode = !!currentIdeaStateObj?.anonMode;
+
         sortedIdeas.forEach(item => {
             const card = document.createElement('div');
             card.className = 'idea-card';
             card.style.fontSize = '1.5rem';
+            const authorDisplay = isAnonMode ? '🥷 Anonymous' : item.author;
             
             card.innerHTML = `
                 <div>
                     <div class="idea-card-header" style="font-size: 1.1rem;">
-                        <span class="idea-author" style="font-size: 1.3rem;">${item.author || '🥷 Anonymous'}</span>
+                        <span class="idea-author" style="font-size: 1.3rem;">${authorDisplay}</span>
                         <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="idea-card-body" style="font-size: 1.8rem; margin-bottom: 1rem;">${item.text}</div>

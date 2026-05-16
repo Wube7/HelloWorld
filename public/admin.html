@@ -111,7 +111,12 @@
 
                     <!-- Stored Ideation Prompts List -->
                     <div style="text-align: left; margin-bottom: 1rem;">
-                        <h4 style="color: #cbd5e1; margin-bottom: 8px;">Prompt Bank (<span id="idea-bank-count">0</span>)</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="color: #cbd5e1; margin: 0;">Prompt Bank (<span id="idea-bank-count">0</span>)</h4>
+                            <label style="color: #10b981; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="toggle-idea-anon" checked> 🥷 Anonymous Ideation Mode
+                            </label>
+                        </div>
                         <div id="idea-bank-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
                     </div>
 

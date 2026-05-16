@@ -326,11 +326,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const pid = e.target.dataset.pid;
                 const pObj = storedIdeaPrompts[pid];
                 if (!pObj) return;
+                const isAnon = document.getElementById('toggle-idea-anon')?.checked ?? true;
                 await set(ref(db, 'admin/ideaState'), {
                     active: true,
                     surveyId: pid,
                     question: pObj.question,
                     locked: false,
+                    anonMode: isAnon,
                     ideas: {}
                 });
             });

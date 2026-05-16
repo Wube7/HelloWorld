@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to implement anonymous ideation mode and refactor idle phase cleanups across client and presenter applications to prevent leftover UI banners.",
+  "updatedAt":  "2026-05-16T16:31:44.147185945Z",
+  "requestFeedback":  true
+}

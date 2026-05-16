@@ -424,14 +424,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } else {
             // Idle Phase (Quiz inactive)
+            hideAll();
             clientForceView = 'auto';
-            if (btnViewChat) btnViewChat.classList.add('hidden');
-            if (btnViewGame) btnViewGame.classList.add('hidden');
-            if (quizContainer) quizContainer.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (kbcContainer) kbcContainer.classList.add('hidden');
-            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
@@ -1665,13 +1659,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const voters = item.voters || {};
             const myVote = currentUserUid ? (voters[currentUserUid] || 0) : 0;
             const isMyIdea = (currentUserUid && item.uid === currentUserUid);
+            const isAnonMode = !!currentIdeaStateObj?.anonMode;
+            const authorDisplay = isAnonMode ? (isMyIdea ? '🥷 Anonymous (You)' : '🥷 Anonymous') : (isMyIdea ? `${item.author} (You)` : item.author);
             const btnDisabled = (isLocked || isMyIdea) ? 'disabled' : '';
             const titleAttr = isMyIdea ? 'title="You cannot vote for your own idea"' : '';
             
             card.innerHTML = `
                 <div>
                     <div class="idea-card-header">
-                        <span class="idea-author">${item.author || '🥷 Anonymous'}</span>
+                        <span class="idea-author">${authorDisplay}</span>
                         <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="idea-card-body">${item.text}</div>
