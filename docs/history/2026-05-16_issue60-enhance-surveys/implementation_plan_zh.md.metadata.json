@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：重構問卷生命週期，解耦結束與重設，歸檔快照並加入 Result 按鈕與大廳防護鎖。",
+  "updatedAt":  "2026-05-16T16:45:50.705584260Z"
+}

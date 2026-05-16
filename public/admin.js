@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const adminActiveSurveyControls = document.getElementById('admin-active-survey-controls');
     const surveySubCountEl = document.getElementById('survey-sub-count');
     const btnSurveyReveal = document.getElementById('btn-survey-reveal');
-    const btnSurveyReset = document.getElementById('btn-survey-reset');
+    const btnSurveyEnd = document.getElementById('btn-survey-end');
 
     let storedSurveys = {};
     let currentSurveyState = null;
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const adminActiveIdeaControls = document.getElementById('admin-active-idea-controls');
     const ideaSubCountEl = document.getElementById('idea-sub-count');
     const btnIdeaLock = document.getElementById('btn-idea-lock');
-    const btnIdeaReset = document.getElementById('btn-idea-reset');
+    const btnIdeaEnd = document.getElementById('btn-idea-end');
 
     let storedIdeaPrompts = {};
     let currentIdeaStateObj = null;
@@ -313,9 +313,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div style="font-weight: bold; color: #f8fafc;">${pObj.question}</div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button class="btn-start-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
-                    <button class="btn-edit-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
-                    <button class="btn-del-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                    <button class="btn-start-idea primary-btn btn-sm" data-pid="${pid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
+                    <button class="btn-edit-idea primary-btn btn-sm" data-pid="${pid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
+                    <button class="btn-del-idea primary-btn btn-sm" data-pid="${pid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                    <button class="btn-res-idea primary-btn btn-sm" data-pid="${pid}" ${(!pObj.lastSession || currentQuizPhase !== 'idle') ? 'disabled' : ''} style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #f59e0b;">Result</button>
                 </div>
             `;
             ideaBankListEl.appendChild(itemDiv);
@@ -323,6 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         ideaBankListEl.querySelectorAll('.btn-start-idea').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const pid = e.target.dataset.pid;
                 const pObj = storedIdeaPrompts[pid];
                 if (!pObj) return;
@@ -340,6 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         ideaBankListEl.querySelectorAll('.btn-edit-idea').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const pid = e.target.dataset.pid;
                 const pObj = storedIdeaPrompts[pid];
                 if (!pObj) return;
@@ -351,8 +354,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
+        ideaBankListEl.querySelectorAll('.btn-res-idea').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+                const pid = e.target.dataset.pid;
+                const pObj = storedIdeaPrompts[pid];
+                const sess = pObj?.lastSession;
+                if (!sess || !sess.ideas) return;
+                await set(ref(db, 'admin/ideaState'), {
+                    active: true,
+                    surveyId: pid,
+                    question: pObj.question,
+                    locked: true,
+                    anonMode: pObj.anonMode ?? true,
+                    ideas: sess.ideas
+                });
+            });
+        });
+
         ideaBankListEl.querySelectorAll('.btn-del-idea').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const pid = e.target.dataset.pid;
                 if (confirm("Are you sure you want to delete this brainstorming prompt?")) {
                     await remove(ref(db, `admin/ideaSurveys/${pid}`));
@@ -384,14 +406,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!currentIdeaStateObj) return;
             const nextLocked = !currentIdeaStateObj.locked;
             await set(ref(db, 'admin/ideaState/locked'), nextLocked);
+            if (nextLocked && currentIdeaStateObj.surveyId) {
+                await set(ref(db, `admin/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`), currentIdeaStateObj.ideas || {});
+            }
         });
     }
 
-    if (btnIdeaReset) {
-        btnIdeaReset.addEventListener('click', async () => {
-            if (confirm("Are you sure you want to reset and end the current ideation session?")) {
-                await remove(ref(db, 'admin/ideaState'));
+    if (btnIdeaEnd) {
+        btnIdeaEnd.addEventListener('click', async () => {
+            if (currentIdeaStateObj?.surveyId) {
+                await set(ref(db, `admin/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`), currentIdeaStateObj.ideas || {});
             }
+            await set(ref(db, 'admin/ideaState/active'), false);
         });
     }
 
@@ -1631,9 +1657,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div style="font-size: 0.85rem; color: #94a3b8;">Scale: 1-${sObj.scale} (${sObj.minLabel} / ${sObj.maxLabel})</div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button class="btn-start-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
-                    <button class="btn-edit-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
-                    <button class="btn-del-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                    <button class="btn-start-survey primary-btn btn-sm" data-sid="${sid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
+                    <button class="btn-edit-survey primary-btn btn-sm" data-sid="${sid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
+                    <button class="btn-del-survey primary-btn btn-sm" data-sid="${sid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                    <button class="btn-res-survey primary-btn btn-sm" data-sid="${sid}" ${(!sObj.lastSession || currentQuizPhase !== 'idle') ? 'disabled' : ''} style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #f59e0b;">Result</button>
                 </div>
             `;
             surveyBankListEl.appendChild(itemDiv);
@@ -1641,6 +1668,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         surveyBankListEl.querySelectorAll('.btn-start-survey').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const sid = e.target.dataset.sid;
                 const sObj = storedSurveys[sid];
                 if (!sObj) return;
@@ -1659,6 +1687,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         surveyBankListEl.querySelectorAll('.btn-edit-survey').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const sid = e.target.dataset.sid;
                 const sObj = storedSurveys[sid];
                 if (!sObj) return;
@@ -1673,8 +1702,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
+        surveyBankListEl.querySelectorAll('.btn-res-survey').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+                const sid = e.target.dataset.sid;
+                const sObj = storedSurveys[sid];
+                const sess = sObj?.lastSession;
+                if (!sess) return;
+                await set(ref(db, 'admin/surveyState'), {
+                    active: true,
+                    surveyId: sid,
+                    question: sObj.question,
+                    scale: sObj.scale,
+                    minLabel: sObj.minLabel,
+                    maxLabel: sObj.maxLabel,
+                    phase: 'result',
+                    submissions: sess.submissions || {},
+                    results: sess.results || {}
+                });
+            });
+        });
+
         surveyBankListEl.querySelectorAll('.btn-del-survey').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const sid = e.target.dataset.sid;
                 if (confirm("Are you sure you want to delete this survey question?")) {
                     await remove(ref(db, `admin/surveys/${sid}`));
@@ -1726,14 +1777,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const avg = total > 0 ? parseFloat((sum / total).toFixed(2)) : 0;
             
-            await set(ref(db, 'admin/surveyState/results'), { counts: counts, average: avg, total: total });
+            const resObj = { counts: counts, average: avg, total: total };
+            await set(ref(db, 'admin/surveyState/results'), resObj);
             await set(ref(db, 'admin/surveyState/phase'), 'result');
+            
+            if (currentSurveyState?.surveyId) {
+                await set(ref(db, `admin/surveys/${currentSurveyState.surveyId}/lastSession`), {
+                    submissions: subs,
+                    results: resObj
+                });
+            }
         });
     }
 
-    if (btnSurveyReset) {
-        btnSurveyReset.addEventListener('click', async () => {
-            await remove(ref(db, 'admin/surveyState'));
+    if (btnSurveyEnd) {
+        btnSurveyEnd.addEventListener('click', async () => {
+            if (currentSurveyState?.surveyId) {
+                await set(ref(db, `admin/surveys/${currentSurveyState.surveyId}/lastSession`), {
+                    submissions: currentSurveyState.submissions || {},
+                    results: currentSurveyState.results || {}
+                });
+            }
+            await set(ref(db, 'admin/surveyState/active'), false);
         });
     }
 });

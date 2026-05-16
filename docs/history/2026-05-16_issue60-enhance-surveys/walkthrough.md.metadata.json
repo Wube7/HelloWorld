@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting persistent snapshot archiving for surveys, decoupled session ending, and lobby mutex locking on question bank buttons.",
+  "updatedAt":  "2026-05-16T16:48:28.335748071Z"
+}
