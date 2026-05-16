@@ -207,7 +207,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            document.body.classList.add('logged-in-white');
             if (user.email && ADMIN_EMAILS.includes(user.email)) {
                 if (adminStatus) adminStatus.textContent = `👑 Active Admin: ${user.displayName || user.email}`;
                 if (adminMain) adminMain.classList.remove('hidden');

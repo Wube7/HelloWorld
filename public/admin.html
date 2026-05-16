@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Panel</title>
+    <title>Admin Control Panel - Brainstorm Room</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
-<body class="logged-in-white">
+<body>
     <div class="container" style="max-width: 800px;">
         <header class="glass-panel text-center" style="margin-bottom: 2rem; padding: 2rem;">
             <h1 style="font-size: 2.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">👑 Admin Dashboard</h1>
-            <p id="admin-status" style="color: #d97706; font-weight: 600; font-size: 1.1rem;">Verifying Authentication...</p>
+            <p id="admin-status" style="color: #f59e0b; font-weight: 600; font-size: 1.1rem;">Verifying Authentication...</p>
         </header>
         <main id="admin-main" class="hidden">
-            <div id="admin-panel" class="glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b; color: #0f172a;">
-                <h2 style="color: #d97706; margin-bottom: 1rem;">👑 Admin Controls</h2>
+            <div id="admin-panel" class="glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b; color: #f8fafc;">
+                <h2 style="color: #f59e0b; margin-bottom: 1rem;">👑 Admin Controls</h2>
                 
                 <div style="margin-top: 0.5rem; padding-top: 0.5rem;">
                     <h3 style="margin-bottom: 1rem; color: #6d28d9;">🎯 Quiz Master</h3>
@@ -31,16 +31,16 @@
                         <button id="btn-quiz-default" class="primary-btn btn-sm" style="background: rgba(107, 114, 128, 0.2); border: 1px solid rgba(107, 114, 128, 0.5);">Revert to Default Quiz</button>
                         <button id="btn-quiz-template" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);">📥 Download Template</button>
                     </div>
-                    <div class="admin-timer-controls" style="margin-top: 1rem; background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                        <label style="color:#1e293b; font-size:0.95rem; font-weight: 600; display: block; margin-bottom: 8px;">⏱️ Auto-Jump Timer:</label>
+                    <div class="admin-timer-controls" style="margin-top: 1rem; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <label style="color:#e2e8f0; font-size:0.95rem; font-weight: 600; display: block; margin-bottom: 8px;">⏱️ Auto-Jump Timer:</label>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="0" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #0f172a;">Off</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="5" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #0f172a;">5s</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="10" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #0f172a;">10s</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="20" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #0f172a;">20s</button>
-                            <span style="color: #1e293b; font-size: 0.8rem;">or</span>
-                            <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #94a3b8; background: #ffffff; color: #0f172a; font-size: 0.9rem; font-weight: bold; text-align: center;">
-                            <span style="color: #1e293b; font-size: 0.8rem;">sec</span>
+                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="0" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">Off</button>
+                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="5" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">5s</button>
+                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="10" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">10s</button>
+                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="20" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">20s</button>
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">or</span>
+                            <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0, 0, 0, 0.3); color: #f8fafc; font-size: 0.9rem; font-weight: bold; text-align: center;">
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">sec</span>
                         </div>
                     </div>
                 </div>
@@ -48,10 +48,10 @@
                 <div style="margin-top: 2rem; border-top: 1px solid #cbd5e1; padding-top: 1.5rem;">
                     <h3 style="margin-bottom: 1rem; color: #db2777;">🎲 Keynesian Beauty Contest</h3>
                     <div class="admin-quiz-controls">
-                        <button id="btn-kbc-start" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5); color: #0f172a;">Start Contest</button>
-                        <button id="btn-kbc-end" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5); color: #0f172a;" disabled>End Contest</button>
-                        <button id="btn-kbc-force" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); color: #0f172a;" disabled>Force Resolve</button>
-                        <button id="btn-kbc-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #0f172a;">Reset Data</button>
+                        <button id="btn-kbc-start" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5); color: #f8fafc;">Start Contest</button>
+                        <button id="btn-kbc-end" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5); color: #f8fafc;" disabled>End Contest</button>
+                        <button id="btn-kbc-force" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); color: #f8fafc;" disabled>Force Resolve</button>
+                        <button id="btn-kbc-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #f8fafc;">Reset Data</button>
                     </div>
                 </div>
             </div>
