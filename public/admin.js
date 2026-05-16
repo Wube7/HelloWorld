@@ -697,6 +697,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.download = 'quiz_template.json';
             a.click();
             URL.revokeObjectURL(url);
+        });
     }
 
     function renderQuizBankList() {
