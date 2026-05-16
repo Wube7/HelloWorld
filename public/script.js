@@ -151,13 +151,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
+    function checkIsOnline(pData) {
+        return pData && (pData === true || pData.online);
+    }
+
+    async function enterLobby(user) {
+        document.body.classList.add('logged-in-white');
+        loginSection.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+        onlineCounter.classList.remove('hidden');
+        userProfilePanel.classList.remove('hidden');
+        if(btnLogout) btnLogout.classList.remove('hidden');
+
+        userNameDisplay.textContent = user.displayName || 'Loading...';
+        console.log("Entered lobby as:", user.displayName || 'User');
+
+        if (user.email && ADMIN_EMAILS.includes(user.email)) {
+            if (linkAdminPanel) linkAdminPanel.classList.remove('hidden');
+            if (linkPresenterPage) linkPresenterPage.classList.remove('hidden');
+        } else {
+            if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
+            if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
+        }
+    }
+
     // 2. Authentication Logic
     let isGoogleAuthResolving = false;
     btnGoogle.addEventListener('click', async () => {
         isGoogleAuthResolving = true;
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            isGoogleAuthResolving = false;
+            await enterLobby(result.user);
         } catch (err) {
             console.error("Google login failed", err);
             if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
@@ -165,7 +191,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 alert("Login failed: " + err.message);
             }
-        } finally {
             isGoogleAuthResolving = false;
         }
     });
@@ -230,26 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     onAuthStateChanged(auth, async (user) => {
         if (isGoogleAuthResolving) return;
         if (user) {
-            // User is signed in
-            document.body.classList.add('logged-in-white');
-            loginSection.classList.add('hidden');
-            mainContent.classList.remove('hidden');
-            onlineCounter.classList.remove('hidden');
-            userProfilePanel.classList.remove('hidden');
-            if(btnLogout) btnLogout.classList.remove('hidden');
-
-            userNameDisplay.textContent = user.displayName || 'Loading...';
-
-            console.log("Logged in as:", user.displayName || 'User');
-
-            // Admin Check
-            if (user.email && ADMIN_EMAILS.includes(user.email)) {
-                if (linkAdminPanel) linkAdminPanel.classList.remove('hidden');
-                if (linkPresenterPage) linkPresenterPage.classList.remove('hidden');
-            } else {
-                if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
-                if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
-            }
+            await enterLobby(user);
 
             // Listen to forceful logout kick
             const kickRef = ref(db, `admin/kicklist/${user.uid}`);
@@ -732,7 +738,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Merge online users with their scores, prioritizing presence metadata
         for (const [uid, pData] of Object.entries(onlinePresence)) {
-            const isOnline = pData && (pData === true || pData.online);
+            const isOnline = checkIsOnline(pData);
             if (isOnline) {
                 const fetchedPName = (typeof pData === 'object' && pData.name) ? pData.name : null;
                 const userScoreObj = allQuizScores[uid] || {};
@@ -897,7 +903,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const pData = onlinePresence[uid];
-                const isOnline = pData && (pData === true || pData.online);
+                const isOnline = checkIsOnline(pData);
                 const isAnon = uObj.isAnonymous || (uObj.name && (uObj.name.startsWith('Anonymous') || uObj.name.startsWith('🥷')));
                 
                 if (isOnline) {
@@ -914,7 +920,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             for (const [uid, pData] of Object.entries(onlinePresence)) {
-                const isOnline = pData && (pData === true || pData.online);
+                const isOnline = checkIsOnline(pData);
                 if (isOnline && !combinedUsers[uid]) {
                     const fetchedName = (typeof pData === 'object' && pData.name) ? pData.name : 'Connecting...';
                     const fetchedAnon = (typeof pData === 'object' && pData.isAnon !== undefined) ? pData.isAnon : true;
@@ -929,8 +935,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Sort: online first, then by name alphabetically
             userArray.sort((a, b) => {
-                const aOnline = !!onlinePresence[a.uid];
-                const bOnline = !!onlinePresence[b.uid];
+                const aOnline = checkIsOnline(onlinePresence[a.uid]);
+                const bOnline = checkIsOnline(onlinePresence[b.uid]);
                 if (aOnline === bOnline) {
                     return a.name.localeCompare(b.name);
                 }
@@ -938,7 +944,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             userArray.forEach(u => {
-                const isOnline = !!onlinePresence[u.uid];
+                const isOnline = checkIsOnline(onlinePresence[u.uid]);
                 
                 const li = document.createElement('li');
                 li.className = 'user-list-item';
@@ -1096,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const players = {};
             // Snapshot current online users
             for (const [uid, pData] of Object.entries(onlinePresence)) {
-                const isOnline = pData && (pData === true || pData.online);
+                const isOnline = checkIsOnline(pData);
                 if (isOnline) {
                     const fetchedPName = (typeof pData === 'object' && pData.name) ? pData.name : null;
                     const userObj = allUsers[uid] || {};
