@@ -554,20 +554,39 @@ body.logged-in-white .chat-input-area {
 
 /* Layout and Sidebar Styles */
 .main-layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    align-items: start;
+    display: block;
+    width: 100%;
 }
 
 .main-left {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
-.main-right {
-    position: sticky;
-    top: 2rem;
+/* Floating User Dropdown Modal */
+.user-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 320px;
+    max-height: 80vh;
+    z-index: 9999;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.2s ease-out;
+}
+body.logged-in-white .user-dropdown {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+#online-counter {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+#online-counter:hover {
+    transform: scale(1.05);
 }
 
 #user-sidebar h2 {

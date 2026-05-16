@@ -73,6 +73,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chatDemoSection = document.querySelector('.chat-demo');
     const userSidebar = document.getElementById('user-sidebar');
 
+    // User Dropdown Modal Toggle
+    if (onlineCounter && userSidebar) {
+        onlineCounter.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userSidebar.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userSidebar.classList.contains('hidden') && !userSidebar.contains(e.target) && !onlineCounter.contains(e.target)) {
+                userSidebar.classList.add('hidden');
+            }
+        });
+    }
+
     let quizData = [];
     let defaultQuizData = [];
     try {
@@ -335,7 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
-            if (userSidebar) userSidebar.classList.remove('hidden');
+            if (userSidebar) userSidebar.classList.add('hidden');
 
             if (currentGlobalViewMode === 'chat') {
                 if (cardsGrid) cardsGrid.classList.add('hidden');

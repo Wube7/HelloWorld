@@ -15,15 +15,28 @@
         </a>
     </div>
     <div class="container">
-        <header class="glass-panel" style="display: flex; justify-content: flex-end; padding: 1rem 2.5rem; margin-bottom: 2rem;">
-            <div class="header-right">
+        <header class="glass-panel" style="display: flex; justify-content: flex-end; padding: 1rem 2.5rem; margin-bottom: 2rem; position: relative;">
+            <div class="header-right" style="position: relative;">
                 <div id="user-profile" class="hidden glass-panel-small user-badge">
                     👤 <span id="user-name-display"></span>
                 </div>
                 <button id="btn-logout" class="hidden btn-logout">🚪 Log Out</button>
-                <div id="online-counter" class="hidden glass-panel-small">
+                <div id="online-counter" class="hidden glass-panel-small" title="Click to toggle online users">
                     <span class="pulse-dot"></span> <span id="user-count">0</span> online
                 </div>
+                
+                <!-- Floating User Dropdown -->
+                <aside id="user-sidebar" class="hidden glass-panel user-dropdown">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Users</h2>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="hide-anon-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Hide Anonymous</span>
+                    </div>
+                    <ul id="user-list" class="user-list"></ul>
+                </aside>
             </div>
         </header>
 
@@ -246,20 +259,6 @@
             </section>
 
             </div>
-
-            <aside id="user-sidebar" class="main-right glass-panel">
-                <h2>Users</h2>
-                <div class="toggle-container">
-                    <label class="switch">
-                        <input type="checkbox" id="hide-anon-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                    <span>Hide Anonymous</span>
-                </div>
-                <ul id="user-list" class="user-list">
-                    <!-- Users get populated here -->
-                </ul>
-            </aside>
         </main>
         
         <footer>
