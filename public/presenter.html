@@ -87,14 +87,10 @@
                         ⚔️ <b>Dual Rule Active:</b> Exactly 2 players left! If you pick 0 and 100, 100 wins!
                     </div>
 
-                    <!-- Top Section A: Leaderboard (During input phase) -->
+                    <!-- Top Section A: Waiting Progress (During input phase) -->
                     <div id="kbc-presenter-input-phase">
-                        <div id="kbc-waiting" style="margin-top: 1rem; font-size: 1.8rem; color: #334155; background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 2rem;">
-                            <p style="margin: 0;">Waiting for players to submit numbers... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
-                        </div>
-                        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
-                            <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">🏆 Top Players (Scoreboard)</h3>
-                            <ul id="kbc-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                        <div id="kbc-waiting" style="margin-top: 1rem; font-size: 1.8rem; color: #334155; background: #f8fafc; padding: 2rem; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 2rem;">
+                            <p style="margin: 0; font-weight: bold;">Waiting for players to submit numbers... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
                         </div>
                     </div>
 
@@ -121,10 +117,6 @@
                             <div id="kbc-res-deadlock-triggered" style="font-size: 1.5rem; margin-top: 1.5rem; color: #991b1b;" class="hidden">
                                 ⚠️ <b>Deadlock!</b> Everyone tied! No one lost a point, but the Deadlock Rule activates next round!
                             </div>
-                        </div>
-                        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
-                            <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">🏆 Updated Scoreboard</h3>
-                            <ul id="kbc-res-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
                         </div>
                     </div>
 
