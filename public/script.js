@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chatDemoSection = document.querySelector('.chat-demo');
     const userSidebar = document.getElementById('user-sidebar');
 
-    // User Dropdown Modal Toggle
+    // User Dropdown Modal Toggle & Close Button
     if (onlineCounter && userSidebar) {
         onlineCounter.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -83,6 +83,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!userSidebar.classList.contains('hidden') && !userSidebar.contains(e.target) && !onlineCounter.contains(e.target)) {
                 userSidebar.classList.add('hidden');
             }
+        });
+    }
+    const btnCloseUsers = document.getElementById('btn-close-users');
+    if (btnCloseUsers && userSidebar) {
+        btnCloseUsers.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userSidebar.classList.add('hidden');
         });
     }
 
