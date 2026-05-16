@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to defer database listeners until authentication completes and enforce write ordering barriers to resolve empty loads and legacy placeholder flashes.",
+  "updatedAt":  "2026-05-16T12:02:50.644189418Z",
+  "requestFeedback":  true
+}

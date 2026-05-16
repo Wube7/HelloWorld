@@ -200,8 +200,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Auth State & Presence Logic
     let userPresenceRef = null;
     let connectedUnsubscribe = null;
+    let dbListenersUnsubscribes = [];
+    let listenersInitialized = false;
+    let initDatabaseFuncs = [];
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             // User is signed in
             document.body.classList.add('logged-in-white');
@@ -235,15 +238,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            // Save user profile
+            // 1. Write Ordering Barrier: Ensure user profile is written before announcing presence
             const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
             const userProfileRef = ref(db, `users/${user.uid}`);
-            set(userProfileRef, {
+            await set(userProfileRef, {
                 uid: user.uid,
                 name: user.displayName || 'User',
                 isAnonymous: isAnon,
                 lastActive: Date.now()
             }).catch(console.error);
+
+            // 2. Initialize deferred database listeners upon successful authentication
+            if (!listenersInitialized) {
+                listenersInitialized = true;
+                initDatabaseFuncs.forEach(f => f());
+            }
 
             if (userScoreListener) { userScoreListener(); }
             userScoreListener = onValue(ref(db, `quizScores/${user.uid}`), (snap) => {
@@ -292,16 +301,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 userPresenceRef = null;
             }
+            if (listenersInitialized) {
+                dbListenersUnsubscribes.forEach(unsub => unsub());
+                dbListenersUnsubscribes = [];
+                listenersInitialized = false;
+            }
         }
     });
 
     // 4. Track Total Online Users
     const presenceRef = ref(db, 'presence');
-    onValue(presenceRef, (snapshot) => {
-        const onlineUsersCount = snapshot.size;
-        userCountEl.textContent = onlineUsersCount;
-    }, (error) => {
-        console.error("Presence read failed - check database rules and instance:", error);
+    initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(presenceRef, (snapshot) => {
+            const onlineUsersCount = snapshot.size;
+            userCountEl.textContent = onlineUsersCount;
+        }, (error) => {
+            console.error("Presence read failed - check database rules and instance:", error);
+        }));
     });
 
 
@@ -394,19 +410,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
-        if (snapshot.exists() && Array.isArray(snapshot.val())) {
-            quizData = snapshot.val();
-        } else {
-            quizData = defaultQuizData;
-        }
-    });
+    initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
+            if (snapshot.exists() && Array.isArray(snapshot.val())) {
+                quizData = snapshot.val();
+            } else {
+                quizData = defaultQuizData;
+            }
+        }));
 
-    const globalViewRef = ref(db, 'admin/globalView');
-    onValue(globalViewRef, (snapshot) => {
-        const data = snapshot.val();
-        currentGlobalViewMode = (data && data.view) || 'main';
-        updateVisibilityState();
+        const globalViewRef = ref(db, 'admin/globalView');
+        dbListenersUnsubscribes.push(onValue(globalViewRef, (snapshot) => {
+            const data = snapshot.val();
+            currentGlobalViewMode = (data && data.view) || 'main';
+            updateVisibilityState();
+        }));
     });
 
 
@@ -440,34 +458,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Receive messages
-        const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
-        
-        onChildAdded(recentMessagesQuery, (snapshot) => {
-            const data = snapshot.val();
+        initDatabaseFuncs.push(() => {
+            const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
             
-            const wrapperDiv = document.createElement('div');
-            wrapperDiv.classList.add('chat-message-wrapper');
-            if (auth.currentUser && data.uid === auth.currentUser.uid) {
-                wrapperDiv.classList.add('self');
-            }
-            
-            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-            
-            wrapperDiv.innerHTML = `
-                <div class="msg-meta">
-                    <span class="msg-name"></span>
-                    <span class="msg-time"></span>
-                </div>
-                <div class="msg-bubble">
-                    <div class="msg-text"></div>
-                </div>
-            `;
-            wrapperDiv.querySelector('.msg-name').textContent = data.name;
-            wrapperDiv.querySelector('.msg-time').textContent = timeString;
-            wrapperDiv.querySelector('.msg-text').textContent = data.text;
+            dbListenersUnsubscribes.push(onChildAdded(recentMessagesQuery, (snapshot) => {
+                const data = snapshot.val();
+                
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.classList.add('chat-message-wrapper');
+                if (auth.currentUser && data.uid === auth.currentUser.uid) {
+                    wrapperDiv.classList.add('self');
+                }
+                
+                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                
+                wrapperDiv.innerHTML = `
+                    <div class="msg-meta">
+                        <span class="msg-name"></span>
+                        <span class="msg-time"></span>
+                    </div>
+                    <div class="msg-bubble">
+                        <div class="msg-text"></div>
+                    </div>
+                `;
+                wrapperDiv.querySelector('.msg-name').textContent = data.name;
+                wrapperDiv.querySelector('.msg-time').textContent = timeString;
+                wrapperDiv.querySelector('.msg-text').textContent = data.text;
 
-            chatMessages.appendChild(wrapperDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+                chatMessages.appendChild(wrapperDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+            }));
         });
     }
 
@@ -546,8 +566,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (timerDisplay) timerDisplay.classList.add('hidden');
     }
 
-    onValue(ref(db, 'admin/quizState'), (snapshot) => {
-        const state = snapshot.val();
+    initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/quizState'), (snapshot) => {
+            const state = snapshot.val();
         
         // Evaluate previous answer if phase changed or question advanced
         if (oldQuizState && oldQuizState.phase === 'question') {
@@ -653,23 +674,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             renderPodium();
         }
-    });
+        }));
 
-    onValue(ref(db, 'quizScores'), (snapshot) => {
-        allQuizScores = snapshot.val() || {};
-        if (oldQuizState?.phase === 'podium') renderPodium();
-    });
+        dbListenersUnsubscribes.push(onValue(ref(db, 'quizScores'), (snapshot) => {
+            allQuizScores = snapshot.val() || {};
+            if (oldQuizState?.phase === 'podium') renderPodium();
+        }));
 
-    onValue(ref(db, 'users'), (snapshot) => {
-        allUsers = snapshot.val() || {};
-        if (oldQuizState?.phase === 'podium') renderPodium();
-        if (typeof window.renderUserList === 'function') window.renderUserList();
-    });
+        dbListenersUnsubscribes.push(onValue(ref(db, 'users'), (snapshot) => {
+            allUsers = snapshot.val() || {};
+            if (oldQuizState?.phase === 'podium') renderPodium();
+            if (typeof window.renderUserList === 'function') window.renderUserList();
+        }));
 
-    onValue(ref(db, 'presence'), (snapshot) => {
-        onlinePresence = snapshot.val() || {};
-        if (oldQuizState?.phase === 'podium') renderPodium();
-        if (typeof window.renderUserList === 'function') window.renderUserList();
+        dbListenersUnsubscribes.push(onValue(ref(db, 'presence'), (snapshot) => {
+            onlinePresence = snapshot.val() || {};
+            if (oldQuizState?.phase === 'podium') renderPodium();
+            if (typeof window.renderUserList === 'function') window.renderUserList();
+        }));
     });
 
     function renderPodium() {
@@ -859,7 +881,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             for (const [uid, isOnline] of Object.entries(onlinePresence)) {
                 if (isOnline && !combinedUsers[uid]) {
-                    combinedUsers[uid] = { uid: uid, name: 'Anonymous/Legacy User', isAnonymous: true };
+                    const fallbackName = (auth.currentUser && auth.currentUser.uid === uid) ? (auth.currentUser.displayName || 'Connecting...') : 'Connecting...';
+                    combinedUsers[uid] = { uid: uid, name: fallbackName, isAnonymous: true };
                 }
             }
             
@@ -1323,7 +1346,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Real-time KBC state listener
-    onValue(ref(db, 'admin/kbcState'), (snapshot) => {
+    initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcState'), (snapshot) => {
         const state = snapshot.val();
 
         if (!state || !state.active) {
@@ -1499,5 +1523,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderKbcScoreboard(document.getElementById('kbc-final-score-list'), players);
             renderKbcHistory(state.history, players);
         }
+        }));
     });
 });

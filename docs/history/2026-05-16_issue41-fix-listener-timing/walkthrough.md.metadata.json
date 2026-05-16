@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting deferred listener initialization and write ordering barrier fixes in script.js.",
+  "updatedAt":  "2026-05-16T12:07:28.324113554Z"
+}

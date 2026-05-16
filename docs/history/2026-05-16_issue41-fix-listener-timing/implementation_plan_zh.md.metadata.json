@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：延遲資料庫監聽綁定與寫入順序屏障，根除初始載入空白與 Legacy User 閃爍。",
+  "updatedAt":  "2026-05-16T12:03:00.435554403Z"
+}
