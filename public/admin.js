@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusMessage = document.getElementById('status-message');
 
     // Admin & Global View UI Elements
-    const linkAdminPanel = document.getElementById('link-admin-panel');
-    const linkPresenterPage = document.getElementById('link-presenter-page');
+    const adminPanel = document.getElementById('admin-panel');
+    const globalViewToggle = document.getElementById('global-view-toggle');
     const cardsGrid = document.querySelector('.cards-grid');
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
@@ -198,85 +198,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     let userPresenceRef = null;
     let connectedUnsubscribe = null;
 
+    const adminStatus = document.getElementById('admin-status');
+    const adminMain = document.getElementById('admin-main');
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in
             document.body.classList.add('logged-in-white');
-            loginSection.classList.add('hidden');
-            mainContent.classList.remove('hidden');
-            onlineCounter.classList.remove('hidden');
-            userProfilePanel.classList.remove('hidden');
-            if(btnLogout) btnLogout.classList.remove('hidden');
-
-            userNameDisplay.textContent = user.displayName || 'Loading...';
-
-            console.log("Logged in as:", user.displayName || 'User');
-
-            // Admin Check
             if (user.email && ADMIN_EMAILS.includes(user.email)) {
-                if (linkAdminPanel) linkAdminPanel.classList.remove('hidden');
-                if (linkPresenterPage) linkPresenterPage.classList.remove('hidden');
+                if (adminStatus) adminStatus.textContent = `👑 Active Admin: ${user.displayName || user.email}`;
+                if (adminMain) adminMain.classList.remove('hidden');
+                if (adminPanel) adminPanel.classList.remove('hidden');
             } else {
-                if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
-                if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
+                if (adminStatus) adminStatus.textContent = "⛔ Access Denied: You must log in as an authorized administrator!";
+                if (adminMain) adminMain.classList.add('hidden');
             }
-
-            // Save user profile
-            const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
-            const userProfileRef = ref(db, `users/${user.uid}`);
-            set(userProfileRef, {
-                uid: user.uid,
-                name: user.displayName || 'User',
-                isAnonymous: isAnon
-            }).catch(console.error);
-
-            if (userScoreListener) { userScoreListener(); }
-            userScoreListener = onValue(ref(db, `quizScores/${user.uid}`), (snap) => {
-                myScore = snap.val()?.score || 0;
-            });
-
-            // Setup Presence Write
-            userPresenceRef = ref(db, `presence/${user.uid}`);
-            const connectedRef = ref(db, '.info/connected');
-            
-            if (connectedUnsubscribe) connectedUnsubscribe();
-            connectedUnsubscribe = onValue(connectedRef, (snap) => {
-                if (snap.val() === true) {
-                    // On disconnect, remove our node
-                    onDisconnect(userPresenceRef).remove().then(() => {
-                        // While connected, set presence to true
-                        set(userPresenceRef, true);
-                    });
-                }
-            });
-
         } else {
-            // User is not signed in
-            document.body.classList.remove('logged-in-white');
-            loginSection.classList.remove('hidden');
-            mainContent.classList.add('hidden');
-            onlineCounter.classList.add('hidden');
-            userProfilePanel.classList.add('hidden');
-            if(btnLogout) btnLogout.classList.add('hidden');
-            if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
-            if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
-
-            if (userScoreListener) {
-                userScoreListener();
-                userScoreListener = null;
-                myScore = 0;
-            }
-
-            if (connectedUnsubscribe) {
-                connectedUnsubscribe();
-                connectedUnsubscribe = null;
-            }
-            if (userPresenceRef) {
-                remove(userPresenceRef).catch(e => {
-                    // Ignore error: write might be rejected since user is already signed out
-                });
-                userPresenceRef = null;
-            }
+            if (adminStatus) adminStatus.textContent = "🔒 Please log in as an administrator on the main page first.";
+            if (adminMain) adminMain.classList.add('hidden');
         }
     });
 

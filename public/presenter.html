@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Presenter View</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body class="logged-in-white presenter-mode">
+    <div class="background-animation"></div>
+    <div class="qr-code-container">
+        <a id="qr-code-link" href="#" target="_blank" title="Link to this website">
+            <img id="qr-code-img" src="" alt="QR Code">
+        </a>
+    </div>
+    <div class="container">
+        <header class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 1.3rem; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 4px 16px; border-radius: 20px; font-weight: bold; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);">📺 LIVE</span>
+                <h1 style="font-size: 2rem; margin: 0; color: #0f172a;">Presenter Screen</h1>
+            </div>
+            <div class="header-right">
+                <div id="online-counter" class="glass-panel-small" style="color: #0f172a; font-size: 1.1rem; font-weight: bold;">
+                    <span class="pulse-dot"></span> <span id="user-count">0</span> online
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content" class="main-layout">
+            <div class="main-left" style="width: 100%;">
+                <section class="chat-demo glass-panel" style="margin-top: 0;">
+                    <h2 style="color: #0f172a; font-size: 2.2rem;">🌍 Global Chat Room</h2>
+                    <div class="chat-container big-chat-mode" style="background: rgba(255, 255, 255, 0.9); border-color: #cbd5e1;">
+                        <div id="chat-messages" class="chat-messages"></div>
+                    </div>
+                </section>
+
+                <!-- Quiz View (Presenter mode: options not clickable) -->
+                <section id="quiz-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                    <h2 id="quiz-question" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: #1e40af;">Loading Question...</h2>
+                    <div id="quiz-timer-display" class="hidden" style="font-size: 1.8rem; font-weight: bold; color: #ef4444; margin-bottom: 1.5rem; display: inline-block; padding: 6px 24px; border: 2px solid #ef4444; border-radius: 25px;">⏱️ <span id="quiz-timer-seconds">0</span>s</div>
+                    <div class="quiz-grid" style="max-width: 1000px;">
+                        <div class="quiz-btn presenter-quiz-btn" data-index="0" style="cursor: default;">Option 1</div>
+                        <div class="quiz-btn presenter-quiz-btn" data-index="1" style="cursor: default;">Option 2</div>
+                        <div class="quiz-btn presenter-quiz-btn" data-index="2" style="cursor: default;">Option 3</div>
+                        <div class="quiz-btn presenter-quiz-btn" data-index="3" style="cursor: default;">Option 4</div>
+                    </div>
+                </section>
+
+                <!-- Podium View -->
+                <section id="podium-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.8rem; margin-bottom: 2rem; color: #d97706;">🏆 Quiz Podium 🏆</h2>
+                    <div class="podium-top3">
+                        <div class="podium-spot place-2">
+                            <div class="medal">🥈</div>
+                            <div class="name" id="podium-2-name">-</div>
+                            <div class="score" id="podium-2-score">0</div>
+                        </div>
+                        <div class="podium-spot place-1">
+                            <div class="medal">🥇</div>
+                            <div class="name" id="podium-1-name">-</div>
+                            <div class="score" id="podium-1-score">0</div>
+                        </div>
+                        <div class="podium-spot place-3">
+                            <div class="medal">🥉</div>
+                            <div class="name" id="podium-3-name">-</div>
+                            <div class="score" id="podium-3-score">0</div>
+                        </div>
+                    </div>
+                    <div class="podium-list" style="max-width: 800px;">
+                        <h3 style="font-size: 1.5rem; color: #0f172a;">All Players</h3>
+                        <ul id="podium-full-list" class="user-list" style="font-size: 1.2rem;"></ul>
+                    </div>
+                </section>
+
+                <!-- KBC Presenter View (No input slider) -->
+                <section id="kbc-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.8rem; margin-bottom: 0.5rem; color: #db2777;">🎲 Keynesian Beauty Contest</h2>
+                    <div id="kbc-round-display" style="font-size: 2rem; color: #0f172a; margin-bottom: 1.5rem; font-weight: 800;">Round <span id="kbc-round-num">1</span></div>
+                    
+                    <div id="kbc-deadlock-msg" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; color: #991b1b; font-size: 1.2rem;">
+                        ⚠️ <b>Deadlock Rule Active:</b> Any number picked by more than 1 player is disqualified!
+                    </div>
+                    <div id="kbc-dual-msg" class="hidden" style="background: rgba(59, 130, 246, 0.15); border: 2px solid #3b82f6; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; color: #1e40af; font-size: 1.2rem;">
+                        ⚔️ <b>Dual Rule Active:</b> Exactly 2 players left! If you pick 0 and 100, 100 wins!
+                    </div>
+
+                    <div id="kbc-waiting" style="margin-top: 2rem; font-size: 1.8rem; color: #334155; background: #f8fafc; padding: 2rem; border-radius: 16px; border: 2px dashed #cbd5e1;">
+                        <p style="margin: 0;">Waiting for players to submit numbers... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
+                    </div>
+
+                    <div id="kbc-scoreboard" style="margin-top: 3rem; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">Scoreboard</h3>
+                        <ul id="kbc-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                    </div>
+                </section>
+
+                <!-- KBC Result View -->
+                <section id="kbc-result-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.8rem; margin-bottom: 1.5rem; color: #db2777;">🎲 Round Result</h2>
+                    <div class="kbc-result-card" style="background: #f8fafc; border: 2px solid #cbd5e1;">
+                        <div style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                            <div class="kbc-stat">
+                                <div class="kbc-stat-label" style="font-size: 1.2rem;">Average (X)</div>
+                                <div class="kbc-stat-value" id="kbc-res-avg" style="font-size: 2.5rem;">—</div>
+                            </div>
+                            <div class="kbc-stat">
+                                <div class="kbc-stat-label" style="font-size: 1.2rem;">Target (0.8 × X)</div>
+                                <div class="kbc-stat-value" id="kbc-res-target" style="font-size: 2.5rem; color: #db2777;">—</div>
+                            </div>
+                        </div>
+                        <div id="kbc-res-winner" style="font-size: 2.2rem; margin-bottom: 1.5rem; color: #0f172a;">
+                            🏆 <span id="kbc-res-winner-name" style="font-weight: 800; color: #d97706;">—</span> wins with <span id="kbc-res-winner-pick" style="color: #2563eb;">—</span>!
+                        </div>
+                        <div id="kbc-res-penalty" style="font-size: 1.5rem; margin-top: 1.5rem; color: #ef4444;" class="hidden">
+                            💀 <span id="kbc-res-penalty-names" style="font-weight: 800;">—</span> picked the furthest number and lost 2 points!
+                        </div>
+                        <div id="kbc-res-deadlock-triggered" style="font-size: 1.5rem; margin-top: 1.5rem; color: #991b1b;" class="hidden">
+                            ⚠️ <b>Deadlock!</b> Everyone tied! No one lost a point, but the Deadlock Rule activates next round!
+                        </div>
+                    </div>
+                    <div id="kbc-res-scoreboard" style="margin-top: 3rem; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">Updated Scores</h3>
+                        <ul id="kbc-res-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                    </div>
+                </section>
+
+                <!-- KBC Game Over View -->
+                <section id="kbc-gameover-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 3.5rem; margin-bottom: 1.5rem; color: #d97706;">🏆 Contest Over! 🏆</h2>
+                    <div id="kbc-final-winner" style="font-size: 2.5rem; margin-bottom: 3rem; color: #0f172a;"></div>
+                    <div style="text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">Final Standings</h3>
+                        <ul id="kbc-final-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="presenter.js?v=1"></script>
+</body>
+</html>

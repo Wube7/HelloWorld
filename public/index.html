@@ -17,6 +17,8 @@
     <div class="container">
         <header class="glass-panel" style="display: flex; justify-content: flex-end; padding: 1rem 2.5rem; margin-bottom: 2rem; position: relative;">
             <div class="header-right" style="position: relative;">
+                <a id="link-admin-panel" href="admin.html" target="_blank" class="hidden glass-panel-small user-badge" style="text-decoration: none; border-color: #f59e0b; color: #f59e0b; font-weight: bold;" title="Open Admin Control Panel">👑 Admin</a>
+                <a id="link-presenter-page" href="presenter.html" target="_blank" class="hidden glass-panel-small user-badge" style="text-decoration: none; border-color: #10b981; color: #10b981; font-weight: bold;" title="Open Live Presenter Page">📺 Presenter</a>
                 <div id="user-profile" class="hidden glass-panel-small user-badge">
                     👤 <span id="user-name-display"></span>
                 </div>
@@ -44,47 +46,7 @@
 
         <main id="main-content" class="hidden main-layout">
             <div class="main-left">
-                <div id="admin-panel" class="hidden glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b;">
-                    <h2 style="color: #f59e0b; margin-bottom: 1rem;">👑 Admin Controls</h2>
-                    
-                    <div style="margin-top: 0.5rem; padding-top: 0.5rem;">
-                        <h3 style="margin-bottom: 1rem; color: #a78bfa;">🎯 Quiz Master</h3>
-                        <div class="admin-quiz-controls">
-                            <button id="btn-quiz-start" class="primary-btn btn-sm">Start Quiz</button>
-                            <button id="btn-quiz-next" class="primary-btn btn-sm" disabled>Next Question</button>
-                            <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
-                            <button id="btn-quiz-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
-                        </div>
-                        <div class="admin-quiz-controls" style="margin-top: 0.5rem;">
-                            <input type="file" id="quiz-upload-input" accept=".json" style="display: none;">
-                            <button id="btn-quiz-upload" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5);">Upload Custom Quiz JSON</button>
-                            <button id="btn-quiz-default" class="primary-btn btn-sm" style="background: rgba(107, 114, 128, 0.2); border: 1px solid rgba(107, 114, 128, 0.5);">Revert to Default Quiz</button>
-                            <button id="btn-quiz-template" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);">📥 Download Template</button>
-                        </div>
-                        <div class="admin-timer-controls" style="margin-top: 1rem; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-                            <label style="color:#e2e8f0; font-size:0.9rem; display: block; margin-bottom: 8px;">⏱️ Auto-Jump Timer:</label>
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="0" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">Off</button>
-                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="5" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">5s</button>
-                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="10" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">10s</button>
-                                <button class="timer-preset-btn primary-btn btn-sm" data-seconds="20" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem;">20s</button>
-                                <span style="color: #9ca3af; font-size: 0.8rem;">or</span>
-                                <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 55px; padding: 4px; border-radius: 4px; border: 1px solid #4b5563; background: rgba(0,0,0,0.5); color: white; font-size: 0.85rem;">
-                                <span style="color: #9ca3af; font-size: 0.8rem;">sec</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                        <h3 style="margin-bottom: 1rem; color: #f472b6;">🎲 Keynesian Beauty Contest</h3>
-                        <div class="admin-quiz-controls">
-                            <button id="btn-kbc-start" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5);">Start Contest</button>
-                            <button id="btn-kbc-end" class="primary-btn btn-sm" style="background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.5);" disabled>End Contest</button>
-                            <button id="btn-kbc-force" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);" disabled>Force Resolve</button>
-                            <button id="btn-kbc-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
-                        </div>
-                    </div>
-                </div>
 
 
 
