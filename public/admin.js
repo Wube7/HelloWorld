@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 5000);
 
+    initDatabaseFuncs.push(() => {
         // Real-time Survey Ideas Master listeners
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaSurveys'), (snapshot) => {
             storedIdeaPrompts = snapshot.val() || {};
@@ -397,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initDatabaseFuncs.push(() => {
         dbListenersUnsubscribes.push(onValue(presenceRef, (snapshot) => {
             const onlineUsersCount = snapshot.size;
-            userCountEl.textContent = onlineUsersCount;
+            if (userCountEl) userCountEl.textContent = onlineUsersCount;
         }, (error) => {
             console.error("Presence read failed - check database rules and instance:", error);
         }));
