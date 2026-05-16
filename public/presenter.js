@@ -62,6 +62,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const surveyResAvg = document.getElementById('survey-res-avg');
     const surveyResTotal = document.getElementById('survey-res-total');
 
+    // Survey Ideas Presenter DOM
+    const ideaPresenterContainer = document.getElementById('idea-presenter-container');
+    const ideaPresenterQ = document.getElementById('idea-presenter-q');
+    const ideaPresenterLockBanner = document.getElementById('idea-presenter-lock-banner');
+    const ideaPresenterBoard = document.getElementById('idea-presenter-board');
+
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
 
     // Quiz Elements
@@ -271,6 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
             if (surveyPresenterContainer) surveyPresenterContainer.classList.add('hidden');
+            if (ideaPresenterContainer) ideaPresenterContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
         };
 
@@ -299,6 +306,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (currentQuizPhase === 'survey-input' || currentQuizPhase === 'survey-result') {
             hideAll();
             if (surveyPresenterContainer) surveyPresenterContainer.classList.remove('hidden');
+        } else if (currentQuizPhase === 'idea-active') {
+            hideAll();
+            if (ideaPresenterContainer) ideaPresenterContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             if (quizContainer) quizContainer.classList.add('hidden');
@@ -1455,7 +1465,67 @@ document.addEventListener('DOMContentLoaded', async () => {
                         surveyHistogramEl.appendChild(col);
                     }
                 }
+        }
+        }));
+
+        // Real-time Survey Ideas Presenter listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
+            const state = snapshot.val();
+            if (!state || !state.active) {
+                currentQuizPhase = (currentQuizPhase.startsWith('idea')) ? 'idle' : currentQuizPhase;
+                updateVisibilityState();
+                return;
             }
+
+            currentQuizPhase = 'idea-active';
+            updateVisibilityState();
+            if (ideaPresenterQ) ideaPresenterQ.textContent = state.question;
+
+            const isLocked = !!state.locked;
+            if (ideaPresenterLockBanner) {
+                if (isLocked) ideaPresenterLockBanner.classList.remove('hidden');
+                else ideaPresenterLockBanner.classList.add('hidden');
+            }
+
+            renderIdeaPresenterBoard(state.ideas || {});
         }));
     });
+
+    function renderIdeaPresenterBoard(ideasMap) {
+        if (!ideaPresenterBoard) return;
+        ideaPresenterBoard.innerHTML = '';
+        
+        const sortedIdeas = Object.values(ideasMap).sort((a, b) => {
+            const aV = a.votes || 0;
+            const bV = b.votes || 0;
+            if (bV !== aV) return bV - aV;
+            return (b.timestamp || 0) - (a.timestamp || 0);
+        });
+
+        if (sortedIdeas.length === 0) {
+            ideaPresenterBoard.innerHTML = '<div style="color:#94a3b8; grid-column: 1/-1; font-size: 1.8rem;">No ideas posted yet. Waiting for participants...</div>';
+            return;
+        }
+
+        sortedIdeas.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'idea-card';
+            card.style.fontSize = '1.5rem';
+            
+            card.innerHTML = `
+                <div>
+                    <div class="idea-card-header" style="font-size: 1.1rem;">
+                        <span class="idea-author" style="font-size: 1.3rem;">${item.author || '🥷 Anonymous'}</span>
+                        <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="idea-card-body" style="font-size: 1.8rem; margin-bottom: 1rem;">${item.text}</div>
+                </div>
+                <div class="idea-card-footer" style="background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; padding: 12px 20px;">
+                    <span class="idea-points" style="font-size: 1.8rem; color: #3b82f6; font-weight: 900;">${item.votes || 0} pts</span>
+                    <span style="font-size: 1.5rem;">🔥</span>
+                </div>
+            `;
+            ideaPresenterBoard.appendChild(card);
+        });
+    }
 });

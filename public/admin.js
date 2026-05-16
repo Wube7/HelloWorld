@@ -144,6 +144,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let storedSurveys = {};
     let currentSurveyState = null;
 
+    // Survey Ideas Master DOM
+    const ideaAddQ = document.getElementById('idea-add-q');
+    const btnIdeaCreate = document.getElementById('btn-idea-create');
+    const ideaBankListEl = document.getElementById('idea-bank-list');
+    const ideaBankCountEl = document.getElementById('idea-bank-count');
+    const adminActiveIdeaControls = document.getElementById('admin-active-idea-controls');
+    const ideaSubCountEl = document.getElementById('idea-sub-count');
+    const btnIdeaLock = document.getElementById('btn-idea-lock');
+    const btnIdeaReset = document.getElementById('btn-idea-reset');
+
+    let storedIdeaPrompts = {};
+    let currentIdeaStateObj = null;
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -246,6 +259,130 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
+
+        // Real-time Survey Ideas Master listeners
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaSurveys'), (snapshot) => {
+            storedIdeaPrompts = snapshot.val() || {};
+            renderIdeaBank();
+        }));
+
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
+            currentIdeaStateObj = snapshot.val();
+            if (currentIdeaStateObj && currentIdeaStateObj.active) {
+                if (adminActiveIdeaControls) adminActiveIdeaControls.classList.remove('hidden');
+                const ideasMap = currentIdeaStateObj.ideas || {};
+                const postedCount = Object.keys(ideasMap).length;
+                if (ideaSubCountEl) ideaSubCountEl.textContent = postedCount;
+                if (btnIdeaLock) {
+                    const isLocked = !!currentIdeaStateObj.locked;
+                    btnIdeaLock.textContent = isLocked ? "🔓 Unlock Session" : "🔒 Lock Session";
+                    btnIdeaLock.style.background = isLocked ? "rgba(16, 185, 129, 0.2)" : "rgba(245, 158, 11, 0.2)";
+                    btnIdeaLock.style.borderColor = isLocked ? "#10b981" : "#f59e0b";
+                }
+            } else {
+                if (adminActiveIdeaControls) adminActiveIdeaControls.classList.add('hidden');
+            }
+        }));
+    });
+
+    function renderIdeaBank() {
+        if (!ideaBankListEl) return;
+        ideaBankListEl.innerHTML = '';
+        const keys = Object.keys(storedIdeaPrompts);
+        if (ideaBankCountEl) ideaBankCountEl.textContent = keys.length;
+
+        if (keys.length === 0) {
+            ideaBankListEl.innerHTML = '<div style="color: #64748b;">No brainstorming prompts saved. Add one above!</div>';
+            return;
+        }
+
+        for (const [pid, pObj] of Object.entries(storedIdeaPrompts)) {
+            const itemDiv = document.createElement('div');
+            itemDiv.style = "background: rgba(255,255,255,0.05); border: 1px solid #475569; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
+            itemDiv.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; color: #f8fafc;">${pObj.question}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-start-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
+                    <button class="btn-edit-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
+                    <button class="btn-del-idea primary-btn btn-sm" data-pid="${pid}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                </div>
+            `;
+            ideaBankListEl.appendChild(itemDiv);
+        }
+
+        ideaBankListEl.querySelectorAll('.btn-start-idea').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const pid = e.target.dataset.pid;
+                const pObj = storedIdeaPrompts[pid];
+                if (!pObj) return;
+                await set(ref(db, 'admin/ideaState'), {
+                    active: true,
+                    surveyId: pid,
+                    question: pObj.question,
+                    locked: false,
+                    ideas: {}
+                });
+            });
+        });
+
+        ideaBankListEl.querySelectorAll('.btn-edit-idea').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const pid = e.target.dataset.pid;
+                const pObj = storedIdeaPrompts[pid];
+                if (!pObj) return;
+                if (ideaAddQ) ideaAddQ.value = pObj.question;
+                if (btnIdeaCreate) {
+                    btnIdeaCreate.textContent = "Update Prompt";
+                    btnIdeaCreate.dataset.editingPid = pid;
+                }
+            });
+        });
+
+        ideaBankListEl.querySelectorAll('.btn-del-idea').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const pid = e.target.dataset.pid;
+                if (confirm("Are you sure you want to delete this brainstorming prompt?")) {
+                    await remove(ref(db, `admin/ideaSurveys/${pid}`));
+                }
+            });
+        });
+    }
+
+    if (btnIdeaCreate) {
+        btnIdeaCreate.addEventListener('click', async () => {
+            const q = ideaAddQ.value.trim();
+            if (!q) { alert("Please enter a prompt."); return; }
+            
+            const editingPid = btnIdeaCreate.dataset.editingPid;
+            if (editingPid) {
+                await set(ref(db, `admin/ideaSurveys/${editingPid}`), { question: q });
+                btnIdeaCreate.textContent = "+ Add to Prompt Bank";
+                delete btnIdeaCreate.dataset.editingPid;
+            } else {
+                const newRef = push(ref(db, 'admin/ideaSurveys'));
+                await set(newRef, { question: q });
+            }
+            ideaAddQ.value = '';
+        });
+    }
+
+    if (btnIdeaLock) {
+        btnIdeaLock.addEventListener('click', async () => {
+            if (!currentIdeaStateObj) return;
+            const nextLocked = !currentIdeaStateObj.locked;
+            await set(ref(db, 'admin/ideaState/locked'), nextLocked);
+        });
+    }
+
+    if (btnIdeaReset) {
+        btnIdeaReset.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to reset and end the current ideation session?")) {
+                await remove(ref(db, 'admin/ideaState'));
+            }
+        });
+    }
 
     // 4. Track Total Online Users
     const presenceRef = ref(db, 'presence');

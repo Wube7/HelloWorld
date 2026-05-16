@@ -230,6 +230,23 @@
                 </div>
             </section>
 
+            <!-- Survey Ideas Ideation View -->
+            <section id="idea-client-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem; padding: 2rem;">
+                <h2 id="idea-client-question" style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: #3b82f6;">Loading Brainstorming Prompt...</h2>
+                <div id="idea-client-lock-banner" class="hidden" style="background: #ef4444; color: white; font-weight: 800; font-size: 1.2rem; padding: 8px 20px; border-radius: 20px; display: inline-block; margin-bottom: 1.5rem;">
+                    🔒 Ideation and Voting Locked by Host
+                </div>
+
+                <!-- Real-time Idea Board Grid -->
+                <div id="idea-client-board" class="idea-board"></div>
+
+                <!-- Bottom Fixed Idea Input Bar -->
+                <div style="display: flex; gap: 10px; max-width: 800px; margin: 1.5rem auto 0 auto; background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <input type="text" id="idea-client-input" placeholder="Share your idea here..." style="flex: 1; padding: 12px 18px; border-radius: 8px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white; font-size: 1.1rem; outline: none;">
+                    <button id="btn-idea-submit" class="primary-btn btn-lg" style="padding: 12px 24px; background: #3b82f6; border-color: #2563eb;">💡 Post Idea</button>
+                </div>
+            </section>
+
             </div>
         </main>
         

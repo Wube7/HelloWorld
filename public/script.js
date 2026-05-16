@@ -138,6 +138,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnSurveySubmit = document.getElementById('btn-survey-submit');
     const surveySubmittedBanner = document.getElementById('survey-submitted-banner');
 
+    // Survey Ideas Elements
+    const ideaClientContainer = document.getElementById('idea-client-container');
+    const ideaClientQ = document.getElementById('idea-client-question');
+    const ideaClientLockBanner = document.getElementById('idea-client-lock-banner');
+    const ideaClientBoard = document.getElementById('idea-client-board');
+    const ideaClientInput = document.getElementById('idea-client-input');
+    const btnIdeaSubmit = document.getElementById('btn-idea-submit');
+
+    let currentIdeaStateObj = null;
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -374,6 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
             if (surveyClientContainer) surveyClientContainer.classList.add('hidden');
+            if (ideaClientContainer) ideaClientContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
             if (headerEl) headerEl.classList.remove('hidden'); // 確保永遠顯示
         };
@@ -400,6 +411,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
                 } else if (currentQuizPhase === 'survey-input' || currentQuizPhase === 'survey-result') {
                     if (surveyClientContainer) surveyClientContainer.classList.remove('hidden');
+                } else if (currentQuizPhase === 'idea-active') {
+                    if (ideaClientContainer) ideaClientContainer.classList.remove('hidden');
                 }
                 if (btnViewChat) btnViewChat.classList.remove('hidden');
                 if (btnViewGame) btnViewGame.classList.add('hidden');
@@ -1596,7 +1609,110 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }));
+
+        // Real-time Survey Ideas listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
+            currentIdeaStateObj = snapshot.val();
+            if (!currentIdeaStateObj || !currentIdeaStateObj.active) {
+                currentQuizPhase = (currentQuizPhase.startsWith('idea')) ? 'idle' : currentQuizPhase;
+                updateVisibilityState();
+                return;
+            }
+
+            currentQuizPhase = 'idea-active';
+            updateVisibilityState();
+            if (ideaClientQ) ideaClientQ.textContent = currentIdeaStateObj.question;
+
+            const isLocked = !!currentIdeaStateObj.locked;
+            if (ideaClientLockBanner) {
+                if (isLocked) ideaClientLockBanner.classList.remove('hidden');
+                else ideaClientLockBanner.classList.add('hidden');
+            }
+            if (ideaClientInput) ideaClientInput.disabled = isLocked;
+            if (btnIdeaSubmit) btnIdeaSubmit.disabled = isLocked;
+
+            renderIdeaClientBoard(currentIdeaStateObj.ideas || {}, isLocked);
+        }));
     });
+
+    function renderIdeaClientBoard(ideasMap, isLocked) {
+        if (!ideaClientBoard) return;
+        ideaClientBoard.innerHTML = '';
+        
+        const sortedIdeas = Object.values(ideasMap).sort((a, b) => {
+            const aV = a.votes || 0;
+            const bV = b.votes || 0;
+            if (bV !== aV) return bV - aV;
+            return (b.timestamp || 0) - (a.timestamp || 0);
+        });
+
+        if (sortedIdeas.length === 0) {
+            ideaClientBoard.innerHTML = '<div style="color:#94a3b8; grid-column: 1/-1;">No ideas posted yet. Be the first to share!</div>';
+            return;
+        }
+
+        const currentUserUid = auth.currentUser ? auth.currentUser.uid : null;
+
+        sortedIdeas.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'idea-card';
+            
+            const voters = item.voters || {};
+            const myVote = currentUserUid ? (voters[currentUserUid] || 0) : 0;
+            
+            card.innerHTML = `
+                <div>
+                    <div class="idea-card-header">
+                        <span class="idea-author">${item.author || '🥷 Anonymous'}</span>
+                        <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="idea-card-body">${item.text}</div>
+                </div>
+                <div class="idea-card-footer">
+                    <span class="idea-points">${item.votes || 0} pts</span>
+                    <div class="idea-actions">
+                        <button class="btn-upvote ${myVote === 1 ? 'voted-1' : ''}" data-id="${item.id}" data-val="1" ${isLocked ? 'disabled' : ''}>👍 +1</button>
+                        <button class="btn-upvote ${myVote === 2 ? 'voted-2' : ''}" data-id="${item.id}" data-val="2" ${isLocked ? 'disabled' : ''}>🔥 +2</button>
+                    </div>
+                </div>
+            `;
+            ideaClientBoard.appendChild(card);
+        });
+
+        ideaClientBoard.querySelectorAll('.btn-upvote').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (isLocked || !auth.currentUser) return;
+                const iid = e.target.dataset.id;
+                const clickVal = parseInt(e.target.dataset.val);
+                const ideaObj = currentIdeaStateObj?.ideas?.[iid];
+                if (!ideaObj) return;
+
+                const voters = ideaObj.voters || {};
+                const oldVal = voters[auth.currentUser.uid] || 0;
+                
+                let newVal;
+                if (oldVal === clickVal) {
+                    newVal = 0; // Toggle off
+                } else {
+                    newVal = clickVal;
+                }
+
+                const diff = newVal - oldVal;
+                const newVotes = (ideaObj.votes || 0) + diff;
+                
+                try {
+                    if (newVal === 0) {
+                        await remove(ref(db, `admin/ideaState/ideas/${iid}/voters/${auth.currentUser.uid}`));
+                    } else {
+                        await set(ref(db, `admin/ideaState/ideas/${iid}/voters/${auth.currentUser.uid}`), newVal);
+                    }
+                    await set(ref(db, `admin/ideaState/ideas/${iid}/votes`), newVotes);
+                } catch(err) {
+                    console.error("Idea vote error", err);
+                }
+            });
+        });
+    }
 
     if (surveyClientSlider && surveyClientVal) {
         surveyClientSlider.addEventListener('input', (e) => {
@@ -1621,6 +1737,39 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert("Failed to submit rating: " + err.message);
                 btnSurveySubmit.disabled = false;
                 if (surveyClientSlider) surveyClientSlider.disabled = false;
+            }
+        });
+    }
+
+    if (btnIdeaSubmit && ideaClientInput) {
+        btnIdeaSubmit.addEventListener('click', async () => {
+            if (!auth.currentUser || currentIdeaStateObj?.locked) return;
+            const text = ideaClientInput.value.trim();
+            if (!text) return;
+            
+            btnIdeaSubmit.disabled = true;
+            ideaClientInput.disabled = true;
+            try {
+                const newIdeaRef = push(ref(db, 'admin/ideaState/ideas'));
+                const iid = newIdeaRef.key;
+                await set(newIdeaRef, {
+                    id: iid,
+                    text: text,
+                    uid: auth.currentUser.uid,
+                    author: auth.currentUser.displayName || '🥷 Anonymous',
+                    timestamp: serverTimestamp(),
+                    votes: 0,
+                    voters: {}
+                });
+                ideaClientInput.value = '';
+            } catch(err) {
+                console.error("Idea submit error", err);
+                alert("Failed to post idea: " + err.message);
+            } finally {
+                if (!currentIdeaStateObj?.locked) {
+                    btnIdeaSubmit.disabled = false;
+                    ideaClientInput.disabled = false;
+                }
             }
         });
     }

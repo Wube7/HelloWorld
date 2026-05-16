@@ -69,6 +69,26 @@
             ".write": "auth != null && auth.uid == $uid"
           }
         }
+      },
+      "ideaSurveys": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
+      "ideaState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
+        "ideas": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$ideaId": {
+            ".write": "auth != null",
+            "voters": {
+              "$uid": {
+                ".write": "auth != null && auth.uid == $uid"
+              }
+            }
+          }
+        }
       }
     }
   }
