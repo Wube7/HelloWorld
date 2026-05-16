@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：新增 kbcArchive 節點的讀寫安全權限，修復 Permission Denied 例外解鎖 KBC 按鍵。",
+  "updatedAt":  "2026-05-16T17:59:28.100648920Z"
+}

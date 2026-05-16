@@ -28,6 +28,10 @@
       }
     },
     "admin": {
+      "kbcArchive": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
       "kicklist": {
         ".read": "auth != null",
         "$uid": {

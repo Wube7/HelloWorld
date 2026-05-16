@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting permission grants for kbcArchive node in database.rules.json to resolve PERMISSION_DENIED errors on KBC Force Resolve and archival.",
+  "updatedAt":  "2026-05-16T18:01:33.507195491Z"
+}
