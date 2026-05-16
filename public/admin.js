@@ -521,6 +521,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/quizBanks'), (snapshot) => {
+            storedQuizBanks = snapshot.val() || {};
+            if (typeof renderQuizBankList === 'function') renderQuizBankList();
+        }));
+
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
             if (snapshot.exists() && Array.isArray(snapshot.val())) {
                 quizData = snapshot.val();
@@ -612,53 +617,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    if (btnQuizStart) {
-        btnQuizStart.addEventListener('click', () => {
-            const timerSecs = parseInt(autoJumpInput?.value) || 0;
-            const stateObj = { active: true, phase: 'question', questionIndex: 0 };
-            if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-            set(ref(db, 'admin/quizState'), stateObj);
-        });
-        btnQuizNext.addEventListener('click', () => {
-            if (!oldQuizState) return;
-            const nextIdx = (oldQuizState.questionIndex || 0) + 1;
-            if (nextIdx >= quizData.length) {
-                set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
-            } else {
-                const timerSecs = parseInt(autoJumpInput?.value) || 0;
-                const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
-                if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                set(ref(db, 'admin/quizState'), stateObj);
-            }
-        });
-        btnQuizEnd.addEventListener('click', () => {
-            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
-        });
-        btnQuizReset.addEventListener('click', async () => {
-            if (confirm("Are you sure you want to delete all scores and reset the quiz?")) {
-                await set(ref(db, 'admin/quizState'), { active: false });
-                await remove(ref(db, 'quizScores'));
-                answeredQuestions.clear();
-                alert("Quiz reset!");
-            }
-        });
 
-        // Preset timer buttons
-        timerPresetBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const secs = parseInt(btn.dataset.seconds);
-                if (autoJumpInput) autoJumpInput.value = secs;
-                timerPresetBtns.forEach(b => b.style.outline = 'none');
-                btn.style.outline = '2px solid #60a5fa';
-            });
-        });
-
-        if (autoJumpInput) {
-            autoJumpInput.addEventListener('input', () => {
-                timerPresetBtns.forEach(b => b.style.outline = 'none');
-            });
-        }
-    }
 
     if (btnQuizSelectFile && quizUploadFile) {
         btnQuizSelectFile.addEventListener('click', () => quizUploadFile.click());
@@ -736,6 +695,88 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.download = 'quiz_template.json';
             a.click();
             URL.revokeObjectURL(url);
+    }
+
+    function renderQuizBankList() {
+        if (!quizBankListEl) return;
+        quizBankListEl.innerHTML = '';
+        const keys = Object.keys(storedQuizBanks);
+        if (quizBankCountEl) quizBankCountEl.textContent = keys.length;
+        
+        if (keys.length === 0) {
+            quizBankListEl.innerHTML = '<div style="color: #64748b;">No quiz banks saved. Create one above!</div>';
+            return;
+        }
+        
+        for (const [qid, qObj] of Object.entries(storedQuizBanks)) {
+            const qCount = qObj.quizData ? qObj.quizData.length : 0;
+            const hasRes = !!qObj.lastSession;
+            const itemDiv = document.createElement('div');
+            itemDiv.style = "background: rgba(255,255,255,0.05); border: 1px solid #475569; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
+            itemDiv.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; color: #f8fafc;">${qObj.topic || 'Untitled Quiz'}</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">${qCount} Qs | Timer: ${qObj.timerSecs || 0}s</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-start-quizbank primary-btn btn-sm" data-qid="${qid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
+                    <button class="btn-del-quizbank primary-btn btn-sm" data-qid="${qid}" ${currentQuizPhase !== 'idle' ? 'disabled' : ''} style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                    <button class="btn-res-quizbank primary-btn btn-sm" data-qid="${qid}" ${(hasRes && currentQuizPhase === 'idle') ? '' : 'disabled'} style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #f59e0b;">Result</button>
+                </div>
+            `;
+            quizBankListEl.appendChild(itemDiv);
+        }
+
+        quizBankListEl.querySelectorAll('.btn-start-quizbank').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+                const qid = e.target.dataset.qid;
+                const qObj = storedQuizBanks[qid];
+                if (!qObj || !qObj.quizData) return;
+                
+                await set(ref(db, 'admin/currentQuizData'), qObj.quizData);
+                const timerSecs = qObj.timerSecs || 0;
+                const stateObj = {
+                    active: true,
+                    bankId: qid,
+                    topic: qObj.topic || 'Quiz',
+                    timerSecs: timerSecs,
+                    phase: 'question',
+                    questionIndex: 0
+                };
+                if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
+                await set(ref(db, 'admin/quizState'), stateObj);
+                await remove(ref(db, 'quizScores'));
+                answeredQuestions.clear();
+            });
+        });
+
+        quizBankListEl.querySelectorAll('.btn-res-quizbank').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+                const qid = e.target.dataset.qid;
+                const qObj = storedQuizBanks[qid];
+                const sess = qObj?.lastSession;
+                if (!sess) return;
+                await set(ref(db, 'admin/quizState'), {
+                    active: true,
+                    bankId: qid,
+                    topic: qObj.topic || 'Quiz',
+                    phase: 'podium',
+                    podiumData: sess.podiumData || {},
+                    quizScores: sess.quizScores || {}
+                });
+            });
+        });
+
+        quizBankListEl.querySelectorAll('.btn-del-quizbank').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+                const qid = e.target.dataset.qid;
+                if (confirm("Are you sure you want to delete this quiz bank?")) {
+                    await remove(ref(db, `admin/quizBanks/${qid}`));
+                }
+            });
         });
     }
 
@@ -805,13 +846,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearAutoJump();
             clearClientTimer();
             currentQuizPhase = 'idle';
+            if (adminActiveQuizControls) adminActiveQuizControls.classList.add('hidden');
             updateVisibilityState();
-            
-            if (btnQuizStart) btnQuizStart.disabled = false;
-            if (btnQuizNext) btnQuizNext.disabled = true;
-            if (btnQuizEnd) btnQuizEnd.disabled = true;
-            
-        } else if (state.phase === 'question') {
+            return;
+        }
+        
+        currentQuizStateObj = state;
+        if (adminActiveQuizControls) adminActiveQuizControls.classList.remove('hidden');
+        if (quizAdminQnum) quizAdminQnum.textContent = (state.questionIndex || 0) + 1;
+        if (quizAdminTopic) quizAdminTopic.textContent = state.topic || 'Quiz';
+        
+        if (state.phase === 'question') {
             currentQuizPhase = 'question';
             updateVisibilityState();
             
@@ -847,19 +892,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
             
-            if (btnQuizStart) btnQuizStart.disabled = true;
-            if (btnQuizNext) btnQuizNext.disabled = false;
-            if (btnQuizEnd) btnQuizEnd.disabled = false;
-            
         } else if (state.phase === 'podium') {
             clearAutoJump();
             clearClientTimer();
             currentQuizPhase = 'podium';
             updateVisibilityState();
-            
-            if (btnQuizStart) btnQuizStart.disabled = false;
-            if (btnQuizNext) btnQuizNext.disabled = true;
-            if (btnQuizEnd) btnQuizEnd.disabled = true;
             
             renderPodium();
 

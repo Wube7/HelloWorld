@@ -20,29 +20,6 @@
                 <div style="margin-top: 0.5rem; padding-top: 0.5rem;">
                     <h3 style="margin-bottom: 1rem; color: #6d28d9;">🎯 Quiz Master (Multi-Bank)</h3>
                     
-                    <!-- Legacy Controls Wrapped to Prevent ReferenceError (Hidden) -->
-                    <div id="legacy-quiz-controls-hidden" style="display: none;">
-                        <div class="admin-quiz-controls">
-                            <button id="btn-quiz-start" class="primary-btn btn-sm">Start Quiz</button>
-                            <button id="btn-quiz-next" class="primary-btn btn-sm" disabled>Next Question</button>
-                            <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
-                            <button id="btn-quiz-reset" class="primary-btn btn-sm">Reset Data</button>
-                        </div>
-                        <div class="admin-quiz-controls">
-                            <input type="file" id="quiz-upload-input" accept=".json">
-                            <button id="btn-quiz-upload" class="primary-btn btn-sm">Upload</button>
-                            <button id="btn-quiz-default" class="primary-btn btn-sm">Default</button>
-                            <button id="btn-quiz-template" class="primary-btn btn-sm">Template</button>
-                        </div>
-                        <div class="admin-timer-controls">
-                            <button class="timer-preset-btn" data-seconds="0">Off</button>
-                            <button class="timer-preset-btn" data-seconds="5">5s</button>
-                            <button class="timer-preset-btn" data-seconds="10">10s</button>
-                            <button class="timer-preset-btn" data-seconds="20">20s</button>
-                            <input type="number" id="auto-jump-input" value="0">
-                        </div>
-                    </div>
-
                     <!-- Bank Creation Form (Always Available) -->
                     <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1.5rem; text-align: left;">
                         <h4 style="margin-bottom: 8px; color: #e2e8f0;">Create New Quiz Bank</h4>
@@ -69,6 +46,16 @@
                     <div style="text-align: left; margin-bottom: 1rem;">
                         <h4 style="color: #cbd5e1; margin-bottom: 8px;">Quiz Banks (<span id="quiz-bank-count">0</span>)</h4>
                         <div id="quiz-bank-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+
+                    <!-- Active Quiz Controls (Hidden in Lobby) -->
+                    <div id="admin-active-quiz-controls" class="hidden" style="background: rgba(109, 40, 217, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #6d28d9; margin-top: 1rem;">
+                        <div style="color: #a78bfa; font-weight: bold; margin-bottom: 8px;">🟢 Active Quiz in Progress (Q#<span id="quiz-admin-qnum">1</span>) - <span id="quiz-admin-topic"></span></div>
+                        <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                            <button id="btn-quiz-next" class="primary-btn btn-sm" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: white;">Next Question</button>
+                            <button id="btn-quiz-crown" class="primary-btn btn-sm" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: white;">End Game (Crown Winner)</button>
+                            <button id="btn-quiz-return" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: white;">Return Lobby</button>
+                        </div>
                     </div>
                 </div>
 
@@ -170,6 +157,6 @@
             </div>
         </main>
     </div>
-    <script type="module" src="admin.js?v=step2"></script>
+    <script type="module" src="admin.js?v=step3"></script>
 </body>
 </html>
