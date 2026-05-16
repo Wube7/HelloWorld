@@ -3,20 +3,31 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuth
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("admin.js started initializing...");
+    const adminStatus = document.getElementById('admin-status');
+    const adminMain = document.getElementById('admin-main');
+    let authResolved = false;
+
+    // Watchdog timeout placed at the very top
+    setTimeout(() => {
+        if (!authResolved && adminStatus) {
+            console.warn("Auth verification timeout reached.");
+            adminStatus.textContent = "⚠️ Authentication verification timeout. Please ensure you are logged in on the main page or F5 reload.";
+        }
+    }, 5000);
+
     // 1. Initialize Firebase from Hosting Init URL
     let app, auth, db;
     try {
         const response = await fetch('/__/firebase/init.json');
         if (!response.ok) throw new Error('Could not fetch init.json');
         const config = await response.json();
-        // Force the absolute URL because init.json might provide an invalid non-absolute string
-        // config.databaseURL = 'https://helloworld777-fa78b-default-rtdb.firebaseio.com';
-        
         app = initializeApp(config);
         auth = getAuth(app);
         db = getDatabase(app);
     } catch (e) {
         console.error("Firebase init failed. Ensure you are running via Firebase Hosting (e.g. firebase serve/deploy):", e);
+        if (adminStatus) adminStatus.textContent = "⚠️ Firebase Init Failed. Check console for emulator/hosting connection details.";
         return;
     }
 
@@ -242,15 +253,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     let userPresenceRef = null;
     let connectedUnsubscribe = null;
 
-    const adminStatus = document.getElementById('admin-status');
-    const adminMain = document.getElementById('admin-main');
-
     let dbListenersUnsubscribes = [];
     let listenersInitialized = false;
     let initDatabaseFuncs = [];
 
-    let authResolved = false;
+    console.log("Mounting onAuthStateChanged listener...");
     onAuthStateChanged(auth, (user) => {
+        console.log("Auth state changed:", user ? (user.email || "Anon") : "null");
         authResolved = true;
         if (user) {
             if (user.email && ADMIN_EMAILS.includes(user.email)) {
@@ -276,12 +285,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
-
-    setTimeout(() => {
-        if (!authResolved && adminStatus) {
-            adminStatus.textContent = "⚠️ Authentication verification timeout. Please ensure you are logged in on the main page or F5 reload.";
-        }
-    }, 5000);
 
     initDatabaseFuncs.push(() => {
         // Real-time KBC Archive listener

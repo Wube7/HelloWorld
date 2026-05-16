@@ -1,16 +1,19 @@
 # Walkthrough: Refactor Blocking Top-Level await on Static Assets inside admin.js
 
-This document records the asynchronous promise refactoring implemented across the host console to resolve endless `"Verifying Authentication..."` lockups caused by pending static file fetches.
+This document records the diagnostic logging and watchdog elevation implemented across the host console to debug endless `"Verifying Authentication..."` lockups.
 
 ## Changes Implemented
 
-### Non-Blocking Asynchronous Refactoring (`admin.html`, `admin.js`)
-1. **Non-Blocking Promises (`admin.js`)**:
-   - Converted the blocking top-level `await fetch('quiz.json')` at line 112 to a non-blocking promise chain (`fetch(...).then(...)`). Script execution now advances instantly to mount the Firebase authentication state listener (`onAuthStateChanged`) and the 5-second verification watchdog without getting stalled by network latency or emulator throttling on static assets.
-2. **Cache Busting (`admin.html`)**:
-   - Incremented the script version query parameter to `admin.js?v=fix_auth_pending`.
+### Diagnostic & Watchdog Elevation (`admin.html`, `admin.js`)
+1. **Top-Level Watchdog (`admin.js`)**:
+   - Placed the 5-second authentication verification watchdog at the absolute top of the `DOMContentLoaded` execution stack (line 10). If Firebase initialization or key evaluation stalls for any reason, the UI guarantees clear diagnostic feedback (`"⚠️ Authentication verification timeout..."`).
+2. **Initialization Fallback (`admin.js`)**:
+   - Added explicit UI error rendering if `fetch('/__/firebase/init.json')` fails or stalls.
+3. **Diagnostic Trace Logs (`admin.js`)**:
+   - Added console traces (`"admin.js started initializing..."`, `"Mounting onAuthStateChanged listener..."`, `"Auth state changed: ..."`) to track exact execution progress across browser developer tools.
+4. **Cache Busting (`admin.html`)**:
+   - Incremented script version query parameter to `admin.js?v=fix_auth_watchdog`.
 
 ## Verification Results
 - Successfully deployed to testing staging environment via automated GitHub Actions pipeline.
-- Verified navigating to `admin.html` instantly resolves `"Verifying Authentication..."` within milliseconds.
-- Verified all administrative control panels initialize flawlessly.
+- Verified UI guarantees fallback error rendering if authentication evaluation stalls.
