@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for admin force-logout feature and automated cleanup of offline anonymous accounts.",
+  "updatedAt":  "2026-05-16T10:53:09.842497870Z",
+  "requestFeedback":  true
+}

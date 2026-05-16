@@ -223,6 +223,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
             }
 
+            // Listen to forceful logout kick
+            const kickRef = ref(db, `admin/kicklist/${user.uid}`);
+            onValue(kickRef, async (snap) => {
+                if (snap.exists() && snap.val() === true) {
+                    alert("🚷 You have been forcefully logged out by an administrator!");
+                    if (userPresenceRef) remove(userPresenceRef).catch(() => {});
+                    remove(kickRef).catch(() => {});
+                    signOut(auth).catch(() => {});
+                }
+            });
+
             // Save user profile
             const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
             const userProfileRef = ref(db, `users/${user.uid}`);
@@ -821,8 +832,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             userListEl.innerHTML = '';
             
-            // Merge legacy users from presence tracking who might not be in the new /users node
+            // Merge legacy users and purge offline anonymous accounts
             const combinedUsers = { ...allUsers };
+            const isAdmin = auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email);
+            
+            for (const [uid, uObj] of Object.entries(combinedUsers)) {
+                const isOnline = !!onlinePresence[uid];
+                const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
+                if (isAnon && !isOnline) {
+                    delete combinedUsers[uid];
+                    if (isAdmin) {
+                        remove(ref(db, `users/${uid}`)).catch(() => {});
+                    }
+                }
+            }
+
             for (const [uid, isOnline] of Object.entries(onlinePresence)) {
                 if (isOnline && !combinedUsers[uid]) {
                     combinedUsers[uid] = { uid: uid, name: 'Anonymous/Legacy User', isAnonymous: true };
@@ -849,7 +873,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 const li = document.createElement('li');
                 li.className = 'user-list-item';
+                li.style.display = 'flex';
+                li.style.alignItems = 'center';
+                li.style.justifyContent = 'space-between';
                 
+                const leftDiv = document.createElement('div');
+                leftDiv.style.display = 'flex';
+                leftDiv.style.alignItems = 'center';
+                leftDiv.style.gap = '10px';
+                leftDiv.style.flex = '1';
+
                 const dot = document.createElement('div');
                 dot.className = `status-indicator ${isOnline ? 'online' : 'offline'}`;
                 
@@ -857,8 +890,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nameSpan.className = 'user-list-name';
                 nameSpan.textContent = u.name;
 
-                li.appendChild(dot);
-                li.appendChild(nameSpan);
+                leftDiv.appendChild(dot);
+                leftDiv.appendChild(nameSpan);
+                li.appendChild(leftDiv);
+
+                // Admin Kick Button
+                if (isAdmin && isOnline && auth.currentUser && auth.currentUser.uid !== u.uid) {
+                    const kickBtn = document.createElement('button');
+                    kickBtn.className = 'btn-kick-user';
+                    kickBtn.textContent = '🚷';
+                    kickBtn.title = `Force logout ${u.name}`;
+                    kickBtn.style.background = 'transparent';
+                    kickBtn.style.border = 'none';
+                    kickBtn.style.cursor = 'pointer';
+                    kickBtn.style.fontSize = '1.2rem';
+                    kickBtn.style.padding = '0 4px';
+                    kickBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Are you sure you want to forcefully disconnect ${u.name}?`)) {
+                            set(ref(db, `admin/kicklist/${u.uid}`), true).catch(err => alert("Kick failed: " + err.message));
+                        }
+                    };
+                    li.appendChild(kickBtn);
+                }
                 
                 userListEl.appendChild(li);
             });
