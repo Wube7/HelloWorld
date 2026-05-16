@@ -1322,15 +1322,19 @@ body.logged-in-white .btn-upvote:hover:not(:disabled) {
     color: white;
     border-color: #3b82f6;
 }
-.btn-upvote.voted-1 {
-    background: #3b82f6;
-    color: white;
-    border-color: #2563eb;
+.btn-upvote.voted-1,
+body.logged-in-white .btn-upvote.voted-1 {
+    background: #10b981 !important;
+    color: white !important;
+    border-color: #059669 !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
 }
-.btn-upvote.voted-2 {
-    background: #ef4444;
-    color: white;
-    border-color: #dc2626;
+.btn-upvote.voted-2,
+body.logged-in-white .btn-upvote.voted-2 {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
 }
 .btn-upvote:disabled {
     opacity: 0.5;
