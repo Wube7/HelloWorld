@@ -503,6 +503,36 @@ body.logged-in-white .chat-input-area {
     border-top-color: #e2e8f0;
 }
 
+/* Admin Controls in White Mode */
+body.logged-in-white #admin-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #f59e0b;
+    box-shadow: 0 4px 25px rgba(245, 158, 11, 0.2);
+    color: #0f172a;
+}
+body.logged-in-white #admin-panel h2 {
+    color: #d97706 !important;
+}
+body.logged-in-white #admin-panel h3:nth-of-type(1) {
+    color: #6d28d9 !important;
+}
+body.logged-in-white #admin-panel h3:nth-of-type(2) {
+    color: #db2777 !important;
+}
+body.logged-in-white .admin-timer-controls {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+body.logged-in-white .admin-timer-controls label,
+body.logged-in-white .admin-timer-controls span {
+    color: #1e293b !important;
+}
+body.logged-in-white #auto-jump-input {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+}
+
 .chat-input-area {
     display: flex;
     padding: 1rem;
