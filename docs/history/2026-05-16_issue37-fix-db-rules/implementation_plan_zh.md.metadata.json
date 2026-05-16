@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：修復踢人與清理離線帳號時的 Firebase 權限不足 Bug。",
+  "updatedAt":  "2026-05-16T11:13:23.844050095Z"
+}

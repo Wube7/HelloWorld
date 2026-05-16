@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to fix database rules for kicklist and admin profile cleanup.",
+  "updatedAt":  "2026-05-16T11:13:18.153851901Z",
+  "requestFeedback":  true
+}

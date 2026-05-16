@@ -3,13 +3,13 @@
     "users": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
+        ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'wube8816@gmail.com')"
       }
     },
     "presence": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
+        ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'wube8816@gmail.com')"
       }
     },
     "messages": {
@@ -28,6 +28,12 @@
       }
     },
     "admin": {
+      "kicklist": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.token.email == 'wube8816@gmail.com' || auth.uid == $uid)"
+        }
+      },
       "globalView": {
         ".read": "auth != null",
         ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
