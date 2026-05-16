@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in
+            document.body.classList.add('logged-in-white');
             loginSection.classList.add('hidden');
             mainContent.classList.remove('hidden');
             onlineCounter.classList.remove('hidden');
@@ -229,6 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else {
             // User is not signed in
+            document.body.classList.remove('logged-in-white');
             loginSection.classList.remove('hidden');
             mainContent.classList.add('hidden');
             onlineCounter.classList.add('hidden');
@@ -363,27 +365,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateVisibilityState();
     });
 
-    // Existing Interaction logic
-    actionBtn.addEventListener('click', () => {
-        actionBtn.textContent = 'Processing...';
-        actionBtn.style.opacity = '0.8';
-        actionBtn.disabled = true;
 
-        setTimeout(() => {
-            statusMessage.textContent = '✅ Magic Initialized!';
-            statusMessage.classList.remove('hidden');
-            statusMessage.classList.add('visible');
-
-            actionBtn.textContent = 'Success ⚡';
-            actionBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-            
-            actionBtn.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                actionBtn.style.transform = 'scale(1)';
-            }, 200);
-
-        }, 1500);
-    });
 
     // 5. Global Chat Logic
     const chatForm = document.getElementById('chat-form');
@@ -419,28 +401,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         onChildAdded(recentMessagesQuery, (snapshot) => {
             const data = snapshot.val();
             
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('chat-message');
-            // If the current user sent this, align it to the right
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.classList.add('chat-message-wrapper');
             if (auth.currentUser && data.uid === auth.currentUser.uid) {
-                msgDiv.classList.add('self');
+                wrapperDiv.classList.add('self');
             }
             
             const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
             
-            // XSS Safe HTML Generation
-            msgDiv.innerHTML = `
-                <div class="msg-header">
+            wrapperDiv.innerHTML = `
+                <div class="msg-meta">
                     <span class="msg-name"></span>
                     <span class="msg-time"></span>
                 </div>
-                <div class="msg-text"></div>
+                <div class="msg-bubble">
+                    <div class="msg-text"></div>
+                </div>
             `;
-            msgDiv.querySelector('.msg-name').textContent = data.name;
-            msgDiv.querySelector('.msg-time').textContent = timeString;
-            msgDiv.querySelector('.msg-text').textContent = data.text;
+            wrapperDiv.querySelector('.msg-name').textContent = data.name;
+            wrapperDiv.querySelector('.msg-time').textContent = timeString;
+            wrapperDiv.querySelector('.msg-text').textContent = data.text;
 
-            chatMessages.appendChild(msgDiv);
+            chatMessages.appendChild(wrapperDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
         });
     }
