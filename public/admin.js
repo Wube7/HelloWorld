@@ -128,6 +128,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnKbcSubmit = document.getElementById('btn-kbc-submit');
     let kbcResolving = false; // guard to prevent double-resolve
 
+    // Survey Master DOM
+    const surveyAddQ = document.getElementById('survey-add-q');
+    const surveyAddScale = document.getElementById('survey-add-scale');
+    const surveyAddMin = document.getElementById('survey-add-min');
+    const surveyAddMax = document.getElementById('survey-add-max');
+    const btnSurveyCreate = document.getElementById('btn-survey-create');
+    const surveyBankListEl = document.getElementById('survey-bank-list');
+    const surveyBankCountEl = document.getElementById('survey-bank-count');
+    const adminActiveSurveyControls = document.getElementById('admin-active-survey-controls');
+    const surveySubCountEl = document.getElementById('survey-sub-count');
+    const btnSurveyReveal = document.getElementById('btn-survey-reveal');
+    const btnSurveyReset = document.getElementById('btn-survey-reset');
+
+    let storedSurveys = {};
+    let currentSurveyState = null;
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -1427,5 +1443,149 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderKbcHistory(state.history, players);
         }
         }));
+
+        // Real-time Survey Master listeners
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveys'), (snapshot) => {
+            storedSurveys = snapshot.val() || {};
+            renderSurveyBank();
+        }));
+
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveyState'), (snapshot) => {
+            currentSurveyState = snapshot.val();
+            if (currentSurveyState && currentSurveyState.active) {
+                if (adminActiveSurveyControls) adminActiveSurveyControls.classList.remove('hidden');
+                const subs = currentSurveyState.submissions ? Object.keys(currentSurveyState.submissions).length : 0;
+                if (surveySubCountEl) surveySubCountEl.textContent = subs;
+                if (btnSurveyReveal) btnSurveyReveal.disabled = (currentSurveyState.phase !== 'input');
+            } else {
+                if (adminActiveSurveyControls) adminActiveSurveyControls.classList.add('hidden');
+            }
+        }));
     });
+
+    function renderSurveyBank() {
+        if (!surveyBankListEl) return;
+        surveyBankListEl.innerHTML = '';
+        const keys = Object.keys(storedSurveys);
+        if (surveyBankCountEl) surveyBankCountEl.textContent = keys.length;
+
+        if (keys.length === 0) {
+            surveyBankListEl.innerHTML = '<div style="color: #64748b;">No questions in bank. Add one above!</div>';
+            return;
+        }
+
+        for (const [sid, sObj] of Object.entries(storedSurveys)) {
+            const itemDiv = document.createElement('div');
+            itemDiv.style = "background: rgba(255,255,255,0.05); border: 1px solid #475569; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
+            itemDiv.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; color: #f8fafc;">${sObj.question}</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">Scale: 1-${sObj.scale} (${sObj.minLabel} / ${sObj.maxLabel})</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-start-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">Start</button>
+                    <button class="btn-edit-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6;">Edit</button>
+                    <button class="btn-del-survey primary-btn btn-sm" data-sid="${sid}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete</button>
+                </div>
+            `;
+            surveyBankListEl.appendChild(itemDiv);
+        }
+
+        surveyBankListEl.querySelectorAll('.btn-start-survey').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const sid = e.target.dataset.sid;
+                const sObj = storedSurveys[sid];
+                if (!sObj) return;
+                await set(ref(db, 'admin/surveyState'), {
+                    active: true,
+                    surveyId: sid,
+                    question: sObj.question,
+                    scale: sObj.scale,
+                    minLabel: sObj.minLabel,
+                    maxLabel: sObj.maxLabel,
+                    phase: 'input',
+                    submissions: {}
+                });
+            });
+        });
+
+        surveyBankListEl.querySelectorAll('.btn-edit-survey').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const sid = e.target.dataset.sid;
+                const sObj = storedSurveys[sid];
+                if (!sObj) return;
+                if (surveyAddQ) surveyAddQ.value = sObj.question;
+                if (surveyAddScale) surveyAddScale.value = sObj.scale;
+                if (surveyAddMin) surveyAddMin.value = sObj.minLabel;
+                if (surveyAddMax) surveyAddMax.value = sObj.maxLabel;
+                if (btnSurveyCreate) {
+                    btnSurveyCreate.textContent = "Update Question";
+                    btnSurveyCreate.dataset.editingSid = sid;
+                }
+            });
+        });
+
+        surveyBankListEl.querySelectorAll('.btn-del-survey').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const sid = e.target.dataset.sid;
+                if (confirm("Are you sure you want to delete this survey question?")) {
+                    await remove(ref(db, `admin/surveys/${sid}`));
+                }
+            });
+        });
+    }
+
+    if (btnSurveyCreate) {
+        btnSurveyCreate.addEventListener('click', async () => {
+            const q = surveyAddQ.value.trim();
+            const scale = parseInt(surveyAddScale.value) || 5;
+            const minL = surveyAddMin.value.trim() || 'Low';
+            const maxL = surveyAddMax.value.trim() || 'High';
+            if (!q) { alert("Please enter a question prompt."); return; }
+            
+            const editingSid = btnSurveyCreate.dataset.editingSid;
+            if (editingSid) {
+                await set(ref(db, `admin/surveys/${editingSid}`), { question: q, scale: scale, minLabel: minL, maxLabel: maxL });
+                btnSurveyCreate.textContent = "+ Add to Question Bank";
+                delete btnSurveyCreate.dataset.editingSid;
+            } else {
+                const newRef = push(ref(db, 'admin/surveys'));
+                await set(newRef, { question: q, scale: scale, minLabel: minL, maxLabel: maxL });
+            }
+            surveyAddQ.value = '';
+            surveyAddMin.value = '';
+            surveyAddMax.value = '';
+        });
+    }
+
+    if (btnSurveyReveal) {
+        btnSurveyReveal.addEventListener('click', async () => {
+            if (!currentSurveyState || currentSurveyState.phase !== 'input') return;
+            const subs = currentSurveyState.submissions || {};
+            const scale = currentSurveyState.scale || 5;
+            const counts = {};
+            for (let i = 1; i <= scale; i++) counts[i] = 0;
+            
+            let sum = 0;
+            let total = 0;
+            for (const [uid, val] of Object.entries(subs)) {
+                const vNum = parseInt(val);
+                if (counts[vNum] !== undefined) {
+                    counts[vNum]++;
+                    sum += vNum;
+                    total++;
+                }
+            }
+            const avg = total > 0 ? parseFloat((sum / total).toFixed(2)) : 0;
+            
+            await set(ref(db, 'admin/surveyState/results'), { counts: counts, average: avg, total: total });
+            await set(ref(db, 'admin/surveyState/phase'), 'result');
+        });
+    }
+
+    if (btnSurveyReset) {
+        btnSurveyReset.addEventListener('click', async () => {
+            await remove(ref(db, 'admin/surveyState'));
+        });
+    }
 });

@@ -50,6 +50,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
 
+    // Survey Presenter DOM
+    const surveyPresenterContainer = document.getElementById('survey-presenter-container');
+    const surveyPresenterQ = document.getElementById('survey-presenter-q');
+    const surveyPresenterCount = document.getElementById('survey-presenter-count');
+    const surveyHistogramEl = document.getElementById('survey-histogram');
+    const surveyPresenterMin = document.getElementById('survey-presenter-min');
+    const surveyPresenterMaxNum = document.getElementById('survey-presenter-max-num');
+    const surveyPresenterMax = document.getElementById('survey-presenter-max');
+    const surveyAnalyticsEl = document.getElementById('survey-analytics');
+    const surveyResAvg = document.getElementById('survey-res-avg');
+    const surveyResTotal = document.getElementById('survey-res-total');
+
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
 
     // Quiz Elements
@@ -258,6 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
+            if (surveyPresenterContainer) surveyPresenterContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
         };
 
@@ -283,6 +296,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (kbcResultPhase) kbcResultPhase.classList.add('hidden');
                 if (kbcEndedPhase) kbcEndedPhase.classList.remove('hidden');
             }
+        } else if (currentQuizPhase === 'survey-input' || currentQuizPhase === 'survey-result') {
+            hideAll();
+            if (surveyPresenterContainer) surveyPresenterContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             if (quizContainer) quizContainer.classList.add('hidden');
@@ -1368,8 +1384,78 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             renderKbcScoreboard(document.getElementById('kbc-final-score-list'), players);
-            renderKbcHistory(state.history, players);
         }
+        }));
+
+        // Real-time Survey Presenter listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveyState'), (snapshot) => {
+            const state = snapshot.val();
+            if (!state || !state.active) {
+                currentQuizPhase = (currentQuizPhase.startsWith('survey')) ? 'idle' : currentQuizPhase;
+                updateVisibilityState();
+                return;
+            }
+
+            const scale = state.scale || 5;
+            const subs = state.submissions || {};
+            const subKeys = Object.keys(subs);
+            if (surveyPresenterCount) surveyPresenterCount.textContent = subKeys.length;
+
+            if (state.phase === 'input') {
+                currentQuizPhase = 'survey-input';
+                updateVisibilityState();
+                if (surveyPresenterQ) surveyPresenterQ.textContent = state.question;
+                if (surveyPresenterMin) surveyPresenterMin.textContent = state.minLabel;
+                if (surveyPresenterMax) surveyPresenterMax.textContent = state.maxLabel;
+                if (surveyPresenterMaxNum) surveyPresenterMaxNum.textContent = `${scale} (Max)`;
+                if (surveyAnalyticsEl) surveyAnalyticsEl.classList.add('hidden');
+
+                if (surveyHistogramEl) {
+                    surveyHistogramEl.innerHTML = '';
+                    for (let i = 1; i <= scale; i++) {
+                        const col = document.createElement('div');
+                        col.className = 'histogram-col';
+                        col.innerHTML = `
+                            <div class="histogram-count" style="opacity: 0;">0</div>
+                            <div class="histogram-bar" style="height: 0%;"></div>
+                            <div class="histogram-scale-label">${i}</div>
+                        `;
+                        surveyHistogramEl.appendChild(col);
+                    }
+                }
+            } else if (state.phase === 'result') {
+                currentQuizPhase = 'survey-result';
+                updateVisibilityState();
+                if (surveyAnalyticsEl) surveyAnalyticsEl.classList.remove('hidden');
+
+                const r = state.results || {};
+                const counts = r.counts || {};
+                const avg = r.average || 0;
+                const total = r.total || 0;
+                if (surveyResAvg) surveyResAvg.textContent = avg;
+                if (surveyResTotal) surveyResTotal.textContent = total;
+
+                let maxCount = 0;
+                for (const c of Object.values(counts)) {
+                    if (c > maxCount) maxCount = c;
+                }
+
+                if (surveyHistogramEl) {
+                    surveyHistogramEl.innerHTML = '';
+                    for (let i = 1; i <= scale; i++) {
+                        const cNum = counts[i] || 0;
+                        const pct = maxCount > 0 ? Math.round((cNum / maxCount) * 90) : 0;
+                        const col = document.createElement('div');
+                        col.className = 'histogram-col';
+                        col.innerHTML = `
+                            <div class="histogram-count" style="opacity: 1;">${cNum}</div>
+                            <div class="histogram-bar" style="height: ${pct}%;"></div>
+                            <div class="histogram-scale-label" style="${avg >= i - 0.5 && avg <= i + 0.5 ? 'color: #10b981; font-weight: 900; transform: scale(1.2);' : ''}">${i}</div>
+                        `;
+                        surveyHistogramEl.appendChild(col);
+                    }
+                }
+            }
         }));
     });
 });

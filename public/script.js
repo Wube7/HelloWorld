@@ -128,6 +128,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnKbcSubmit = document.getElementById('btn-kbc-submit');
     let kbcResolving = false; // guard to prevent double-resolve
 
+    // Survey Elements
+    const surveyClientContainer = document.getElementById('survey-client-container');
+    const surveyClientQ = document.getElementById('survey-client-question');
+    const surveyClientMin = document.getElementById('survey-client-min-label');
+    const surveyClientMax = document.getElementById('survey-client-max-label');
+    const surveyClientSlider = document.getElementById('survey-client-slider');
+    const surveyClientVal = document.getElementById('survey-client-value');
+    const btnSurveySubmit = document.getElementById('btn-survey-submit');
+    const surveySubmittedBanner = document.getElementById('survey-submitted-banner');
+
     // Animal Names for Temp Accounts
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
@@ -363,6 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
+            if (surveyClientContainer) surveyClientContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
             if (headerEl) headerEl.classList.remove('hidden'); // 確保永遠顯示
         };
@@ -387,6 +398,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 } else if (currentQuizPhase === 'kbc-ended') {
                     if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
+                } else if (currentQuizPhase === 'survey-input' || currentQuizPhase === 'survey-result') {
+                    if (surveyClientContainer) surveyClientContainer.classList.remove('hidden');
                 }
                 if (btnViewChat) btnViewChat.classList.remove('hidden');
                 if (btnViewGame) btnViewGame.classList.add('hidden');
@@ -1537,5 +1550,78 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderKbcHistory(state.history, players);
         }
         }));
+
+        // Real-time Survey listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveyState'), (snapshot) => {
+            const state = snapshot.val();
+            if (!state || !state.active) {
+                currentQuizPhase = (currentQuizPhase.startsWith('survey')) ? 'idle' : currentQuizPhase;
+                updateVisibilityState();
+                return;
+            }
+
+            if (state.phase === 'input') {
+                currentQuizPhase = 'survey-input';
+                updateVisibilityState();
+                if (surveyClientQ) surveyClientQ.textContent = state.question;
+                if (surveyClientMin) surveyClientMin.textContent = state.minLabel;
+                if (surveyClientMax) surveyClientMax.textContent = state.maxLabel;
+                if (surveyClientSlider) {
+                    surveyClientSlider.max = state.scale || 5;
+                    surveyClientSlider.disabled = false;
+                }
+                if (btnSurveySubmit) btnSurveySubmit.disabled = false;
+                if (surveySubmittedBanner) surveySubmittedBanner.classList.add('hidden');
+                
+                if (auth.currentUser && state.submissions && state.submissions[auth.currentUser.uid] !== undefined) {
+                    if (surveyClientSlider) {
+                        surveyClientSlider.value = state.submissions[auth.currentUser.uid];
+                        surveyClientVal.textContent = surveyClientSlider.value;
+                        surveyClientSlider.disabled = true;
+                    }
+                    if (btnSurveySubmit) btnSurveySubmit.disabled = true;
+                    if (surveySubmittedBanner) {
+                        surveySubmittedBanner.textContent = "✅ Submitted successfully! Waiting for host to reveal results...";
+                        surveySubmittedBanner.classList.remove('hidden');
+                    }
+                }
+            } else if (state.phase === 'result') {
+                currentQuizPhase = 'survey-result';
+                updateVisibilityState();
+                if (surveyClientSlider) surveyClientSlider.disabled = true;
+                if (btnSurveySubmit) btnSurveySubmit.disabled = true;
+                if (surveySubmittedBanner) {
+                    surveySubmittedBanner.textContent = `🎯 Results Revealed! Average Rating: ${state.results?.average || '—'}`;
+                    surveySubmittedBanner.classList.remove('hidden');
+                }
+            }
+        }));
     });
+
+    if (surveyClientSlider && surveyClientVal) {
+        surveyClientSlider.addEventListener('input', (e) => {
+            surveyClientVal.textContent = e.target.value;
+        });
+    }
+
+    if (btnSurveySubmit) {
+        btnSurveySubmit.addEventListener('click', async () => {
+            if (!auth.currentUser) return;
+            const val = parseInt(surveyClientSlider.value);
+            btnSurveySubmit.disabled = true;
+            if (surveyClientSlider) surveyClientSlider.disabled = true;
+            try {
+                await set(ref(db, `admin/surveyState/submissions/${auth.currentUser.uid}`), val);
+                if (surveySubmittedBanner) {
+                    surveySubmittedBanner.textContent = "✅ Submitted successfully! Waiting for host to reveal results...";
+                    surveySubmittedBanner.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Survey submit error:", err);
+                alert("Failed to submit rating: " + err.message);
+                btnSurveySubmit.disabled = false;
+                if (surveyClientSlider) surveyClientSlider.disabled = false;
+            }
+        });
+    }
 });

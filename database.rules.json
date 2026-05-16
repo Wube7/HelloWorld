@@ -56,6 +56,19 @@
             }
           }
         }
+      },
+      "surveys": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+      },
+      "surveyState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
+        "submissions": {
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        }
       }
     }
   }

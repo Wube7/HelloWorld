@@ -209,6 +209,23 @@
                     <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Match History</h3>
                     <div id="kbc-history-content-end" style="overflow-x: auto;"></div>
                 </div>
+            <!-- Survey Client Rating View -->
+            <section id="survey-client-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <div class="survey-box">
+                    <h2 id="survey-client-question" style="font-size: 2.2rem; margin-bottom: 1.5rem; color: var(--accent-1);">Loading Question...</h2>
+                    <div class="survey-labels">
+                        <span id="survey-client-min-label">Low</span>
+                        <span id="survey-client-max-label">High</span>
+                    </div>
+                    <div class="survey-slider-wrapper">
+                        <input type="range" id="survey-client-slider" class="survey-slider" min="1" max="5" step="1" value="3">
+                        <div class="survey-value-display" id="survey-client-value">3</div>
+                    </div>
+                    <button id="btn-survey-submit" class="primary-btn btn-lg" style="width: 100%; max-width: 300px; margin-top: 1rem;">Submit Rating</button>
+                    <div id="survey-submitted-banner" class="hidden" style="margin-top: 1.5rem; font-size: 1.3rem; font-weight: 700; color: #10b981;">
+                        ✅ Submitted successfully! Waiting for host to reveal results...
+                    </div>
+                </div>
             </section>
 
             </div>

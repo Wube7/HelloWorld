@@ -1068,3 +1068,123 @@ input:checked + .slider:before {
     color: #94a3b8;
     font-size: 0.8rem;
 }
+
+/* --- SURVEY RATING STYLES --- */
+.survey-box {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.survey-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.survey-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    cursor: pointer;
+}
+
+.survey-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-1);
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--accent-1);
+    transition: transform 0.2s ease;
+}
+.survey-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.survey-value-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--accent-1);
+    min-width: 60px;
+}
+
+.survey-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0 10px;
+}
+body.logged-in-white .survey-labels {
+    color: #475569;
+}
+
+/* Histogram Styles */
+.histogram-chart {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 320px;
+    padding: 2rem 1rem 0 1rem;
+    border-bottom: 3px solid var(--glass-border);
+    margin: 3rem 0 1.5rem 0;
+}
+body.logged-in-white .histogram-chart {
+    border-color: #cbd5e1;
+}
+
+.histogram-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    position: relative;
+    padding: 0 4px;
+}
+
+.histogram-bar {
+    width: 100%;
+    max-width: 60px;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    border-radius: 8px 8px 0 0;
+    transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+body.logged-in-white .histogram-bar {
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+}
+
+.histogram-count {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    transition: opacity 0.3s ease;
+}
+body.logged-in-white .histogram-count {
+    color: #0f172a;
+}
+
+.histogram-scale-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 12px;
+    color: var(--text-muted);
+}
+body.logged-in-white .histogram-scale-label {
+    color: #1e293b;
+}

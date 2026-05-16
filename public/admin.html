@@ -54,6 +54,47 @@
                         <button id="btn-kbc-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #f8fafc;">Reset Data</button>
                     </div>
                 </div>
+
+                <!-- Survey Master Controls -->
+                <div style="margin-top: 2rem; border-top: 1px solid #cbd5e1; padding-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem; color: #10b981;">📊 Survey Rating Master</h3>
+                    
+                    <!-- Question Bank Creation Form -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1rem; text-align: left;">
+                        <h4 style="margin-bottom: 8px; color: #e2e8f0;">Add New Survey Question</h4>
+                        <input type="text" id="survey-add-q" placeholder="Question Prompt (e.g., Rate UI Clarity:)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;">
+                            <div style="flex: 1; min-width: 100px;">
+                                <label style="font-size: 0.8rem; color: #cbd5e1;">Scale (Max):</label>
+                                <input type="number" id="survey-add-scale" min="3" max="10" value="5" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                            </div>
+                            <div style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 0.8rem; color: #cbd5e1;">Min Label:</label>
+                                <input type="text" id="survey-add-min" placeholder="e.g., Poor / Disagree" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                            </div>
+                            <div style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 0.8rem; color: #cbd5e1;">Max Label:</label>
+                                <input type="text" id="survey-add-max" placeholder="e.g., Excellent / Agree" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                            </div>
+                        </div>
+                        <button id="btn-survey-create" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: white;">+ Add to Question Bank</button>
+                    </div>
+
+                    <!-- Stored Questions Bank List -->
+                    <div style="text-align: left; margin-bottom: 1rem;">
+                        <h4 style="color: #cbd5e1; margin-bottom: 8px;">Question Bank (<span id="survey-bank-count">0</span>)</h4>
+                        <div id="survey-bank-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+
+                    <!-- Active Survey Controls -->
+                    <div id="admin-active-survey-controls" class="hidden" style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #10b981; margin-top: 1rem;">
+                        <div style="color: #10b981; font-weight: bold; margin-bottom: 8px;">🟢 Active Survey in Progress (<span id="survey-sub-count">0</span> submitted)</div>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button id="btn-survey-reveal" class="primary-btn btn-sm" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: white;">Reveal Results (Histogram)</button>
+                            <button id="btn-survey-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: white;">End / Reset Survey</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
