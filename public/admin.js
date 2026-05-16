@@ -463,6 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (kbcContainer) kbcContainer.classList.add('hidden');
             if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
             if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
+            if (adminActiveKbcControls) adminActiveKbcControls.classList.add('hidden');
             if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
@@ -1203,8 +1204,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (btnKbcEnd) {
-        btnKbcEnd.addEventListener('click', () => {
-            resolveKbcRound(true);
+        btnKbcEnd.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to end the KBC game early and crown the winner based on current points?")) {
+                const snap = await new Promise(resolve => {
+                    onValue(ref(db, 'admin/kbcState'), resolve, { onlyOnce: true });
+                });
+                const state = snap.val();
+                if (!state || !state.active || !state.players) return;
+                
+                const archiveObj = {
+                    round: state.round || 1,
+                    players: state.players,
+                    lastResult: state.lastResult || null,
+                    history: state.history || [],
+                    deadlockRuleActive: !!state.deadlockRuleActive
+                };
+                await set(ref(db, 'admin/kbcState'), { ...state, phase: 'ended' });
+                await set(ref(db, 'admin/kbcArchive'), archiveObj);
+            }
         });
     }
 
@@ -1416,19 +1433,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const existingHistory = state.history || [];
             existingHistory.push(historyEntry);
 
+            const currentArchiveObj = {
+                round: state.round,
+                players: updatedPlayers,
+                lastResult: lastResult,
+                history: existingHistory,
+                deadlockRuleActive: nextDeadlockRuleActive
+            };
+            await set(ref(db, 'admin/kbcArchive'), currentArchiveObj);
+
             if (remainingActive.length <= 1) {
                 // Game over
                 await set(ref(db, 'admin/kbcState'), {
                     active: true,
                     round: state.round,
                     phase: 'ended',
-                    players: updatedPlayers,
-                    lastResult: lastResult,
-                    history: existingHistory,
-                    deadlockRuleActive: nextDeadlockRuleActive
-                });
-                await set(ref(db, 'admin/kbcArchive'), {
-                    round: state.round,
                     players: updatedPlayers,
                     lastResult: lastResult,
                     history: existingHistory,
