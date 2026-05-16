@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const kbcPresenterArea = document.getElementById('kbc-presenter-view');
     const kbcInputPhase = document.getElementById('kbc-presenter-input-phase');
     const kbcResultPhase = document.getElementById('kbc-presenter-result-phase');
+    const kbcEndedPhase = document.getElementById('kbc-presenter-ended-phase');
     const cardsGrid = document.querySelector('.cards-grid');
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
@@ -253,7 +254,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
             if (kbcPresenterArea) kbcPresenterArea.classList.add('hidden');
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
@@ -267,19 +267,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (currentQuizPhase === 'podium') {
             hideAll();
             if (podiumContainer) podiumContainer.classList.remove('hidden');
-        } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result') {
+        } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result' || currentQuizPhase === 'kbc-ended') {
             hideAll();
             if (kbcPresenterArea) kbcPresenterArea.classList.remove('hidden');
             if (currentQuizPhase === 'kbc-input') {
                 if (kbcInputPhase) kbcInputPhase.classList.remove('hidden');
                 if (kbcResultPhase) kbcResultPhase.classList.add('hidden');
-            } else {
+                if (kbcEndedPhase) kbcEndedPhase.classList.add('hidden');
+            } else if (currentQuizPhase === 'kbc-result') {
                 if (kbcInputPhase) kbcInputPhase.classList.add('hidden');
                 if (kbcResultPhase) kbcResultPhase.classList.remove('hidden');
+                if (kbcEndedPhase) kbcEndedPhase.classList.add('hidden');
+            } else if (currentQuizPhase === 'kbc-ended') {
+                if (kbcInputPhase) kbcInputPhase.classList.add('hidden');
+                if (kbcResultPhase) kbcResultPhase.classList.add('hidden');
+                if (kbcEndedPhase) kbcEndedPhase.classList.remove('hidden');
             }
-        } else if (currentQuizPhase === 'kbc-ended') {
-            hideAll();
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             if (quizContainer) quizContainer.classList.add('hidden');

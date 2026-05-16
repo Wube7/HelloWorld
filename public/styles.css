@@ -887,7 +887,7 @@ input:checked + .slider:before {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    width: 120px;
+    width: 160px;
     transition: all 0.5s ease;
 }
 
@@ -902,7 +902,7 @@ input:checked + .slider:before {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 140px;
 }
 
 .podium-spot .score {
@@ -911,9 +911,9 @@ input:checked + .slider:before {
     color: var(--accent-1);
 }
 
-.place-1 { height: 220px; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
-.place-2 { height: 180px; background: rgba(156, 163, 175, 0.1); border-color: rgba(156, 163, 175, 0.3); }
-.place-3 { height: 150px; background: rgba(180, 83, 9, 0.1); border-color: rgba(180, 83, 9, 0.3); }
+.place-1 { height: 240px; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
+.place-2 { height: 200px; background: rgba(156, 163, 175, 0.1); border-color: rgba(156, 163, 175, 0.3); }
+.place-3 { height: 170px; background: rgba(180, 83, 9, 0.1); border-color: rgba(180, 83, 9, 0.3); }
 
 .podium-list {
     max-width: 600px;
