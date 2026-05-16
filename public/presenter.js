@@ -352,8 +352,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert("Failed to send message: " + err.message);
             }
         });
+    }
 
-        // Receive messages
+    if (chatMessages) {
+        // Receive messages (Decoupled from chatForm for presenter display)
         initDatabaseFuncs.push(() => {
             const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
             

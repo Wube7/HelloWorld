@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：解除大螢幕對輸入框 DOM 的依賴並啟用高度隨機伸縮。",
+  "updatedAt":  "2026-05-16T13:33:57.497330728Z"
+}
