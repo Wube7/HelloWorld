@@ -68,6 +68,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin Auto-Jump Timer
     const timerPresetBtns = document.querySelectorAll('.timer-preset-btn');
     const autoJumpInput = document.getElementById('auto-jump-input');
+    
+    // Quiz Multiple Bank Creation DOM (Step 1)
+    const quizAddTopic = document.getElementById('quiz-add-topic');
+    const quizAddTimer = document.getElementById('quiz-add-timer');
+    const quizUploadFile = document.getElementById('quiz-upload-file');
+    const btnQuizSelectFile = document.getElementById('btn-quiz-select-file');
+    const quizSelectedFilename = document.getElementById('quiz-selected-filename');
+    const btnQuizCreateBank = document.getElementById('btn-quiz-create-bank');
+    const btnQuizDlTemplate = document.getElementById('btn-quiz-dl-template');
+    const quizBankListEl = document.getElementById('quiz-bank-list');
+    const quizBankCountEl = document.getElementById('quiz-bank-count');
 
     // Extra Elements to Hide During Quiz
     const headerEl = document.querySelector('header');
@@ -647,6 +658,85 @@ document.addEventListener('DOMContentLoaded', async () => {
                 timerPresetBtns.forEach(b => b.style.outline = 'none');
             });
         }
+    }
+
+    if (btnQuizSelectFile && quizUploadFile) {
+        btnQuizSelectFile.addEventListener('click', () => quizUploadFile.click());
+        quizUploadFile.addEventListener('change', () => {
+            if (quizUploadFile.files && quizUploadFile.files[0]) {
+                if (quizSelectedFilename) quizSelectedFilename.textContent = quizUploadFile.files[0].name;
+            } else {
+                if (quizSelectedFilename) quizSelectedFilename.textContent = 'No file chosen';
+            }
+        });
+    }
+
+    if (btnQuizCreateBank) {
+        btnQuizCreateBank.addEventListener('click', async () => {
+            const topic = quizAddTopic?.value.trim() || 'Custom Tech Quiz';
+            const timer = parseInt(quizAddTimer?.value) || 0;
+            if (!topic) { alert("Please enter a quiz topic name."); return; }
+
+            if (quizUploadFile && quizUploadFile.files && quizUploadFile.files[0]) {
+                const file = quizUploadFile.files[0];
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if (!Array.isArray(parsed) || parsed.length === 0 || !parsed[0].question) {
+                            alert("Invalid JSON format: must be an array of question objects.");
+                            return;
+                        }
+                        const newRef = push(ref(db, 'admin/quizBanks'));
+                        await set(newRef, {
+                            topic: topic,
+                            timerSecs: timer,
+                            quizData: parsed,
+                            createdAt: serverTimestamp()
+                        });
+                        alert("Quiz Bank created successfully!");
+                        if (quizAddTopic) quizAddTopic.value = '';
+                        if (quizUploadFile) quizUploadFile.value = '';
+                        if (quizSelectedFilename) quizSelectedFilename.textContent = 'No file chosen';
+                    } catch(err) { alert("JSON Parse Error: " + err.message); }
+                };
+                reader.readAsText(file);
+            } else {
+                const newRef = push(ref(db, 'admin/quizBanks'));
+                await set(newRef, {
+                    topic: topic,
+                    timerSecs: timer,
+                    quizData: defaultQuizData,
+                    createdAt: serverTimestamp()
+                });
+                alert("Quiz Bank created using default questions!");
+                if (quizAddTopic) quizAddTopic.value = '';
+            }
+        });
+    }
+
+    if (btnQuizDlTemplate) {
+        btnQuizDlTemplate.addEventListener('click', () => {
+            const template = [
+                {
+                    "question": "Sample Tech Question: In what year was Google founded?",
+                    "options": ["1995", "1998", "2001", "2004"],
+                    "correctIndex": 1
+                },
+                {
+                    "question": "Sample Tech Question: What does HTML stand for?",
+                    "options": ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language", "High Tech Modern Language"],
+                    "correctIndex": 0
+                }
+            ];
+            const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quiz_template.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
     }
 
     function clearAutoJump() {

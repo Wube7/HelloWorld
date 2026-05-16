@@ -18,30 +18,57 @@
                 <h2 style="color: #f59e0b; margin-bottom: 1rem;">👑 Admin Controls</h2>
                 
                 <div style="margin-top: 0.5rem; padding-top: 0.5rem;">
-                    <h3 style="margin-bottom: 1rem; color: #6d28d9;">🎯 Quiz Master</h3>
-                    <div class="admin-quiz-controls">
-                        <button id="btn-quiz-start" class="primary-btn btn-sm">Start Quiz</button>
-                        <button id="btn-quiz-next" class="primary-btn btn-sm" disabled>Next Question</button>
-                        <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
-                        <button id="btn-quiz-reset" class="primary-btn btn-sm" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);">Reset Data</button>
-                    </div>
-                    <div class="admin-quiz-controls" style="margin-top: 1rem;">
-                        <input type="file" id="quiz-upload-input" accept=".json" style="display: none;">
-                        <button id="btn-quiz-upload" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5);">Upload Custom Quiz JSON</button>
-                        <button id="btn-quiz-default" class="primary-btn btn-sm" style="background: rgba(107, 114, 128, 0.2); border: 1px solid rgba(107, 114, 128, 0.5);">Revert to Default Quiz</button>
-                        <button id="btn-quiz-template" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5);">📥 Download Template</button>
-                    </div>
-                    <div class="admin-timer-controls" style="margin-top: 1rem; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                        <label style="color:#e2e8f0; font-size:0.95rem; font-weight: 600; display: block; margin-bottom: 8px;">⏱️ Auto-Jump Timer:</label>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="0" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">Off</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="5" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">5s</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="10" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">10s</button>
-                            <button class="timer-preset-btn primary-btn btn-sm" data-seconds="20" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f8fafc;">20s</button>
-                            <span style="color: #cbd5e1; font-size: 0.8rem;">or</span>
-                            <input type="number" id="auto-jump-input" min="0" max="300" value="0" style="width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0, 0, 0, 0.3); color: #f8fafc; font-size: 0.9rem; font-weight: bold; text-align: center;">
-                            <span style="color: #cbd5e1; font-size: 0.8rem;">sec</span>
+                    <h3 style="margin-bottom: 1rem; color: #6d28d9;">🎯 Quiz Master (Multi-Bank)</h3>
+                    
+                    <!-- Legacy Controls Wrapped to Prevent ReferenceError (Hidden) -->
+                    <div id="legacy-quiz-controls-hidden" style="display: none;">
+                        <div class="admin-quiz-controls">
+                            <button id="btn-quiz-start" class="primary-btn btn-sm">Start Quiz</button>
+                            <button id="btn-quiz-next" class="primary-btn btn-sm" disabled>Next Question</button>
+                            <button id="btn-quiz-end" class="primary-btn btn-sm" disabled>End Quiz (Podium)</button>
+                            <button id="btn-quiz-reset" class="primary-btn btn-sm">Reset Data</button>
                         </div>
+                        <div class="admin-quiz-controls">
+                            <input type="file" id="quiz-upload-input" accept=".json">
+                            <button id="btn-quiz-upload" class="primary-btn btn-sm">Upload</button>
+                            <button id="btn-quiz-default" class="primary-btn btn-sm">Default</button>
+                            <button id="btn-quiz-template" class="primary-btn btn-sm">Template</button>
+                        </div>
+                        <div class="admin-timer-controls">
+                            <button class="timer-preset-btn" data-seconds="0">Off</button>
+                            <button class="timer-preset-btn" data-seconds="5">5s</button>
+                            <button class="timer-preset-btn" data-seconds="10">10s</button>
+                            <button class="timer-preset-btn" data-seconds="20">20s</button>
+                            <input type="number" id="auto-jump-input" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Bank Creation Form (Always Available) -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1.5rem; text-align: left;">
+                        <h4 style="margin-bottom: 8px; color: #e2e8f0;">Create New Quiz Bank</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                            <div style="flex: 2; min-width: 200px;">
+                                <label style="font-size: 0.8rem; color: #cbd5e1;">Quiz Topic Name:</label>
+                                <input type="text" id="quiz-add-topic" placeholder="e.g., 2026 Tech Trivia" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                            </div>
+                            <div style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 0.8rem; color: #cbd5e1;">Auto-Jump Timer (sec, 0=Off):</label>
+                                <input type="number" id="quiz-add-timer" min="0" max="300" value="10" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #64748b; background: rgba(0,0,0,0.3); color: white;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="file" id="quiz-upload-file" accept=".json" style="display: none;">
+                            <button id="btn-quiz-select-file" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">📂 Choose JSON File</button>
+                            <span id="quiz-selected-filename" style="color: #94a3b8; font-size: 0.9rem;">No file chosen</span>
+                            <button id="btn-quiz-create-bank" class="primary-btn btn-sm" style="background: rgba(109, 40, 217, 0.2); border: 1px solid #6d28d9; color: white; margin-left: auto;">+ Save Quiz Bank</button>
+                            <button id="btn-quiz-dl-template" class="primary-btn btn-sm" style="background: rgba(251, 191, 36, 0.2); border: 1px solid #f59e0b; color: #f59e0b;">📥 Download Template</button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Bank List -->
+                    <div style="text-align: left; margin-bottom: 1rem;">
+                        <h4 style="color: #cbd5e1; margin-bottom: 8px;">Quiz Banks (<span id="quiz-bank-count">0</span>)</h4>
+                        <div id="quiz-bank-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
                     </div>
                 </div>
 
@@ -143,6 +170,6 @@
             </div>
         </main>
     </div>
-    <script type="module" src="admin.js?v=clean_f3032f8"></script>
+    <script type="module" src="admin.js?v=step1"></script>
 </body>
 </html>
