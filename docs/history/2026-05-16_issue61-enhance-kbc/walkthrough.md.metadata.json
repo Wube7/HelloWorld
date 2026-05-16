@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting KBC lifecycle refactoring, kbcArchive snapshot archiving, and lobby mutex locking.",
+  "updatedAt":  "2026-05-16T17:09:38.789618741Z"
+}

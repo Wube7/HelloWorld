@@ -120,9 +120,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const kbcResultContainer = document.getElementById('kbc-result-container');
     const kbcGameoverContainer = document.getElementById('kbc-gameover-container');
     const btnKbcStart = document.getElementById('btn-kbc-start');
+    const btnKbcRes = document.getElementById('btn-kbc-res');
+    const adminActiveKbcControls = document.getElementById('admin-active-kbc-controls');
+    const kbcAdminRoundEl = document.getElementById('kbc-admin-round');
     const btnKbcEnd = document.getElementById('btn-kbc-end');
     const btnKbcForce = document.getElementById('btn-kbc-force');
-    const btnKbcReset = document.getElementById('btn-kbc-reset');
+    const btnKbcReturn = document.getElementById('btn-kbc-return');
+    let lastKbcArchive = null;
     const kbcSlider = document.getElementById('kbc-slider');
     const kbcNumberInput = document.getElementById('kbc-number-input');
     const btnKbcSubmit = document.getElementById('btn-kbc-submit');
@@ -269,6 +273,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
 
     initDatabaseFuncs.push(() => {
+        // Real-time KBC Archive listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcArchive'), (snapshot) => {
+            lastKbcArchive = snapshot.val();
+            if (btnKbcRes) {
+                btnKbcRes.disabled = (!lastKbcArchive || currentQuizPhase !== 'idle');
+            }
+        }));
+
         // Real-time Survey Ideas Master listeners
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaSurveys'), (snapshot) => {
             storedIdeaPrompts = snapshot.val() || {};
@@ -1148,6 +1160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin: Start Contest
     if (btnKbcStart) {
         btnKbcStart.addEventListener('click', () => {
+            if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
             const players = {};
             // Snapshot current online users
             for (const [uid, pData] of Object.entries(onlinePresence)) {
@@ -1174,19 +1187,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Admin: End Contest
-    if (btnKbcEnd) {
-        btnKbcEnd.addEventListener('click', () => {
-            set(ref(db, 'admin/kbcState/phase'), 'ended');
+    if (btnKbcRes) {
+        btnKbcRes.addEventListener('click', async () => {
+            if (currentQuizPhase !== 'idle' || !lastKbcArchive) return;
+            await set(ref(db, 'admin/kbcState'), {
+                active: true,
+                round: lastKbcArchive.round || 1,
+                phase: 'ended',
+                players: lastKbcArchive.players || {},
+                lastResult: lastKbcArchive.lastResult || null,
+                history: lastKbcArchive.history || [],
+                deadlockRuleActive: !!lastKbcArchive.deadlockRuleActive
+            });
         });
     }
 
-    // Admin: Reset Contest
-    if (btnKbcReset) {
-        btnKbcReset.addEventListener('click', () => {
-            if (confirm('Are you sure you want to reset the Keynesian Beauty Contest?')) {
-                remove(ref(db, 'admin/kbcState'));
-            }
+    if (btnKbcEnd) {
+        btnKbcEnd.addEventListener('click', () => {
+            resolveKbcRound(true);
+        });
+    }
+
+    if (btnKbcReturn) {
+        btnKbcReturn.addEventListener('click', async () => {
+            await set(ref(db, 'admin/kbcState/active'), false);
         });
     }
 
@@ -1403,6 +1427,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     history: existingHistory,
                     deadlockRuleActive: nextDeadlockRuleActive
                 });
+                await set(ref(db, 'admin/kbcArchive'), {
+                    round: state.round,
+                    players: updatedPlayers,
+                    lastResult: lastResult,
+                    history: existingHistory,
+                    deadlockRuleActive: nextDeadlockRuleActive
+                });
             } else {
                 // Show result, then auto-advance to next round after a delay
                 await set(ref(db, 'admin/kbcState'), {
@@ -1446,15 +1477,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!state || !state.active) {
             currentQuizPhase = (currentQuizPhase.startsWith('kbc')) ? 'idle' : currentQuizPhase;
             if (btnKbcStart) btnKbcStart.disabled = false;
-            if (btnKbcEnd) btnKbcEnd.disabled = true;
-            if (btnKbcForce) btnKbcForce.disabled = true;
+            if (adminActiveKbcControls) adminActiveKbcControls.classList.add('hidden');
+            if (btnKbcRes) btnKbcRes.disabled = (!lastKbcArchive || currentQuizPhase !== 'idle');
             updateVisibilityState();
             return;
         }
 
         // Admin buttons
+        if (adminActiveKbcControls) adminActiveKbcControls.classList.remove('hidden');
+        if (kbcAdminRoundEl) kbcAdminRoundEl.textContent = state.round || 1;
         if (btnKbcStart) btnKbcStart.disabled = true;
-        if (btnKbcEnd) btnKbcEnd.disabled = false;
+        if (btnKbcRes) btnKbcRes.disabled = true;
+        if (btnKbcEnd) btnKbcEnd.disabled = (state.phase !== 'input');
         if (btnKbcForce) btnKbcForce.disabled = (state.phase !== 'input');
 
         const uid = auth.currentUser?.uid;
