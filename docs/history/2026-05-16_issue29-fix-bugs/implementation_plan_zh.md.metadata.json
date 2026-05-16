@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：修復未宣告變數造成的 JS 崩潰與自動登出 Bug。",
+  "updatedAt":  "2026-05-16T05:36:37.021602112Z"
+}

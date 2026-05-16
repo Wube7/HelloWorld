@@ -227,24 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("Presence read failed - check database rules and instance:", error);
     });
 
-    // Admin View Toggle Logic
-    if (globalViewToggle) {
-        globalViewToggle.addEventListener('change', (e) => {
-            if (!auth.currentUser || !auth.currentUser.email || !ADMIN_EMAILS.includes(auth.currentUser.email)) {
-                e.target.checked = !e.target.checked; // revert
-                return;
-            }
-            set(ref(db, 'admin/globalView'), {
-                view: e.target.checked ? 'chat' : 'main',
-                updatedBy: auth.currentUser.uid,
-                timestamp: serverTimestamp()
-            }).catch(err => {
-                console.error("Failed to update global view:", err);
-                alert("Only admins can change the global view! Check Firebase rules.");
-                e.target.checked = !e.target.checked; // revert
-            });
-        });
-    }
+
 
     // Listen to Global View
     let currentGlobalViewMode = 'main';
@@ -322,7 +305,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     onValue(globalViewRef, (snapshot) => {
         const data = snapshot.val();
         currentGlobalViewMode = (data && data.view) || 'main';
-        if (globalViewToggle) globalViewToggle.checked = (currentGlobalViewMode === 'chat');
         updateVisibilityState();
     });
 
