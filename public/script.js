@@ -267,17 +267,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Setup Presence Write
             userPresenceRef = ref(db, `presence/${user.uid}`);
             const connectedRef = ref(db, '.info/connected');
-            const presencePayload = {
-                online: true,
-                name: user.displayName || 'Connecting...',
-                isAnon: isAnon
-            };
             
             if (connectedUnsubscribe) connectedUnsubscribe();
             connectedUnsubscribe = onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(userPresenceRef).remove().then(() => {
-                        set(userPresenceRef, presencePayload);
+                        const activeDispName = (auth.currentUser && auth.currentUser.displayName) || user.displayName || 'Connecting...';
+                        set(userPresenceRef, {
+                            online: true,
+                            name: activeDispName,
+                            isAnon: isAnon
+                        });
                     });
                 }
             });

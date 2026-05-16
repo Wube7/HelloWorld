@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting dynamic profile extraction in WebSocket connected listener to prevent stale closure overwrites.",
+  "updatedAt":  "2026-05-16T12:24:10.721355440Z"
+}

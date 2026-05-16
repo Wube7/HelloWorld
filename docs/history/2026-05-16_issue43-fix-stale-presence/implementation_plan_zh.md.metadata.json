@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：在 WebSocket 連線監聽器中動態獲取名稱，解決閉包覆寫 Bug。",
+  "updatedAt":  "2026-05-16T12:23:18.555458618Z"
+}
