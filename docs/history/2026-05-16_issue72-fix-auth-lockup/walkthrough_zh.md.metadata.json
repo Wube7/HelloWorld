@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "繁體中文版實行紀錄：記錄重構 admin.js 靜態資源非同步讀取修復驗證卡死的成果。",
+  "updatedAt":  "2026-05-16T20:36:35.074139661Z"
+}

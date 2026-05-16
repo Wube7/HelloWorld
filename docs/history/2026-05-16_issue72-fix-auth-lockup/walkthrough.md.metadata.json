@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting refactoring of blocking top-level await on static assets inside admin.js to eliminate pending authentication lockups on host console.",
+  "updatedAt":  "2026-05-16T20:36:30.526044366Z"
+}

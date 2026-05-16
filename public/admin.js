@@ -108,11 +108,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let quizData = [];
     let defaultQuizData = [];
-    try {
-        const res = await fetch('quiz.json');
-        defaultQuizData = await res.json();
+    fetch('quiz.json').then(res => res.json()).then(data => {
+        defaultQuizData = data;
         quizData = defaultQuizData;
-    } catch(e) { console.error("Could not load quiz.json fallback"); }
+    }).catch(e => console.error("Could not load quiz.json fallback"));
 
     let oldQuizState = null;
     let currentSelectedAnswer = null;

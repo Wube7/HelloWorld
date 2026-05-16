@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：重構 admin.js 靜態資源阻塞式讀取，修復驗證登入卡死的問題。",
+  "updatedAt":  "2026-05-16T20:35:18.321718856Z"
+}
