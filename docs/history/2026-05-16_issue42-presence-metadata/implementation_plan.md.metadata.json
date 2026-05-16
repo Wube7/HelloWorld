@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to attach user profile metadata directly to presence nodes to eliminate Connecting placeholder flashes across peer sessions.",
+  "updatedAt":  "2026-05-16T12:15:56.446174556Z",
+  "requestFeedback":  true
+}

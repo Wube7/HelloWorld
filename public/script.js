@@ -160,6 +160,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     isAnonymous: true,
                     lastActive: Date.now()
                 }).catch(console.error);
+                set(ref(db, `presence/${result.user.uid}`), {
+                    online: true,
+                    name: auth.currentUser.displayName,
+                    isAnon: true
+                }).catch(() => {});
             }
         } catch(err) {
             console.error("Anon login failed", err);
@@ -262,14 +267,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Setup Presence Write
             userPresenceRef = ref(db, `presence/${user.uid}`);
             const connectedRef = ref(db, '.info/connected');
+            const presencePayload = {
+                online: true,
+                name: user.displayName || 'Connecting...',
+                isAnon: isAnon
+            };
             
             if (connectedUnsubscribe) connectedUnsubscribe();
             connectedUnsubscribe = onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
-                    // On disconnect, remove our node
                     onDisconnect(userPresenceRef).remove().then(() => {
-                        // While connected, set presence to true
-                        set(userPresenceRef, true);
+                        set(userPresenceRef, presencePayload);
                     });
                 }
             });
@@ -863,7 +871,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
-                const isOnline = !!onlinePresence[uid];
+                const pData = onlinePresence[uid];
+                const isOnline = pData && (pData === true || pData.online);
                 const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
                 
                 if (isOnline) {
@@ -873,16 +882,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const offlineDuration = now - disconnectMap[uid];
                     
                     delete combinedUsers[uid];
-                    if (isAdmin && offlineDuration > 60000) { // 60 seconds grace period
+                    if (isAdmin && offlineDuration > 60000) {
                         remove(ref(db, `users/${uid}`)).catch(() => {});
                     }
                 }
             }
 
-            for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+            for (const [uid, pData] of Object.entries(onlinePresence)) {
+                const isOnline = pData && (pData === true || pData.online);
                 if (isOnline && !combinedUsers[uid]) {
-                    const fallbackName = (auth.currentUser && auth.currentUser.uid === uid) ? (auth.currentUser.displayName || 'Connecting...') : 'Connecting...';
-                    combinedUsers[uid] = { uid: uid, name: fallbackName, isAnonymous: true };
+                    const fetchedName = (typeof pData === 'object' && pData.name) ? pData.name : 'Connecting...';
+                    const fetchedAnon = (typeof pData === 'object' && pData.isAnon !== undefined) ? pData.isAnon : true;
+                    combinedUsers[uid] = { uid: uid, name: fetchedName, isAnonymous: fetchedAnon };
                 }
             }
             

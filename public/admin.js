@@ -740,7 +740,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
-                const isOnline = !!onlinePresence[uid];
+                const pData = onlinePresence[uid];
+                const isOnline = pData && (pData === true || pData.online);
                 const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
                 
                 if (isOnline) {
@@ -750,15 +751,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const offlineDuration = now - disconnectMap[uid];
                     
                     delete combinedUsers[uid];
-                    if (isAdmin && offlineDuration > 60000) { // 60 seconds grace period
+                    if (isAdmin && offlineDuration > 60000) {
                         remove(ref(db, `users/${uid}`)).catch(() => {});
                     }
                 }
             }
 
-            for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+            for (const [uid, pData] of Object.entries(onlinePresence)) {
+                const isOnline = pData && (pData === true || pData.online);
                 if (isOnline && !combinedUsers[uid]) {
-                    combinedUsers[uid] = { uid: uid, name: 'Anonymous/Legacy User', isAnonymous: true };
+                    const fetchedName = (typeof pData === 'object' && pData.name) ? pData.name : 'Connecting...';
+                    const fetchedAnon = (typeof pData === 'object' && pData.isAnon !== undefined) ? pData.isAnon : true;
+                    combinedUsers[uid] = { uid: uid, name: fetchedName, isAnonymous: fetchedAnon };
                 }
             }
             
