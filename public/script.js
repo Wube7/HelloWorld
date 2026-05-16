@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -1664,6 +1664,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const voters = item.voters || {};
             const myVote = currentUserUid ? (voters[currentUserUid] || 0) : 0;
+            const isMyIdea = (currentUserUid && item.uid === currentUserUid);
+            const btnDisabled = (isLocked || isMyIdea) ? 'disabled' : '';
+            const titleAttr = isMyIdea ? 'title="You cannot vote for your own idea"' : '';
             
             card.innerHTML = `
                 <div>
@@ -1676,44 +1679,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="idea-card-footer">
                     <span class="idea-points">${item.votes || 0} pts</span>
                     <div class="idea-actions">
-                        <button class="btn-upvote ${myVote === 1 ? 'voted-1' : ''}" data-id="${item.id}" data-val="1" ${isLocked ? 'disabled' : ''}>👍 +1</button>
-                        <button class="btn-upvote ${myVote === 2 ? 'voted-2' : ''}" data-id="${item.id}" data-val="2" ${isLocked ? 'disabled' : ''}>🔥 +2</button>
+                        <button class="btn-upvote ${myVote === 1 ? 'voted-1' : ''}" data-id="${item.id}" data-val="1" ${btnDisabled} ${titleAttr}>👍 +1</button>
+                        <button class="btn-upvote ${myVote === 2 ? 'voted-2' : ''}" data-id="${item.id}" data-val="2" ${btnDisabled} ${titleAttr}>🔥 +2</button>
                     </div>
                 </div>
             `;
             ideaClientBoard.appendChild(card);
         });
 
+        let isVotingInProgress = false;
         ideaClientBoard.querySelectorAll('.btn-upvote').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                if (isLocked || !auth.currentUser) return;
+                if (isLocked || !auth.currentUser || isVotingInProgress) return;
+                isVotingInProgress = true;
                 const iid = e.target.dataset.id;
                 const clickVal = parseInt(e.target.dataset.val);
-                const ideaObj = currentIdeaStateObj?.ideas?.[iid];
-                if (!ideaObj) return;
-
-                const voters = ideaObj.voters || {};
-                const oldVal = voters[auth.currentUser.uid] || 0;
-                
-                let newVal;
-                if (oldVal === clickVal) {
-                    newVal = 0; // Toggle off
-                } else {
-                    newVal = clickVal;
-                }
-
-                const diff = newVal - oldVal;
-                const newVotes = (ideaObj.votes || 0) + diff;
                 
                 try {
-                    if (newVal === 0) {
-                        await remove(ref(db, `admin/ideaState/ideas/${iid}/voters/${auth.currentUser.uid}`));
-                    } else {
-                        await set(ref(db, `admin/ideaState/ideas/${iid}/voters/${auth.currentUser.uid}`), newVal);
-                    }
-                    await set(ref(db, `admin/ideaState/ideas/${iid}/votes`), newVotes);
+                    const ideaRef = ref(db, `admin/ideaState/ideas/${iid}`);
+                    await runTransaction(ideaRef, (currentIdea) => {
+                        if (!currentIdea || currentIdea.uid === auth.currentUser.uid) return currentIdea;
+                        
+                        const votersMap = currentIdea.voters || {};
+                        const oldVal = votersMap[auth.currentUser.uid] || 0;
+                        let newVal = (oldVal === clickVal) ? 0 : clickVal;
+                        
+                        const diff = newVal - oldVal;
+                        currentIdea.votes = (currentIdea.votes || 0) + diff;
+                        
+                        if (newVal === 0) {
+                            delete currentIdea.voters[auth.currentUser.uid];
+                        } else {
+                            if (!currentIdea.voters) currentIdea.voters = {};
+                            currentIdea.voters[auth.currentUser.uid] = newVal;
+                        }
+                        return currentIdea;
+                    });
                 } catch(err) {
-                    console.error("Idea vote error", err);
+                    console.error("Idea vote transaction error", err);
+                } finally {
+                    isVotingInProgress = false;
                 }
             });
         });
