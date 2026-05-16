@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting decoupling of active KBC controls from hideAll helper and permanent unlocking of End Game button across all phases in admin.js.",
+  "updatedAt":  "2026-05-16T17:37:41.657553933Z"
+}

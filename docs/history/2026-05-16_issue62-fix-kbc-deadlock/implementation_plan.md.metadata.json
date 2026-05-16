@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to decouple active KBC controls from hideAll helper and unlock End Game button across all phases in admin.js to resolve host deadlock.",
+  "updatedAt":  "2026-05-16T17:36:30.707872065Z",
+  "requestFeedback":  true
+}

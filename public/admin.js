@@ -463,7 +463,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (kbcContainer) kbcContainer.classList.add('hidden');
             if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
             if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
-            if (adminActiveKbcControls) adminActiveKbcControls.classList.add('hidden');
             if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
@@ -489,15 +488,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
-            if (quizContainer) quizContainer.classList.add('hidden');
-            if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (kbcContainer) kbcContainer.classList.add('hidden');
-            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
+            hideAll();
+            if (adminActiveKbcControls) adminActiveKbcControls.classList.add('hidden');
+            if (adminActiveSurveyControls) adminActiveSurveyControls.classList.add('hidden');
+            if (adminActiveIdeaControls) adminActiveIdeaControls.classList.add('hidden');
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
-            if (userSidebar) userSidebar.classList.add('hidden');
 
             if (currentGlobalViewMode === 'chat') {
                 if (cardsGrid) cardsGrid.classList.add('hidden');
@@ -1507,7 +1504,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (kbcAdminRoundEl) kbcAdminRoundEl.textContent = state.round || 1;
         if (btnKbcStart) btnKbcStart.disabled = true;
         if (btnKbcRes) btnKbcRes.disabled = true;
-        if (btnKbcEnd) btnKbcEnd.disabled = (state.phase !== 'input');
+        if (btnKbcEnd) btnKbcEnd.disabled = false;
+        if (btnKbcReturn) btnKbcReturn.disabled = false;
         if (btnKbcForce) btnKbcForce.disabled = (state.phase !== 'input');
 
         const uid = auth.currentUser?.uid;

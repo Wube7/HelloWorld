@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：解耦進行中控制列與 hideAll，並全面解鎖結束鍵以修復 KBC 更新當機死鎖。",
+  "updatedAt":  "2026-05-16T17:36:37.348203996Z"
+}
