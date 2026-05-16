@@ -720,6 +720,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const hideAnonToggle = document.getElementById('hide-anon-toggle');
     
     let hideAnon = false;
+    let disconnectMap = {};
 
     if (userListEl && hideAnonToggle) {
         hideAnonToggle.addEventListener('change', (e) => {
@@ -741,12 +742,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const isOnline = !!onlinePresence[uid];
                 const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
-                const uTime = uObj.lastActive || 0;
-                const isLongOffline = (now - uTime > 10000); // 10 seconds grace period
                 
-                if (isAnon && !isOnline) {
+                if (isOnline) {
+                    delete disconnectMap[uid];
+                } else if (isAnon) {
+                    if (!disconnectMap[uid]) disconnectMap[uid] = now;
+                    const offlineDuration = now - disconnectMap[uid];
+                    
                     delete combinedUsers[uid];
-                    if (isAdmin && isLongOffline && uTime > 0) {
+                    if (isAdmin && offlineDuration > 60000) { // 60 seconds grace period
                         remove(ref(db, `users/${uid}`)).catch(() => {});
                     }
                 }

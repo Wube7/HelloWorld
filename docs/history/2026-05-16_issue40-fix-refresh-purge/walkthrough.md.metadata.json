@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting memory-backed disconnect tracker with a 60-second grace period during automated anonymous account purging.",
+  "updatedAt":  "2026-05-16T11:57:22.616404148Z"
+}

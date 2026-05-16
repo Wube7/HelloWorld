@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：建立記憶體斷線追蹤器，精確計算斷線時長以防重整誤刪。",
+  "updatedAt":  "2026-05-16T11:55:29.105950940Z"
+}
