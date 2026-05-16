@@ -75,7 +75,8 @@
                 </section>
 
                 <!-- KBC Presenter View (No input slider) -->
-                <section id="kbc-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
+                <!-- KBC Presenter Live View -->
+                <section id="kbc-presenter-view" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
                     <h2 style="font-size: 2.8rem; margin-bottom: 0.5rem; color: #db2777;">🎲 Keynesian Beauty Contest</h2>
                     <div id="kbc-round-display" style="font-size: 2rem; color: #0f172a; margin-bottom: 1.5rem; font-weight: 800;">Round <span id="kbc-round-num">1</span></div>
                     
@@ -86,43 +87,53 @@
                         ⚔️ <b>Dual Rule Active:</b> Exactly 2 players left! If you pick 0 and 100, 100 wins!
                     </div>
 
-                    <div id="kbc-waiting" style="margin-top: 2rem; font-size: 1.8rem; color: #334155; background: #f8fafc; padding: 2rem; border-radius: 16px; border: 2px dashed #cbd5e1;">
-                        <p style="margin: 0;">Waiting for players to submit numbers... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
+                    <!-- Top Section A: Leaderboard (During input phase) -->
+                    <div id="kbc-presenter-input-phase">
+                        <div id="kbc-waiting" style="margin-top: 1rem; font-size: 1.8rem; color: #334155; background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 2rem;">
+                            <p style="margin: 0;">Waiting for players to submit numbers... (<span id="kbc-submitted-count">0</span>/<span id="kbc-active-count">0</span>)</p>
+                        </div>
+                        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
+                            <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">🏆 Top Players (Scoreboard)</h3>
+                            <ul id="kbc-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                        </div>
                     </div>
 
-                    <div id="kbc-scoreboard" style="margin-top: 3rem; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
-                        <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">Scoreboard</h3>
-                        <ul id="kbc-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                    <!-- Top Section B: Round Result (During result phase) -->
+                    <div id="kbc-presenter-result-phase" class="hidden">
+                        <div class="kbc-result-card" style="background: #f8fafc; border: 2px solid #cbd5e1; margin-bottom: 2rem; padding: 2rem; border-radius: 16px;">
+                            <h3 style="font-size: 2.2rem; margin-bottom: 1.5rem; color: #db2777;">🎲 Round Result</h3>
+                            <div style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                                <div class="kbc-stat">
+                                    <div class="kbc-stat-label" style="font-size: 1.2rem;">Average (X)</div>
+                                    <div class="kbc-stat-value" id="kbc-res-avg" style="font-size: 2.5rem;">—</div>
+                                </div>
+                                <div class="kbc-stat">
+                                    <div class="kbc-stat-label" style="font-size: 1.2rem;">Target (0.8 × X)</div>
+                                    <div class="kbc-stat-value" id="kbc-res-target" style="font-size: 2.5rem; color: #db2777;">—</div>
+                                </div>
+                            </div>
+                            <div id="kbc-res-winner" style="font-size: 2.2rem; margin-bottom: 1.5rem; color: #0f172a;">
+                                🏆 <span id="kbc-res-winner-name" style="font-weight: 800; color: #d97706;">—</span> wins with <span id="kbc-res-winner-pick" style="color: #2563eb;">—</span>!
+                            </div>
+                            <div id="kbc-res-penalty" style="font-size: 1.5rem; margin-top: 1.5rem; color: #ef4444;" class="hidden">
+                                💀 <span id="kbc-res-penalty-names" style="font-weight: 800;">—</span> picked the furthest number and lost 2 points!
+                            </div>
+                            <div id="kbc-res-deadlock-triggered" style="font-size: 1.5rem; margin-top: 1.5rem; color: #991b1b;" class="hidden">
+                                ⚠️ <b>Deadlock!</b> Everyone tied! No one lost a point, but the Deadlock Rule activates next round!
+                            </div>
+                        </div>
+                        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
+                            <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">🏆 Updated Scoreboard</h3>
+                            <ul id="kbc-res-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
+                        </div>
                     </div>
-                </section>
 
-                <!-- KBC Result View -->
-                <section id="kbc-result-container" class="hidden glass-panel text-center" style="margin-bottom: 4rem;">
-                    <h2 style="font-size: 2.8rem; margin-bottom: 1.5rem; color: #db2777;">🎲 Round Result</h2>
-                    <div class="kbc-result-card" style="background: #f8fafc; border: 2px solid #cbd5e1;">
-                        <div style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin-bottom: 2rem;">
-                            <div class="kbc-stat">
-                                <div class="kbc-stat-label" style="font-size: 1.2rem;">Average (X)</div>
-                                <div class="kbc-stat-value" id="kbc-res-avg" style="font-size: 2.5rem;">—</div>
-                            </div>
-                            <div class="kbc-stat">
-                                <div class="kbc-stat-label" style="font-size: 1.2rem;">Target (0.8 × X)</div>
-                                <div class="kbc-stat-value" id="kbc-res-target" style="font-size: 2.5rem; color: #db2777;">—</div>
-                            </div>
+                    <!-- Common Bottom Section: Round History Table -->
+                    <div id="kbc-presenter-history" style="margin-top: 4rem; border-top: 3px solid #cbd5e1; padding-top: 2rem; text-align: left;">
+                        <h3 style="margin-bottom: 1.5rem; color: #0f172a; font-size: 2rem;">📜 Round History</h3>
+                        <div id="kbc-history-content" style="overflow-x: auto; font-size: 1.2rem; background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                            <p style="color: #64748b; text-align: center;">No rounds played yet.</p>
                         </div>
-                        <div id="kbc-res-winner" style="font-size: 2.2rem; margin-bottom: 1.5rem; color: #0f172a;">
-                            🏆 <span id="kbc-res-winner-name" style="font-weight: 800; color: #d97706;">—</span> wins with <span id="kbc-res-winner-pick" style="color: #2563eb;">—</span>!
-                        </div>
-                        <div id="kbc-res-penalty" style="font-size: 1.5rem; margin-top: 1.5rem; color: #ef4444;" class="hidden">
-                            💀 <span id="kbc-res-penalty-names" style="font-weight: 800;">—</span> picked the furthest number and lost 2 points!
-                        </div>
-                        <div id="kbc-res-deadlock-triggered" style="font-size: 1.5rem; margin-top: 1.5rem; color: #991b1b;" class="hidden">
-                            ⚠️ <b>Deadlock!</b> Everyone tied! No one lost a point, but the Deadlock Rule activates next round!
-                        </div>
-                    </div>
-                    <div id="kbc-res-scoreboard" style="margin-top: 3rem; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
-                        <h3 style="margin-bottom: 1rem; color: #0f172a; font-size: 1.8rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem;">Updated Scores</h3>
-                        <ul id="kbc-res-score-list" class="user-list" style="font-size: 1.3rem;"></ul>
                     </div>
                 </section>
 

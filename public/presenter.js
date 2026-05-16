@@ -42,8 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusMessage = document.getElementById('status-message');
 
     // Admin & Global View UI Elements
-    const adminPanel = document.getElementById('admin-panel');
-    const globalViewToggle = document.getElementById('global-view-toggle');
+    const kbcPresenterArea = document.getElementById('kbc-presenter-view');
+    const kbcInputPhase = document.getElementById('kbc-presenter-input-phase');
+    const kbcResultPhase = document.getElementById('kbc-presenter-result-phase');
     const cardsGrid = document.querySelector('.cards-grid');
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
@@ -235,8 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (interactiveDemo) interactiveDemo.classList.add('hidden');
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (kbcContainer) kbcContainer.classList.add('hidden');
-            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
+            if (kbcPresenterArea) kbcPresenterArea.classList.add('hidden');
             if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
@@ -253,10 +253,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (podiumContainer) podiumContainer.classList.remove('hidden');
         } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result') {
             hideAll();
+            if (kbcPresenterArea) kbcPresenterArea.classList.remove('hidden');
             if (currentQuizPhase === 'kbc-input') {
-                if (kbcContainer) kbcContainer.classList.remove('hidden');
+                if (kbcInputPhase) kbcInputPhase.classList.remove('hidden');
+                if (kbcResultPhase) kbcResultPhase.classList.add('hidden');
             } else {
-                if (kbcResultContainer) kbcResultContainer.classList.remove('hidden');
+                if (kbcInputPhase) kbcInputPhase.classList.add('hidden');
+                if (kbcResultPhase) kbcResultPhase.classList.remove('hidden');
             }
         } else if (currentQuizPhase === 'kbc-ended') {
             hideAll();
@@ -265,8 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Idle Phase (Quiz inactive)
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
-            if (kbcContainer) kbcContainer.classList.add('hidden');
-            if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
+            if (kbcPresenterArea) kbcPresenterArea.classList.add('hidden');
             if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
