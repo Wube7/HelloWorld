@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnKbcEnd = document.getElementById('btn-kbc-end');
     const btnKbcForce = document.getElementById('btn-kbc-force');
     const btnKbcReturn = document.getElementById('btn-kbc-return');
+    const kbcAdminStatusEl = document.getElementById('kbc-admin-status');
     let lastKbcArchive = null;
     const kbcSlider = document.getElementById('kbc-slider');
     const kbcNumberInput = document.getElementById('kbc-number-input');
@@ -1492,6 +1493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Admin buttons
         if (adminActiveKbcControls) adminActiveKbcControls.classList.remove('hidden');
         if (kbcAdminRoundEl) kbcAdminRoundEl.textContent = state.round || 1;
+        const phaseDisplayMap = { input: 'Waiting for Submissions', result: 'Round Resolving (3s)', ended: 'Contest Over (Standings)' };
+        const phaseStr = phaseDisplayMap[state.phase] || state.phase;
+        if (kbcAdminStatusEl) kbcAdminStatusEl.textContent = ` - Phase: ${phaseStr}`;
         if (btnKbcStart) btnKbcStart.disabled = true;
         if (btnKbcRes) btnKbcRes.disabled = true;
         if (btnKbcEnd) btnKbcEnd.disabled = false;

@@ -1391,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             renderKbcScoreboard(document.getElementById('kbc-final-score-list'), players);
+            renderKbcHistory(state.history, players);
         }
         }));
 
