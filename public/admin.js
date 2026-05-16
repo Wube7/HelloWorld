@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const result = await signInAnonymously(auth);
                 if (!result.user.displayName) {
                     const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-                    await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
+                    await updateProfile(result.user, { displayName: `🥷 ${randomAnimal}` });
                     if (userNameDisplay) userNameDisplay.textContent = auth.currentUser.displayName;
                     
                     const userProfileRef = ref(db, `users/${result.user.uid}`);
@@ -764,7 +764,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const pData = onlinePresence[uid];
                 const isOnline = pData && (pData === true || pData.online);
-                const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
+                const isAnon = uObj.isAnonymous || (uObj.name && (uObj.name.startsWith('Anonymous') || uObj.name.startsWith('🥷')));
                 
                 if (isOnline) {
                     delete disconnectMap[uid];

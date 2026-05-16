@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await signInAnonymously(auth);
             if (!result.user.displayName) {
                 const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-                await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
+                await updateProfile(result.user, { displayName: `🥷 ${randomAnimal}` });
                 userNameDisplay.textContent = auth.currentUser.displayName;
                 
                 // Immediately sync the newly assigned animal name to the DB to overwrite the generic 'User'
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             // 1. Write Ordering Barrier: Ensure user profile is written before announcing presence
-            const isAnon = user.isAnonymous || (user.displayName && user.displayName.startsWith('Anonymous'));
+            const isAnon = user.isAnonymous || (user.displayName && (user.displayName.startsWith('Anonymous') || user.displayName.startsWith('🥷')));
             const userProfileRef = ref(db, `users/${user.uid}`);
             await set(userProfileRef, {
                 uid: user.uid,
@@ -873,7 +873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const pData = onlinePresence[uid];
                 const isOnline = pData && (pData === true || pData.online);
-                const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
+                const isAnon = uObj.isAnonymous || (uObj.name && (uObj.name.startsWith('Anonymous') || uObj.name.startsWith('🥷')));
                 
                 if (isOnline) {
                     delete disconnectMap[uid];
