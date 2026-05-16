@@ -705,14 +705,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderPodium() {
         const combinedUsers = [];
         
-        // Merge online users with their scores
-        for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+        // Merge online users with their scores, prioritizing presence metadata
+        for (const [uid, pData] of Object.entries(onlinePresence)) {
+            const isOnline = pData && (pData === true || pData.online);
             if (isOnline) {
-                const userObj = allUsers[uid] || { name: 'Anonymous/Legacy' };
-                const userScoreObj = allQuizScores[uid] || { score: 0 };
-                // Also default anonymous temp users correctly
-                let nameToUse = userObj.name;
-                if (!nameToUse && userObj.isAnonymous) nameToUse = 'Anonymous';
+                const fetchedPName = (typeof pData === 'object' && pData.name) ? pData.name : null;
+                const userScoreObj = allQuizScores[uid] || {};
+                const userObj = allUsers[uid] || {};
+                const nameToUse = fetchedPName || userScoreObj.name || userObj.name || 'Anonymous User';
                 
                 combinedUsers.push({
                     name: nameToUse,
@@ -1070,11 +1070,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnKbcStart.addEventListener('click', () => {
             const players = {};
             // Snapshot current online users
-            for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+            for (const [uid, pData] of Object.entries(onlinePresence)) {
+                const isOnline = pData && (pData === true || pData.online);
                 if (isOnline) {
+                    const fetchedPName = (typeof pData === 'object' && pData.name) ? pData.name : null;
                     const userObj = allUsers[uid] || {};
                     players[uid] = {
-                        name: userObj.name || 'Anonymous',
+                        name: fetchedPName || userObj.name || 'Anonymous User',
                         points: 10
                     };
                 }

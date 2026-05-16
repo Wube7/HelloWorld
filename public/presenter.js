@@ -568,14 +568,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderPodium() {
         const combinedUsers = [];
         
-        // Merge online users with their scores
-        for (const [uid, isOnline] of Object.entries(onlinePresence)) {
+        // Merge online users with their scores, prioritizing presence metadata
+        for (const [uid, pData] of Object.entries(onlinePresence)) {
+            const isOnline = pData && (pData === true || pData.online);
             if (isOnline) {
-                const userObj = allUsers[uid] || { name: 'Anonymous/Legacy' };
-                const userScoreObj = allQuizScores[uid] || { score: 0 };
-                // Also default anonymous temp users correctly
-                let nameToUse = userObj.name;
-                if (!nameToUse && userObj.isAnonymous) nameToUse = 'Anonymous';
+                const fetchedPName = (typeof pData === 'object' && pData.name) ? pData.name : null;
+                const userScoreObj = allQuizScores[uid] || {};
+                const userObj = allUsers[uid] || {};
+                const nameToUse = fetchedPName || userScoreObj.name || userObj.name || 'Anonymous User';
                 
                 combinedUsers.push({
                     name: nameToUse,
