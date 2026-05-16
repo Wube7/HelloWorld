@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin & Global View UI Elements
     const linkAdminPanel = document.getElementById('link-admin-panel');
     const linkPresenterPage = document.getElementById('link-presenter-page');
+    const btnViewChat = document.getElementById('btn-view-chat');
+    const btnViewGame = document.getElementById('btn-view-game');
     const cardsGrid = document.querySelector('.cards-grid');
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
@@ -291,6 +293,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+    // View Toggle Logic
+    let clientForceView = 'auto';
+    if (btnViewChat && btnViewGame) {
+        btnViewChat.addEventListener('click', () => {
+            clientForceView = 'chat';
+            updateVisibilityState();
+        });
+        btnViewGame.addEventListener('click', () => {
+            clientForceView = 'game';
+            updateVisibilityState();
+        });
+    }
+
     // Listen to Global View
     let currentGlobalViewMode = 'main';
     let currentQuizPhase = 'idle';
@@ -308,31 +323,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (kbcContainer) kbcContainer.classList.add('hidden');
             if (kbcResultContainer) kbcResultContainer.classList.add('hidden');
             if (kbcGameoverContainer) kbcGameoverContainer.classList.add('hidden');
-            if (headerEl) headerEl.classList.add('hidden');
             if (qrCodeEl) qrCodeEl.classList.add('hidden');
             if (chatDemoSection) chatDemoSection.classList.add('hidden');
             if (userSidebar) userSidebar.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
+            if (headerEl) headerEl.classList.remove('hidden'); // 確保永遠顯示
         };
 
-        if (currentQuizPhase === 'question') {
-            hideAll();
-            if (quizContainer) quizContainer.classList.remove('hidden');
-        } else if (currentQuizPhase === 'podium') {
-            hideAll();
-            if (podiumContainer) podiumContainer.classList.remove('hidden');
-        } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result') {
-            hideAll();
-            if (currentQuizPhase === 'kbc-input') {
-                if (kbcContainer) kbcContainer.classList.remove('hidden');
+        if (currentQuizPhase !== 'idle') {
+            if (clientForceView === 'chat') {
+                hideAll();
+                if (chatDemoSection) chatDemoSection.classList.remove('hidden');
+                if (btnViewGame) btnViewGame.classList.remove('hidden');
+                if (btnViewChat) btnViewChat.classList.add('hidden');
             } else {
-                if (kbcResultContainer) kbcResultContainer.classList.remove('hidden');
+                hideAll();
+                if (currentQuizPhase === 'question') {
+                    if (quizContainer) quizContainer.classList.remove('hidden');
+                } else if (currentQuizPhase === 'podium') {
+                    if (podiumContainer) podiumContainer.classList.remove('hidden');
+                } else if (currentQuizPhase === 'kbc-input' || currentQuizPhase === 'kbc-result') {
+                    if (currentQuizPhase === 'kbc-input') {
+                        if (kbcContainer) kbcContainer.classList.remove('hidden');
+                    } else {
+                        if (kbcResultContainer) kbcResultContainer.classList.remove('hidden');
+                    }
+                } else if (currentQuizPhase === 'kbc-ended') {
+                    if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
+                }
+                if (btnViewChat) btnViewChat.classList.remove('hidden');
+                if (btnViewGame) btnViewGame.classList.add('hidden');
             }
-        } else if (currentQuizPhase === 'kbc-ended') {
-            hideAll();
-            if (kbcGameoverContainer) kbcGameoverContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
+            clientForceView = 'auto';
+            if (btnViewChat) btnViewChat.classList.add('hidden');
+            if (btnViewGame) btnViewGame.classList.add('hidden');
             if (quizContainer) quizContainer.classList.add('hidden');
             if (podiumContainer) podiumContainer.classList.add('hidden');
             if (kbcContainer) kbcContainer.classList.add('hidden');
