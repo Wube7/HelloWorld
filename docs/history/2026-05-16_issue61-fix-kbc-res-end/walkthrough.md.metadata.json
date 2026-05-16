@@ -1,5 +1,5 @@
 {
   "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
-  "summary":  "Walkthrough documenting synchronous kbcArchive snapshot archiving on every round and instant game over crowning termination logic on active KBC controls.",
-  "updatedAt":  "2026-05-16T17:27:29.475254172Z"
+  "summary":  "Walkthrough documenting migration of KBC state reads to standard get() API and elimination of redundant onValue listeners to resolve Force Resolve deadlock.",
+  "updatedAt":  "2026-05-16T17:44:20.358872265Z"
 }

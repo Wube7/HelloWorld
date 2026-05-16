@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -1203,9 +1203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnKbcEnd) {
         btnKbcEnd.addEventListener('click', async () => {
             if (confirm("Are you sure you want to end the KBC game early and crown the winner based on current points?")) {
-                const snap = await new Promise(resolve => {
-                    onValue(ref(db, 'admin/kbcState'), resolve, { onlyOnce: true });
-                });
+                const snap = await get(ref(db, 'admin/kbcState'));
                 const state = snap.val();
                 if (!state || !state.active || !state.players) return;
                 
@@ -1231,12 +1229,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin: Force Resolve (end round early with only submitted numbers)
     if (btnKbcForce) {
         btnKbcForce.addEventListener('click', () => {
-            // Trigger resolution manually via the listener by reading current state
-            const kbcRef = ref(db, 'admin/kbcState');
-            onValue(kbcRef, (snapshot) => {
-                // one-shot read — we only want to run this once
-            }, { onlyOnce: true });
-            // Actually perform the force
             resolveKbcRound(true);
         });
     }
@@ -1265,9 +1257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             // Read current state
-            const snap = await new Promise(resolve => {
-                onValue(ref(db, 'admin/kbcState'), resolve, { onlyOnce: true });
-            });
+            const snap = await get(ref(db, 'admin/kbcState'));
             const state = snap.val();
             if (!state || !state.active || state.phase !== 'input' || !state.players) {
                 kbcResolving = false;

@@ -1,19 +1,19 @@
 # Walkthrough: Fix KBC Result Button Inactivity and Upgrade Active End Button to Instant Game Over
 
-This document records the continuous database snapshot archiving (`kbcArchive`) and instant crowning state transition logic implemented across the Keynesian Beauty Contest master module.
+This document records the asynchronous read migration and listener optimizations implemented across the KBC master module to eliminate Promise race conditions and resolve stalled manual calculations.
 
 ## Changes Implemented
 
-### Continuous Archiving & Instant Crowning (`admin.html`, `admin.js`)
-1. **Continuous Archiving (`kbcArchive`)**:
-   - Moved `/admin/kbcArchive` storage operations out of final elimination branches to execute synchronously on every single round calculation. Clicking `Result (Last Session)` in the lobby now reliably re-projects past standings even if the contest was exited before a final elimination round.
-2. **Instant Game Over (Crown Winner)**:
-   - Upgraded the active contest termination button (`btnKbcEnd`) to instantly write `phase: 'ended'` with full archive storage. Controllers can now terminate ideation at any arbitrary round to immediately crown the current points leader across all active displays.
-3. **Lobby Visibility Stability**:
-   - Added `#admin-active-kbc-controls` to the global `hideAll()` cleanup routine to ensure active control boxes vanish instantly upon returning to the lobby.
+### Promise Optimization (`admin.js`)
+1. **Standard `get()` API Migration**:
+   - Replaced all custom Promise-wrapped `onValue(..., { onlyOnce: true })` one-shot reads inside `resolveKbcRound` and `btnKbcEnd` handlers with the official Firebase SDK `get(ref(...))` method.
+   - Eliminates SDK internal dispatch queue deadlocks and Promise collisions during synchronous multi-line invocations.
+2. **Eliminated Redundant Readers**:
+   - Removed redundant `onValue` invocations inside `btnKbcForce` click handlers, allowing manual calculations to execute cleanly and instantly update round phases.
+3. **Persistent Snapshot Validation**:
+   - Guaranteed synchronous archival into `/admin/kbcArchive` across all round calculations, ensuring the lobby `Result (Last Session)` button remains reliably active.
 
 ## Verification Results
 - Successfully deployed to testing staging environment via automated GitHub Actions pipeline.
-- Verified returning to the lobby during arbitrary rounds accurately saves persistent snapshots into `/admin/kbcArchive`.
-- Verified clicking `Result` in the lobby successfully projects historical standings.
-- Verified clicking `End Game (Crown Winner)` during active rounds instantly launches the victory celebration screen crowning the points leader.
+- Verified clicking `Force Resolve` when participants have unanswered entries instantly calculates round deductions and advances the game phase without hanging.
+- Verified clicking `Result` in the lobby re-projects historical standings flawlessly.
