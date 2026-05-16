@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：在 admin 與 presenter 腳本中統一延遲監聽生命週期。",
+  "updatedAt":  "2026-05-16T12:41:16.753834649Z"
+}
