@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：同步登入握手時序，解決彈出視窗挑選帳號時提早進大廳與管理台卡死的問題。",
+  "updatedAt":  "2026-05-16T15:40:32.799176379Z"
+}

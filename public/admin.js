@@ -234,7 +234,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let listenersInitialized = false;
     let initDatabaseFuncs = [];
 
+    let authResolved = false;
     onAuthStateChanged(auth, (user) => {
+        authResolved = true;
         if (user) {
             if (user.email && ADMIN_EMAILS.includes(user.email)) {
                 if (adminStatus) adminStatus.textContent = `👑 Active Admin: ${user.displayName || user.email}`;
@@ -259,6 +261,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
+
+    setTimeout(() => {
+        if (!authResolved && adminStatus) {
+            adminStatus.textContent = "⚠️ Authentication verification timeout. Please ensure you are logged in on the main page or F5 reload.";
+        }
+    }, 5000);
 
         // Real-time Survey Ideas Master listeners
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaSurveys'), (snapshot) => {

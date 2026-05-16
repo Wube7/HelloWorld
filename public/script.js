@@ -152,16 +152,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
     // 2. Authentication Logic
-    btnGoogle.addEventListener('click', () => {
+    let isGoogleAuthResolving = false;
+    btnGoogle.addEventListener('click', async () => {
+        isGoogleAuthResolving = true;
         const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(err => {
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (err) {
             console.error("Google login failed", err);
             if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
                 alert("Google Sign-In is not enabled! Please go to your Firebase Console -> Authentication -> Sign-in method, and enable Google.");
             } else {
                 alert("Login failed: " + err.message);
             }
-        });
+        } finally {
+            isGoogleAuthResolving = false;
+        }
     });
 
     btnAnon.addEventListener('click', async () => {
@@ -173,15 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 userNameDisplay.textContent = auth.currentUser.displayName;
                 
                 // Immediately sync the newly assigned animal name to the DB to overwrite the generic 'User'
-                const userProfileRef = ref(db, `users/${result.user.uid}`);
-                set(userProfileRef, {
-                    uid: result.user.uid,
-                    name: auth.currentUser.displayName,
-                    isAnonymous: true,
-                    lastActive: Date.now()
-                }).catch(console.error);
-                set(ref(db, `presence/${result.user.uid}`), {
-                    online: true,
+                await set(ref(db, `users/${result.user.uid}`), {
                     name: auth.currentUser.displayName,
                     isAnon: true
                 }).catch(() => {});
@@ -230,6 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let initDatabaseFuncs = [];
 
     onAuthStateChanged(auth, async (user) => {
+        if (isGoogleAuthResolving) return;
         if (user) {
             // User is signed in
             document.body.classList.add('logged-in-white');
