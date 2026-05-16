@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     wrapperDiv.classList.add('self');
                 }
                 
-                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleDateString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Just now';
                 
                 wrapperDiv.innerHTML = `
                     <div class="msg-meta">
