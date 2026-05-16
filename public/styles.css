@@ -533,6 +533,56 @@ body.logged-in-white #auto-jump-input {
     border: 1px solid #94a3b8 !important;
 }
 
+/* Comprehensive White Mode Text Inversion */
+body.logged-in-white #quiz-question,
+body.logged-in-white #podium-container h2,
+body.logged-in-white #podium-container h3,
+body.logged-in-white .podium-spot .name,
+body.logged-in-white #kbc-container h2,
+body.logged-in-white #kbc-round-display,
+body.logged-in-white #kbc-input-area p,
+body.logged-in-white #kbc-waiting p,
+body.logged-in-white #kbc-scoreboard h3,
+body.logged-in-white #kbc-history-view p,
+body.logged-in-white #kbc-result-container h2,
+body.logged-in-white #kbc-res-scoreboard h3,
+body.logged-in-white #kbc-gameover-container h2,
+body.logged-in-white #kbc-gameover-container h3,
+body.logged-in-white .kbc-stat-label,
+body.logged-in-white .toggle-container {
+    color: #0f172a !important;
+}
+body.logged-in-white .quiz-btn {
+    background: #f8fafc !important;
+    border: 2px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+body.logged-in-white .quiz-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+}
+body.logged-in-white .quiz-btn.selected {
+    background: #dbeafe !important;
+    border-color: #3b82f6 !important;
+    color: #1e40af !important;
+}
+body.logged-in-white .podium-spot {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+}
+body.logged-in-white .place-1 { background: #fef3c7 !important; border-color: #f59e0b !important; }
+body.logged-in-white .place-2 { background: #f1f5f9 !important; border-color: #94a3b8 !important; }
+body.logged-in-white .place-3 { background: #ffedd5 !important; border-color: #f97316 !important; }
+body.logged-in-white #kbc-number-input {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+}
+body.logged-in-white .kbc-stat-value {
+    color: #2563eb !important;
+}
+
 .chat-input-area {
     display: flex;
     padding: 1rem;
