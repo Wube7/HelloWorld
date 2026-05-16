@@ -25,19 +25,7 @@
                     <span class="pulse-dot"></span> <span id="user-count">0</span> online
                 </div>
                 
-                <!-- Floating User Dropdown -->
-                <aside id="user-sidebar" class="hidden glass-panel user-dropdown">
-                    <button id="btn-close-users" title="Close" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 5px; z-index: 10;">✖</button>
-                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Users</h2>
-                    <div class="toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="hide-anon-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                        <span>Hide Anonymous</span>
-                    </div>
-                    <ul id="user-list" class="user-list"></ul>
-                </aside>
+
             </div>
         </header>
 
@@ -266,6 +254,21 @@
             <p>Built by Antigravity AI.</p>
         </footer>
     </div>
+
+    <!-- Floating User Dropdown Modal (Moved to Body Root to prevent Stacking Context clipping) -->
+    <aside id="user-sidebar" class="hidden glass-panel user-dropdown">
+        <button id="btn-close-users" title="Close" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 5px; z-index: 10;">✖</button>
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Users</h2>
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="hide-anon-toggle">
+                <span class="slider round"></span>
+            </label>
+            <span>Hide Anonymous</span>
+        </div>
+        <ul id="user-list" class="user-list"></ul>
+    </aside>
+
     <script type="module" src="script.js?v=16"></script>
 </body>
 </html>
