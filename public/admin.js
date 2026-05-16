@@ -737,12 +737,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const combinedUsers = { ...allUsers };
             const isAdmin = auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email);
             
+            const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const isOnline = !!onlinePresence[uid];
                 const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
+                const uTime = uObj.lastActive || 0;
+                const isLongOffline = (now - uTime > 10000); // 10 seconds grace period
+                
                 if (isAnon && !isOnline) {
                     delete combinedUsers[uid];
-                    if (isAdmin) {
+                    if (isAdmin && isLongOffline && uTime > 0) {
                         remove(ref(db, `users/${uid}`)).catch(() => {});
                     }
                 }

@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting race condition fix and timestamp grace period during automated anonymous account purging.",
+  "updatedAt":  "2026-05-16T11:43:48.188696707Z"
+}

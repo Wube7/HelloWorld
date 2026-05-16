@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 set(userProfileRef, {
                     uid: result.user.uid,
                     name: auth.currentUser.displayName,
-                    isAnonymous: true
+                    isAnonymous: true,
+                    lastActive: Date.now()
                 }).catch(console.error);
             }
         } catch(err) {
@@ -240,7 +241,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             set(userProfileRef, {
                 uid: user.uid,
                 name: user.displayName || 'User',
-                isAnonymous: isAnon
+                isAnonymous: isAnon,
+                lastActive: Date.now()
             }).catch(console.error);
 
             if (userScoreListener) { userScoreListener(); }
@@ -836,12 +838,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const combinedUsers = { ...allUsers };
             const isAdmin = auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email);
             
+            const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
                 const isOnline = !!onlinePresence[uid];
                 const isAnon = uObj.isAnonymous || (uObj.name && uObj.name.startsWith('Anonymous'));
+                const uTime = uObj.lastActive || 0;
+                const isLongOffline = (now - uTime > 10000); // 10 seconds grace period
+                
                 if (isAnon && !isOnline) {
                     delete combinedUsers[uid];
-                    if (isAdmin) {
+                    if (isAdmin && isLongOffline && uTime > 0) {
                         remove(ref(db, `users/${uid}`)).catch(() => {});
                     }
                 }
