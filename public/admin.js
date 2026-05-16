@@ -862,6 +862,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (btnQuizEnd) btnQuizEnd.disabled = true;
             
             renderPodium();
+
+            if (state.bankId) {
+                get(ref(db, 'quizScores')).then(scoresSnap => {
+                    set(ref(db, `admin/quizBanks/${state.bankId}/lastSession`), {
+                        quizScores: scoresSnap.val() || {},
+                        podiumData: { finishedAt: Date.now() }
+                    });
+                }).catch(console.error);
+            }
         }
         }));
 
