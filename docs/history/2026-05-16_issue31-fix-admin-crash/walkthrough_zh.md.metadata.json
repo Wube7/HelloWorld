@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "繁體中文版實行紀錄：記錄修復後台與展示頁面空 DOM 引用崩潰的歷程。",
+  "updatedAt":  "2026-05-16T10:15:47.593287413Z"
+}

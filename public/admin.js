@@ -22,8 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Initialize dynamic QR code based on environment
     const currentUrl = window.location.origin;
-    document.getElementById('qr-code-link').href = currentUrl;
-    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}`;
+    const qrLink = document.getElementById('qr-code-link');
+    const qrImg = document.getElementById('qr-code-img');
+    if (qrLink) qrLink.href = currentUrl;
+    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}`;
 
     // UI Elements
     const loginSection = document.getElementById('login-section');
@@ -130,43 +132,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ANIMALS = ['Capybara', 'Penguin', 'Axolotl', 'Red Panda', 'Koala', 'Platypus', 'Quokka', 'Sloth', 'Fox', 'Owl'];
 
     // 2. Authentication Logic
-    btnGoogle.addEventListener('click', () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(err => {
-            console.error("Google login failed", err);
-            if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
-                alert("Google Sign-In is not enabled! Please go to your Firebase Console -> Authentication -> Sign-in method, and enable Google.");
-            } else {
-                alert("Login failed: " + err.message);
+    if (btnGoogle) {
+        btnGoogle.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => {
+                console.error("Google login failed", err);
+                if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
+                    alert("Google Sign-In is not enabled! Please go to your Firebase Console -> Authentication -> Sign-in method, and enable Google.");
+                } else {
+                    alert("Login failed: " + err.message);
+                }
+            });
+        });
+    }
+
+    if (btnAnon) {
+        btnAnon.addEventListener('click', async () => {
+            try {
+                const result = await signInAnonymously(auth);
+                if (!result.user.displayName) {
+                    const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+                    await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
+                    if (userNameDisplay) userNameDisplay.textContent = auth.currentUser.displayName;
+                    
+                    const userProfileRef = ref(db, `users/${result.user.uid}`);
+                    set(userProfileRef, {
+                        uid: result.user.uid,
+                        name: auth.currentUser.displayName,
+                        isAnonymous: true
+                    }).catch(console.error);
+                }
+            } catch(err) {
+                console.error("Anon login failed", err);
             }
         });
-    });
-
-    btnAnon.addEventListener('click', async () => {
-        try {
-            const result = await signInAnonymously(auth);
-            if (!result.user.displayName) {
-                const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-                await updateProfile(result.user, { displayName: `Anonymous ${randomAnimal}` });
-                userNameDisplay.textContent = auth.currentUser.displayName;
-                
-                // Immediately sync the newly assigned animal name to the DB to overwrite the generic 'User'
-                const userProfileRef = ref(db, `users/${result.user.uid}`);
-                set(userProfileRef, {
-                    uid: result.user.uid,
-                    name: auth.currentUser.displayName,
-                    isAnonymous: true
-                }).catch(console.error);
-            }
-        } catch(err) {
-            console.error("Anon login failed", err);
-            if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
-                alert("Anonymous Sign-In is not enabled! Please go to your Firebase Console -> Authentication -> Sign-in method, and enable the Anonymous provider.");
-            } else {
-                alert("Login failed: " + err.message);
-            }
-        }
-    });
+    }
 
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
