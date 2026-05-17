@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to eliminate auto-jump timer race conditions and ensure full metadata inheritance during Quiz state transitions.",
+  "updatedAt":  "2026-05-17T14:58:53.042191147Z",
+  "requestFeedback":  true
+}

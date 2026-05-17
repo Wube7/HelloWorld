@@ -910,9 +910,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     autoJumpTimeoutId = setTimeout(() => {
                         const nextIdx = state.questionIndex + 1;
                         if (nextIdx >= quizData.length) {
-                            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+                            set(ref(db, 'admin/quizState'), { ...state, active: true, phase: 'podium' });
                         } else {
-                            const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
+                            const stateObj = { ...state, active: true, phase: 'question', questionIndex: nextIdx };
                             if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
                             set(ref(db, 'admin/quizState'), stateObj);
                         }

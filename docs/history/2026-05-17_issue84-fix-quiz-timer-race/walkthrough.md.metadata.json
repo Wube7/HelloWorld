@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting elimination of auto-jump timer race conditions and metadata inheritance fix during Quiz state transitions.",
+  "updatedAt":  "2026-05-17T15:00:58.869955393Z"
+}

@@ -626,21 +626,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             clearAutoJump();
-            if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
-                const timerSecs = parseInt(autoJumpInput?.value) || 0;
-                if (timerSecs > 0) {
-                    autoJumpTimeoutId = setTimeout(() => {
-                        const nextIdx = state.questionIndex + 1;
-                        if (nextIdx >= quizData.length) {
-                            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
-                        } else {
-                            const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
-                            if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                            set(ref(db, 'admin/quizState'), stateObj);
-                        }
-                    }, timerSecs * 1000);
-                }
-            }
         }
 
         oldQuizState = state;
