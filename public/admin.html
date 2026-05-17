@@ -12,6 +12,9 @@
         <header class="glass-panel text-center" style="margin-bottom: 2rem; padding: 2rem;">
             <h1 style="font-size: 2.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">👑 Admin Dashboard</h1>
             <p id="admin-status" style="color: #f59e0b; font-weight: 600; font-size: 1.1rem;">Verifying Authentication...</p>
+            <div id="admin-room-status-banner" style="background: rgba(16, 185, 129, 0.15); padding: 12px 20px; border-radius: 8px; border: 1px solid #10b981; margin-top: 1rem; display: inline-block; font-size: 1.2rem; font-weight: bold;">
+                🏟️ Current Room State: <span id="admin-room-state-label" style="color: #34d399;">🟢 LOBBY (Idle - All Games Available)</span>
+            </div>
         </header>
         <main id="admin-main" class="hidden">
             <div id="admin-panel" class="glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b; color: #f8fafc;">
@@ -157,6 +160,6 @@
             </div>
         </main>
     </div>
-    <script type="module" src="admin.js?v=fix_stored_banks"></script>
+    <script type="module" src="admin.js?v=status_banner"></script>
 </body>
 </html>

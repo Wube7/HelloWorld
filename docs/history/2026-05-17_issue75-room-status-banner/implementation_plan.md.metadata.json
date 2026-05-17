@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to introduce real-time global room status banner to host console header to display active room modes (Lobby, Quiz, KBC, Survey, Ideation).",
+  "updatedAt":  "2026-05-17T01:34:38.898524659Z",
+  "requestFeedback":  true
+}

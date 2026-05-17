@@ -288,6 +288,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    const adminRoomBanner = document.getElementById('admin-room-status-banner');
+    const adminRoomLabel = document.getElementById('admin-room-state-label');
+
+    function updateRoomStatusBanner() {
+        if (!adminRoomBanner || !adminRoomLabel) return;
+        if (currentQuizPhase === 'idle') {
+            adminRoomBanner.style.background = 'rgba(16, 185, 129, 0.15)';
+            adminRoomBanner.style.borderColor = '#10b981';
+            adminRoomLabel.style.color = '#34d399';
+            adminRoomLabel.textContent = '🟢 LOBBY (Idle - All Games Available)';
+        } else if (currentQuizPhase === 'question' || currentQuizPhase === 'podium') {
+            adminRoomBanner.style.background = 'rgba(109, 40, 217, 0.15)';
+            adminRoomBanner.style.borderColor = '#6d28d9';
+            adminRoomLabel.style.color = '#a78bfa';
+            adminRoomLabel.textContent = `🎯 QUIZ ROOM in Progress (${currentQuizPhase})`;
+        } else if (currentQuizPhase.startsWith('kbc')) {
+            adminRoomBanner.style.background = 'rgba(219, 39, 119, 0.15)';
+            adminRoomBanner.style.borderColor = '#db2777';
+            adminRoomLabel.style.color = '#f472b6';
+            adminRoomLabel.textContent = `🎲 KBC ROOM in Progress (${currentQuizPhase})`;
+        } else if (currentQuizPhase.startsWith('survey') || currentSurveyState?.active) {
+            adminRoomBanner.style.background = 'rgba(5, 150, 105, 0.15)';
+            adminRoomBanner.style.borderColor = '#059669';
+            adminRoomLabel.style.color = '#6ee7b7';
+            adminRoomLabel.textContent = `📊 SURVEY ROOM in Progress`;
+        } else if (currentIdeaStateObj?.active) {
+            adminRoomBanner.style.background = 'rgba(37, 99, 235, 0.15)';
+            adminRoomBanner.style.borderColor = '#2563eb';
+            adminRoomLabel.style.color = '#60a5fa';
+            adminRoomLabel.textContent = `💡 IDEATION ROOM in Progress`;
+        }
+    }
+
     initDatabaseFuncs.push(() => {
         // Real-time KBC Archive listener
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcArchive'), (snapshot) => {
@@ -522,6 +555,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (chatContainer) chatContainer.classList.remove('big-chat-mode');
             }
         }
+        if (typeof updateRoomStatusBanner === 'function') updateRoomStatusBanner();
     }
 
     initDatabaseFuncs.push(() => {
