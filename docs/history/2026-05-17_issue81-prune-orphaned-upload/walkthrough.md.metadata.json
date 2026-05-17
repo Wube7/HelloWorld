@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting pruning of orphaned legacy upload DOM variables and event handlers in admin.js to fix ReferenceError lockup.",
+  "updatedAt":  "2026-05-17T14:16:27.192432185Z"
+}

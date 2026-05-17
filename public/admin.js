@@ -494,12 +494,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentQuizPhase = 'idle';
 
     function updateVisibilityState() {
-        const btnQuizUpload = document.getElementById('btn-quiz-upload');
-        const btnQuizDefault = document.getElementById('btn-quiz-default');
-        
-        if (btnQuizUpload) btnQuizUpload.disabled = (currentQuizPhase === 'question');
-        if (btnQuizDefault) btnQuizDefault.disabled = (currentQuizPhase === 'question');
-
         // Helper to hide all fullscreen sections
         const hideAll = () => {
             if (cardsGrid) cardsGrid.classList.add('hidden');
@@ -1070,91 +1064,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     // -------------------
-
-    // Quiz Upload Logic
-    if (btnQuizUpload) {
-        btnQuizUpload.addEventListener('click', () => {
-            quizUploadInput.click();
-        });
-    }
-
-    if (quizUploadInput) {
-        quizUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const parsed = JSON.parse(event.target.result);
-                    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("JSON must be a non-empty array.");
-                    
-                    parsed.forEach((q, idx) => {
-                        if (!q.question || typeof q.question !== 'string') throw new Error(`Question ${idx + 1} is missing a valid 'question' string.`);
-                        if (!Array.isArray(q.options) || q.options.length < 2) throw new Error(`Question ${idx + 1} must have an 'options' array with at least 2 items.`);
-                        if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new Error(`Question ${idx + 1} has an invalid 'correctIndex'.`);
-                    });
-
-                    set(ref(db, 'admin/currentQuizData'), parsed)
-                        .then(() => {
-                            alert("Custom quiz uploaded and deployed successfully!");
-                            e.target.value = ''; // reset
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert("Failed to save to database. Check permissions.");
-                        });
-                } catch(error) {
-                    alert("Invalid Quiz JSON format: \n" + error.message);
-                    e.target.value = ''; // reset
-                }
-            };
-            reader.readAsText(file);
-        });
-    }
-
-    if (btnQuizDefault) {
-        btnQuizDefault.addEventListener('click', () => {
-            if (confirm("Are you sure you want to revert to the default quiz data? All participants will immediately sync.")) {
-                remove(ref(db, 'admin/currentQuizData'))
-                    .then(() => alert("Reverted to default quiz successfully!"))
-                    .catch(err => alert("Failed to revert: " + err.message));
-            }
-        });
-    }
-
-    const btnQuizTemplate = document.getElementById('btn-quiz-template');
-    if (btnQuizTemplate) {
-        btnQuizTemplate.addEventListener('click', () => {
-            const template = [
-                {
-                    "question": "What is the capital of the Moon?",
-                    "options": ["Crater City", "Sea of Tranquility", "Dark Side Town", "Cheese Village"],
-                    "correctIndex": 1
-                },
-                {
-                    "question": "How many legs does a programmer's chair have?",
-                    "options": ["4, but one is wobbly", "3 and a stack of books", "5 spinning wheels", "Who needs a chair?"],
-                    "correctIndex": 2
-                },
-                {
-                    "question": "What does AI stand for?",
-                    "options": ["Absolutely Incredible", "Artificial Intelligence", "Always Indecisive", "Another Invoice"],
-                    "correctIndex": 1
-                }
-            ];
-
-            const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'quiz_template.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    }
 
     // 6. User Sidebar Logic
     const userListEl = document.getElementById('user-list');

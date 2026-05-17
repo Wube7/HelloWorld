@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：於管理台部署緊急總開關與常駐操作列，並注入底層 F12 診斷日誌。",
+  "updatedAt":  "2026-05-17T14:09:52.734635104Z"
+}
