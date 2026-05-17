@@ -547,6 +547,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         if (typeof updateRoomStatusBanner === 'function') updateRoomStatusBanner();
+        if (typeof renderQuizBankList === 'function') renderQuizBankList();
+        if (typeof renderSurveyBank === 'function') renderSurveyBank();
+        if (typeof renderIdeaBank === 'function') renderIdeaBank();
     }
 
     initDatabaseFuncs.push(() => {
@@ -901,9 +904,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             clearAutoJump();
-            const autoJumpInput = document.getElementById('quiz-auto-jump');
             if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
-                const timerSecs = parseInt(autoJumpInput?.value) || 0;
+                const timerSecs = parseInt(state?.timerSecs) || 0;
                 if (timerSecs > 0) {
                     autoJumpTimeoutId = setTimeout(() => {
                         const nextIdx = state.questionIndex + 1;

@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to synchronize room status disabling attributes on bank cards and correct timer metadata source inside admin.js.",
+  "updatedAt":  "2026-05-17T14:31:08.262859390Z",
+  "requestFeedback":  true
+}
