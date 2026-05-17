@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：宣告 admin.js 遺漏的 storedQuizBanks 變數，修復題庫清單無法顯示的問題。",
+  "updatedAt":  "2026-05-16T20:54:26.953624622Z"
+}

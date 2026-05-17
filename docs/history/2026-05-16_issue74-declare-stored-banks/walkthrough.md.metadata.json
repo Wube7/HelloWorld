@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting declaration of missing storedQuizBanks variable in admin.js to resolve ReferenceError on Quiz Bank listener.",
+  "updatedAt":  "2026-05-17T00:35:12.160051396Z"
+}

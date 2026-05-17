@@ -90,6 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnQuizDlTemplate = document.getElementById('btn-quiz-dl-template');
     const quizBankListEl = document.getElementById('quiz-bank-list');
     const quizBankCountEl = document.getElementById('quiz-bank-count');
+    
+    let storedQuizBanks = {};
 
     // Extra Elements to Hide During Quiz
     const headerEl = document.querySelector('header');
