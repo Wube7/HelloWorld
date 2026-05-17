@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to refactor Quiz active console to always visible mode to eliminate mutex lockup risks.",
+  "updatedAt":  "2026-05-17T12:40:46.601503439Z",
+  "requestFeedback":  true
+}

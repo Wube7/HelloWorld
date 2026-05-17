@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "繁體中文版實行紀錄：記錄將 Quiz 操作列改為常駐顯示徹底排除互斥鎖卡死的成果。",
+  "updatedAt":  "2026-05-17T13:34:33.344122655Z"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting refactoring of Quiz active console to always visible mode on host dashboard to eliminate mutex lockup risks.",
+  "updatedAt":  "2026-05-17T13:34:14.602885141Z"
+}

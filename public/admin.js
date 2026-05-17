@@ -67,20 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const quizBtns = document.querySelectorAll('.quiz-btn');
     const podiumContainer = document.getElementById('podium-container');
     
-    // Admin Quiz Buttons
-    const btnQuizStart = document.getElementById('btn-quiz-start');
-    const btnQuizNext = document.getElementById('btn-quiz-next');
-    const btnQuizEnd = document.getElementById('btn-quiz-end');
-    const btnQuizReset = document.getElementById('btn-quiz-reset');
-    const btnQuizUpload = document.getElementById('btn-quiz-upload');
-    const btnQuizDefault = document.getElementById('btn-quiz-default');
-    const quizUploadInput = document.getElementById('quiz-upload-input');
-    
-    // Admin Auto-Jump Timer
-    const timerPresetBtns = document.querySelectorAll('.timer-preset-btn');
-    const autoJumpInput = document.getElementById('auto-jump-input');
-    
-    // Quiz Multiple Bank Creation DOM (Step 1)
+    // Quiz Multiple Bank DOM (Step 1, 2 & 3 Always Visible)
     const quizAddTopic = document.getElementById('quiz-add-topic');
     const quizAddTimer = document.getElementById('quiz-add-timer');
     const quizUploadFile = document.getElementById('quiz-upload-file');
@@ -90,8 +77,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnQuizDlTemplate = document.getElementById('btn-quiz-dl-template');
     const quizBankListEl = document.getElementById('quiz-bank-list');
     const quizBankCountEl = document.getElementById('quiz-bank-count');
+    const adminActiveQuizControls = document.getElementById('admin-active-quiz-controls');
+    const quizAdminQnum = document.getElementById('quiz-admin-qnum');
+    const quizAdminTopic = document.getElementById('quiz-admin-topic');
+    const btnQuizNext = document.getElementById('btn-quiz-next');
+    const btnQuizCrown = document.getElementById('btn-quiz-crown');
+    const btnQuizReturn = document.getElementById('btn-quiz-return');
     
     let storedQuizBanks = {};
+    let currentQuizStateObj = null;
 
     // Extra Elements to Hide During Quiz
     const headerEl = document.querySelector('header');
@@ -500,6 +494,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentQuizPhase = 'idle';
 
     function updateVisibilityState() {
+        const btnQuizUpload = document.getElementById('btn-quiz-upload');
+        const btnQuizDefault = document.getElementById('btn-quiz-default');
+        
         if (btnQuizUpload) btnQuizUpload.disabled = (currentQuizPhase === 'question');
         if (btnQuizDefault) btnQuizDefault.disabled = (currentQuizPhase === 'question');
 
@@ -655,7 +652,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    if (btnQuizNext) {
+        btnQuizNext.addEventListener('click', async () => {
+            if (!currentQuizStateObj) return;
+            const nextIdx = (currentQuizStateObj.questionIndex || 0) + 1;
+            if (nextIdx >= quizData.length) {
+                await set(ref(db, 'admin/quizState/phase'), 'podium');
+                if (currentQuizStateObj.bankId) {
+                    const scoresSnap = await get(ref(db, 'quizScores'));
+                    await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                        quizScores: scoresSnap.val() || {},
+                        podiumData: { finishedAt: Date.now() }
+                    });
+                }
+            } else {
+                const timerSecs = currentQuizStateObj.timerSecs || 0;
+                const stateObj = { ...currentQuizStateObj, phase: 'question', questionIndex: nextIdx };
+                if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
+                await set(ref(db, 'admin/quizState'), stateObj);
+            }
+        });
+    }
 
+    if (btnQuizCrown) {
+        btnQuizCrown.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to end the quiz early and crown the winner based on current scores?")) {
+                await set(ref(db, 'admin/quizState/phase'), 'podium');
+                if (currentQuizStateObj?.bankId) {
+                    const scoresSnap = await get(ref(db, 'quizScores'));
+                    await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                        quizScores: scoresSnap.val() || {},
+                        podiumData: { finishedAt: Date.now() }
+                    });
+                }
+            }
+        });
+    }
+
+    if (btnQuizReturn) {
+        btnQuizReturn.addEventListener('click', async () => {
+            if (currentQuizStateObj?.bankId) {
+                const scoresSnap = await get(ref(db, 'quizScores'));
+                await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                    quizScores: scoresSnap.val() || {},
+                    podiumData: { finishedAt: Date.now() }
+                });
+            }
+            await set(ref(db, 'admin/quizState/active'), false);
+        });
+    }
 
     if (btnQuizSelectFile && quizUploadFile) {
         btnQuizSelectFile.addEventListener('click', () => quizUploadFile.click());
@@ -862,6 +907,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             clearAutoJump();
+            const autoJumpInput = document.getElementById('quiz-auto-jump');
             if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
                 const timerSecs = parseInt(autoJumpInput?.value) || 0;
                 if (timerSecs > 0) {
@@ -885,13 +931,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearAutoJump();
             clearClientTimer();
             currentQuizPhase = 'idle';
-            if (adminActiveQuizControls) adminActiveQuizControls.classList.add('hidden');
             updateVisibilityState();
             return;
         }
         
         currentQuizStateObj = state;
-        if (adminActiveQuizControls) adminActiveQuizControls.classList.remove('hidden');
         if (quizAdminQnum) quizAdminQnum.textContent = (state.questionIndex || 0) + 1;
         if (quizAdminTopic) quizAdminTopic.textContent = state.topic || 'Quiz';
         
