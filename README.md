@@ -5,10 +5,16 @@ This repository showcases a modern, interactive web application built with the p
 - **GitHub**: Source code management and collaboration.
 - **Firebase**: Backend-as-a-service for hosting and realtime data.
 
-## 🚀 Features
+## 🚀 Features (v2.1.0 Multi-Bank Master Architecture)
+- **Multi-Bank Quiz Master**: Create and persist unlimited custom quiz banks with custom timers, topics, and historical session archiving.
+- **Real-Time Diagnostic Console**: High-visibility header status banner tracking real-time active booleans across Quiz, KBC, Survey, and Ideation modes.
+- **Emergency Master Reset**: One-click absolute safeguard (`Force Unlock All Modes`) to forcefully unlatch stalled client mutexes instantly.
 - **Premium Design**: Modern UI with glassmorphism, fluid animations, and a sleek dark mode.
-- **Interactive UI**: Simulates an interaction with Firebase databases.
-- **Responsive**: Adapts perfectly to any screen size.
+- **Interactive Real-Time Sync**: Seamless low-latency synchronization powered by Firebase Realtime Database.
+
+## 📦 Version History
+- **v2.1.0 (May 2026)**: Enterprise Multi-Bank Quiz Master, Real-Time Diagnostic Status Banner, one-click Emergency Master Reset, dynamic active console, and strict mode robustness. [Read v2.1.0 Release Notes](docs/releases/v2.1.0_release_notes.md).
+- **v1.0.0**: Initial single-bank interactive application release.
 
 ## 🛠️ How to run locally
 1. Clone this repository: `git clone https://github.com/Wube7/HelloWorld.git`
