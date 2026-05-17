@@ -51,9 +51,9 @@
                         <div id="quiz-bank-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
                     </div>
 
-                    <!-- Active Quiz Controls (Always Visible) -->
-                    <div id="admin-active-quiz-controls" style="background: rgba(109, 40, 217, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #6d28d9; margin-top: 1rem;">
-                        <div style="color: #a78bfa; font-weight: bold; margin-bottom: 8px;">🟢 Quiz Controls (Q#<span id="quiz-admin-qnum">1</span>) - <span id="quiz-admin-topic"></span></div>
+                    <!-- Active Quiz Controls -->
+                    <div id="admin-active-quiz-controls" class="hidden" style="background: rgba(109, 40, 217, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #6d28d9; margin-top: 1rem;">
+                        <div style="color: #a78bfa; font-weight: bold; margin-bottom: 8px;">🟢 Active Quiz in Progress (Q#<span id="quiz-admin-qnum">1</span>) - <span id="quiz-admin-topic"></span></div>
                         <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
                             <button id="btn-quiz-next" class="primary-btn btn-sm" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: white;">Next Question</button>
                             <button id="btn-quiz-crown" class="primary-btn btn-sm" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: white;">End Game (Crown Winner)</button>
@@ -160,6 +160,6 @@
             </div>
         </main>
     </div>
-    <script type="module" src="admin.js?v=sync_cards_timer"></script>
+    <script type="module" src="admin.js?v=dynamic_quiz_with_emergency_reset"></script>
 </body>
 </html>

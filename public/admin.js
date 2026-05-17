@@ -927,11 +927,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearAutoJump();
             clearClientTimer();
             currentQuizPhase = 'idle';
+            if (adminActiveQuizControls) adminActiveQuizControls.classList.add('hidden');
             updateVisibilityState();
             return;
         }
         
         currentQuizStateObj = state;
+        if (adminActiveQuizControls) adminActiveQuizControls.classList.remove('hidden');
         if (quizAdminQnum) quizAdminQnum.textContent = (state.questionIndex || 0) + 1;
         if (quizAdminTopic) quizAdminTopic.textContent = state.topic || 'Quiz';
         
