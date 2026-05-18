@@ -196,14 +196,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await signInAnonymously(auth);
             if (!result.user.displayName) {
                 const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-                await updateProfile(result.user, { displayName: `🥷 ${randomAnimal}` });
-                userNameDisplay.textContent = auth.currentUser.displayName;
+                const anonName = `🥷 ${randomAnimal}`;
+                await updateProfile(result.user, { displayName: anonName });
+                userNameDisplay.textContent = anonName;
                 
-                // Immediately sync the newly assigned animal name to the DB to overwrite the generic 'User'
-                await set(ref(db, `users/${result.user.uid}`), {
-                    name: auth.currentUser.displayName,
+                // Latency-Busting: Immediately force-write both standard users profile and presence nodes
+                const myUid = result.user.uid;
+                await set(ref(db, `users/${myUid}`), {
+                    uid: myUid,
+                    name: anonName,
+                    isAnonymous: true,
+                    lastActive: Date.now()
+                }).catch(console.error);
+                
+                await set(ref(db, `presence/${myUid}`), {
+                    online: true,
+                    name: anonName,
                     isAnon: true
-                }).catch(() => {});
+                }).catch(console.error);
             }
         } catch(err) {
             console.error("Anon login failed", err);
