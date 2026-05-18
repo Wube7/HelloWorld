@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to publish stable release v2.2.0 covering Equation Decoder and host state sync resilience.",
+  "updatedAt":  "2026-05-18T12:44:42.817993248Z",
+  "requestFeedback":  true
+}

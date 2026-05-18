@@ -5,7 +5,9 @@ This repository showcases a modern, interactive web application built with the p
 - **GitHub**: Source code management and collaboration.
 - **Firebase**: Backend-as-a-service for hosting and realtime data.
 
-## 🚀 Features (v2.1.0 Multi-Bank Master Architecture)
+## 🚀 Features (v2.2.0 Symmetric Equation Decoder)
+- **Equations Decoder (Warm-up & Active)**: Symmetric zero-assist equation cracking rooms featuring perfect single-digit syntactic alignments, leaked Coca-Cola recipe Presenter view, and real-time solved status counter.
+- **Host Sync Resilience**: Absolute dashboard state persistence guarding Ideation, Survey, and KBC control panels against page refreshes or disconnects during live sessions.
 - **Multi-Bank Quiz Master**: Create and persist unlimited custom quiz banks with custom timers, topics, and historical session archiving.
 - **Real-Time Diagnostic Console**: High-visibility header status banner tracking real-time active booleans across Quiz, KBC, Survey, and Ideation modes.
 - **Emergency Master Reset**: One-click absolute safeguard (`Force Unlock All Modes`) to forcefully unlatch stalled client mutexes instantly.
@@ -13,6 +15,7 @@ This repository showcases a modern, interactive web application built with the p
 - **Interactive Real-Time Sync**: Seamless low-latency synchronization powered by Firebase Realtime Database.
 
 ## 📦 Version History
+- **v2.2.0 (May 2026)**: Symmetric Equation Decoder (Warm-up & Active), Host Sync Resilience against page reloads, Coca-Cola leaked recipe Presenter view, and space-releasing Player victory card. [Read v2.2.0 Release Notes](docs/releases/v2.2.0_release_notes.md).
 - **v2.1.0 (May 2026)**: Enterprise Multi-Bank Quiz Master, Real-Time Diagnostic Status Banner, one-click Emergency Master Reset, dynamic active console, and strict mode robustness. [Read v2.1.0 Release Notes](docs/releases/v2.1.0_release_notes.md).
 - **v1.0.0**: Initial single-bank interactive application release.
 
