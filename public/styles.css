@@ -1376,3 +1376,14 @@ body.logged-in-white .equation-row {
     background: #ffffff;
     border-color: #cbd5e1;
 }
+
+/* White Mode Contrast Adjustments for Equations Victory Elements */
+body.logged-in-white #equations-victory-desc {
+    color: #1e293b !important;
+}
+
+body.logged-in-white #equations-victory-badge {
+    background: rgba(109, 40, 217, 0.08) !important;
+    border-color: rgba(109, 40, 217, 0.2) !important;
+    color: #6d28d9 !important;
+}
