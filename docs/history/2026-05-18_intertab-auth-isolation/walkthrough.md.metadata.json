@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting successful implementation of inter-tab auth isolation via browserSessionPersistence.",
+  "updatedAt":  "2026-05-18T13:32:15.758383713Z"
+}
