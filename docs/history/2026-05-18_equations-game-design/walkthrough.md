@@ -1,25 +1,26 @@
-# Walkthrough: Implement Cooperative Equations Game Mode
+# Walkthrough: Equations Coca-Cola Theme & Silent Decoder
 
-This document records the successful deployment and verification of the Cooperative Equations game mode, featuring a perfectly symmetric, zero-assist equations grid and an automated host command dashboard.
+This document records the successful implementation of the Coca-Cola secret recipe theme for Presenter Mode, the absolute removal of all dynamic chatroom logs, and the complete pruning of collaborative cues on player screens.
 
 ## Changes Implemented
 
-### 1. Symmetric Configurations (`equations_config.js`)
-- Hardcoded the symmetric equation configuration matrix mapping roles 0-5 to Player A-F.
-- Corrected Player D's Slot 4 arithmetic to `"D = 3 + 9 - 6 - 4"`, ensuring an absolute 17-character visual alignment across all players.
+### 1. Coca-Cola Secret Recipe Presenter View (`presenter.html`, `presenter.js`)
+- **Thematic Presenter Board**: Injected `#equations-presenter-container` (line 174) inside `presenter.html` styled as a leaked intelligence debrief. Displays:
+  - `"🕵️‍♂️ Coca-Cola Secret Recipe Leaked"`
+  - Explains that the weights of the 6 ingredients (Sugar, Water, Caramel Color, Phosphoric Acid, Caffeine, Natural Flavorings) are governed by $A, B, C, D, E, F$.
+  - Asks players to find the **total combined weight** in grams ($A+B+C+D+E+F$) and submit the passcode to unlock the vault.
+- **Presenter Visibility State (`presenter.js`)**: Registered `/admin/equationsState` inside the global listener loop to seamlessly display the secret recipe debrief during active equation phases.
+- **Cache Busting**: Incremented script version query parameter to `presenter.js?v=equations_presenter_release`.
 
-### 2. Player UI and Zero-Assist Styling (`index.html`, `styles.css`, `script.js`)
-- Injected `#equations-client-container` to display the equations list and passcode form.
-- Added `.equations-grid` and `.equation-row` styles in `styles.css`, enforcing identical font-families, weights, padding, and borders.
-- Implemented the `/admin/equationsState` listener in `script.js` to handle roleIndex assignment and conditional rendering.
-- Implemented passcode submission (`EQUATIONS_PASSCODE = 32`) and victory announcement log broadcasting.
-
-### 3. Host Command Center (`admin.html`, `admin.js`)
-- Injected `#cooperative-equations-card` and active status dashboard.
-- Implemented host event handlers for `Start Equations Game` (with round-robin role assignment) and `Terminate & Return Lobby`.
-- Bound equations to the global master emergency reset switch.
+### 2. Silent Unassisted Decoder (`index.html`, `script.js`)
+- **Pruned Collaborative Hints (`index.html`)**: Refactored player headings to keep the experience 100% unassisted:
+  - Title: `"🎯 Equation Decoder"` (No mention of "Cooperative").
+  - Instructions: `"Observe the symmetric equations carefully. Analyze and resolve the final passcode!"` (No hints to work with others).
+  - Success banner: `"🎉 Decoded successfully! Security lock opened!"`.
+- **No Chatroom Footprints (`admin.js`, `script.js`)**: Completely pruned all automated chat push blocks. The chatroom remains perfectly clean, leaving players to verbally or manually communicate without system giveaways.
+- **Cache Busting**: Incremented script version query parameter to `admin.js?v=equations_game_release` and `script.js?v=equations_game_release`.
 
 ## Verification Results
 - Successfully deployed to testing staging environment via automated GitHub Actions pipeline.
-- Verified Player C sees Q3 as `C = 6 + 9 - 2 - 5` and Player D sees Q4 as `D = 3 + 9 - 6 - 4` with absolute font and alignment symmetry.
-- Verified passcode submission `32` triggers victory and broadcasts to chat.
+- Verified navigating to `presenter.html` during active Equations mode successfully displays the Coca-Cola secret recipe leaked debrief.
+- Verified starting the game and submitting the correct passcode (`32`) successfully triggers without generating any chatroom system messages.
