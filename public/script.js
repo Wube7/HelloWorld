@@ -772,6 +772,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnEqSubmit && inputEqPasscode) {
             btnEqSubmit.addEventListener('click', async () => {
                 const val = parseInt(inputEqPasscode.value) || 0;
+                if (val === EQUATIONS_PASSCODE) {
                     if (successMsg) successMsg.classList.remove('hidden');
                     btnEqSubmit.disabled = true;
                     inputEqPasscode.disabled = true;
