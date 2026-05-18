@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "Release Notes for v2.2.2 covering HTML5 rel='opener' sessionStorage copying, session sandboxing, and inter-tab auth isolation fixes.",
+  "updatedAt":  "2026-05-18T13:56:16.918657930Z",
+  "requestFeedback":  true
+}
