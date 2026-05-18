@@ -747,27 +747,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                         listContainer.innerHTML = '';
                         if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
                             const rows = EQUATIONS_MATRIX[myRoleIndex];
-                        rows.forEach(eqText => {
-                            const row = document.createElement('div');
-                            row.className = 'equation-row';
-                            row.textContent = eqText;
-                            listContainer.appendChild(row);
-                        });
-                    } else {
-                        listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
+                            rows.forEach(eqText => {
+                                const row = document.createElement('div');
+                                row.className = 'equation-row';
+                                row.textContent = eqText;
+                                listContainer.appendChild(row);
+                            });
+                        } else {
+                            listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
+                        }
                     }
-                }
-                
-                if (passcodeForm) passcodeForm.classList.remove('hidden');
-                if (subtitleEl) subtitleEl.classList.remove('hidden');
-                if (victoryCard) victoryCard.classList.add('hidden');
-                
-                const submitBtn = document.getElementById('btn-equations-submit');
-                const inputField = document.getElementById('equations-passcode-input');
-                if (submitBtn) submitBtn.disabled = false;
-                if (inputField) {
-                    inputField.disabled = false;
-                    inputField.value = '';
+                    
+                    if (passcodeForm) passcodeForm.classList.remove('hidden');
+                    if (subtitleEl) subtitleEl.classList.remove('hidden');
+                    if (victoryCard) victoryCard.classList.add('hidden');
+                    
+                    const submitBtn = document.getElementById('btn-equations-submit');
+                    const inputField = document.getElementById('equations-passcode-input');
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (inputField) {
+                        inputField.disabled = false;
+                        inputField.value = '';
+                    }
                 }
             } else {
                 if (currentQuizPhase === 'equations-active') {
