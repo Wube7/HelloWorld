@@ -177,14 +177,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 2. Authentication Logic
-    let isGoogleAuthResolving = false;
     btnGoogle.addEventListener('click', async () => {
-        isGoogleAuthResolving = true;
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            isGoogleAuthResolving = false;
-            await enterLobby(result.user);
+            await signInWithPopup(auth, provider);
         } catch (err) {
             console.error("Google login failed", err);
             if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
@@ -192,7 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 alert("Login failed: " + err.message);
             }
-            isGoogleAuthResolving = false;
         }
     });
 
@@ -254,7 +249,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let initDatabaseFuncs = [];
 
     onAuthStateChanged(auth, async (user) => {
-        if (isGoogleAuthResolving) return;
         if (user) {
             await enterLobby(user);
 
