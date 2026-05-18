@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：利用 browserSessionPersistence 進行分頁驗證隔離，防止跨分頁登入狀態相互綁架。",
+  "updatedAt":  "2026-05-18T13:25:31.176128304Z"
+}
