@@ -726,13 +726,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const myUid = auth.currentUser?.uid;
                 const roleIndexObj = state.players || {};
-                const myRoleIndex = myUid ? roleIndexObj[myUid] : null;
+                const playerPayload = myUid ? roleIndexObj[myUid] : null;
+                const myRoleIndex = (playerPayload && typeof playerPayload === 'object') ? playerPayload.roleIndex : null;
+                const isSolved = (playerPayload && typeof playerPayload === 'object') ? !!playerPayload.solved : false;
 
                 const listContainer = document.getElementById('equations-list');
-                if (listContainer) {
-                    listContainer.innerHTML = '';
-                    if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
-                        const rows = EQUATIONS_MATRIX[myRoleIndex];
+                const passcodeForm = document.getElementById('equations-submission-area');
+                const victoryCard = document.getElementById('equations-victory-card');
+                const subtitleEl = document.getElementById('equations-client-subtitle');
+
+                if (isSolved) {
+                    // Hide equation board completely to release space
+                    if (listContainer) listContainer.classList.add('hidden');
+                    if (passcodeForm) passcodeForm.classList.add('hidden');
+                    if (subtitleEl) subtitleEl.classList.add('hidden');
+                    if (victoryCard) victoryCard.classList.remove('hidden');
+                } else {
+                    if (listContainer) {
+                        listContainer.classList.remove('hidden');
+                        listContainer.innerHTML = '';
+                        if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
+                            const rows = EQUATIONS_MATRIX[myRoleIndex];
                         rows.forEach(eqText => {
                             const row = document.createElement('div');
                             row.className = 'equation-row';
@@ -743,14 +757,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
                     }
                 }
-
-                // Reset input UI on state change
-                const passcodeForm = document.getElementById('equations-submission-area');
-                const successMsg = document.getElementById('equations-success-msg');
+                
+                if (passcodeForm) passcodeForm.classList.remove('hidden');
+                if (subtitleEl) subtitleEl.classList.remove('hidden');
+                if (victoryCard) victoryCard.classList.add('hidden');
+                
                 const submitBtn = document.getElementById('btn-equations-submit');
                 const inputField = document.getElementById('equations-passcode-input');
-                if (passcodeForm) passcodeForm.classList.remove('hidden');
-                if (successMsg) successMsg.classList.add('hidden');
                 if (submitBtn) submitBtn.disabled = false;
                 if (inputField) {
                     inputField.disabled = false;
@@ -764,18 +777,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }));
 
-        // Asynchronous Passcode Submission Handler
-        const btnEqSubmit = document.getElementById('btn-equations-submit');
-        const inputEqPasscode = document.getElementById('equations-passcode-input');
-        const successMsg = document.getElementById('equations-success-msg');
-
         if (btnEqSubmit && inputEqPasscode) {
             btnEqSubmit.addEventListener('click', async () => {
                 const val = parseInt(inputEqPasscode.value) || 0;
                 if (val === EQUATIONS_PASSCODE) {
-                    if (successMsg) successMsg.classList.remove('hidden');
                     btnEqSubmit.disabled = true;
                     inputEqPasscode.disabled = true;
+
+                    // Broadcast solved: true securely to Firebase
+                    const myUid = auth.currentUser?.uid;
+                    if (myUid) {
+                        await set(ref(db, `admin/equationsState/players/${myUid}/solved`), true);
+                    }
                 } else {
                     alert("❌ Passcode Denied! Check calculations!");
                 }

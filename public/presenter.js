@@ -356,12 +356,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const state = snapshot.val();
             if (state && state.active) {
                 currentQuizPhase = 'equations-active';
+                updateVisibilityState();
+
+                // Track solved count and total active players
+                const playersMap = state.players || {};
+                const playersArr = Object.values(playersMap);
+                const totalPlayers = playersArr.length;
+                const solvedCount = playersArr.filter(p => p && typeof p === 'object' && p.solved === true).length;
+
+                const countEl = document.getElementById('equations-presenter-count');
+                const totalEl = document.getElementById('equations-presenter-total');
+                if (countEl) countEl.textContent = solvedCount;
+                if (totalEl) totalEl.textContent = totalPlayers;
             } else {
                 if (currentQuizPhase === 'equations-active') {
                     currentQuizPhase = 'idle';
+                    updateVisibilityState();
                 }
             }
-            updateVisibilityState();
         }));
     });
 

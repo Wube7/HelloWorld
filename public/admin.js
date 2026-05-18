@@ -2031,10 +2031,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Distribute 6 role indices (0 to 5) in round-robin pattern
+            // Distribute 6 role indices (0 to 5) in round-robin pattern as object structures
             const playerRoles = {};
             activePlayers.sort((a, b) => a.uid.localeCompare(b.uid)).forEach((player, idx) => {
-                playerRoles[player.uid] = idx % 6;
+                playerRoles[player.uid] = {
+                    roleIndex: idx % 6,
+                    solved: false
+                };
             });
 
             console.log("Launching Cooperative Equations Game with assignments:", playerRoles);
@@ -2081,15 +2084,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         equationsPlayerListEl.innerHTML = '';
 
         const assignments = currentEquationsStateObj.players || {};
-        for (const [uid, roleIndex] of Object.entries(assignments)) {
-            const labelObj = ROLE_LABELS[roleIndex] || { name: 'Unknown Role', variable: '?' };
+        for (const [uid, playerPayload] of Object.entries(assignments)) {
+            const roleIdx = (playerPayload && typeof playerPayload === 'object') ? playerPayload.roleIndex : playerPayload;
+            const isSolved = (playerPayload && typeof playerPayload === 'object') ? !!playerPayload.solved : false;
+            const labelObj = ROLE_LABELS[roleIdx] || { name: 'Unknown Role', variable: '?' };
             const pName = allUsers[uid]?.name || 'Anonymous';
             const li = document.createElement('li');
             li.className = 'user-list-item';
+            
+            const statusDotClass = isSolved ? 'online' : 'offline';
+            const statusLabel = isSolved ? '<span style="color: #10b981; font-weight: bold; margin-left: 10px;">🟢 SOLVED</span>' : '<span style="color: #ef4444; font-weight: bold; margin-left: 10px;">🔴 DECODING</span>';
+
             li.innerHTML = `
-                <span class="status-indicator online"></span>
+                <span class="status-indicator ${statusDotClass}"></span>
                 <span style="flex: 1; font-weight: bold;">${pName}</span>
-                <span style="color: #f59e0b; font-weight: 800; font-family: monospace;">[${labelObj.name} (Variable ${labelObj.variable})]</span>
+                <span style="color: #f59e0b; font-weight: bold; font-family: monospace;">[${labelObj.name} (Variable ${labelObj.variable})]</span>
+                ${statusLabel}
             `;
             equationsPlayerListEl.appendChild(li);
         }

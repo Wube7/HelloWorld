@@ -100,7 +100,14 @@
       },
       "equationsState": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'"
+        ".write": "auth != null && auth.token.email == 'wube8816@gmail.com'",
+        "players": {
+          "$uid": {
+            "solved": {
+              ".write": "auth != null && auth.uid == $uid"
+            }
+          }
+        }
       }
     }
   }
