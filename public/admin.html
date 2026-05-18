@@ -157,9 +157,28 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Cooperative Equations Game Mode -->
+                <div id="cooperative-equations-card" class="glass-panel" style="margin-bottom: 2rem; border-color: #f59e0b; color: #f8fafc; text-align: center; padding: 2rem;">
+                    <h3 style="color: #f59e0b; font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 800;">🎯 Cooperative Equations Game Mode</h3>
+                    <p style="color: #94a3b8; margin-bottom: 1.5rem;">Conduct the symmetric 6-equation cooperative puzzle room. Forces social collaboration!</p>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button id="btn-equations-start" class="primary-btn btn-sm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">🚀 Start Equations Game</button>
+                        <button id="btn-equations-end" class="primary-btn btn-sm hidden" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">🚨 Terminate & Return Lobby</button>
+                    </div>
+
+                    <!-- Live Session Status List -->
+                    <div id="equations-admin-live-status" class="hidden" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: left;">
+                        <h4 style="color: #fbbf24; margin-bottom: 10px;">Live Role Assignments:</h4>
+                        <ul id="equations-admin-player-list" class="user-list" style="max-height: 180px; overflow-y: auto;">
+                            <!-- Populated dynamically with role variable names -->
+                        </ul>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
-    <script type="module" src="admin.js?v=fix_timer_metadata_race"></script>
+    <script type="module" src="admin.js?v=equations_game_release"></script>
 </body>
 </html>

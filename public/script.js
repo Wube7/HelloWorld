@@ -1,6 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, runTransaction, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { EQUATIONS_MATRIX, EQUATIONS_PASSCODE } from './equations_config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -390,6 +391,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (userSidebar) userSidebar.classList.add('hidden');
             if (surveyClientContainer) surveyClientContainer.classList.add('hidden');
             if (ideaClientContainer) ideaClientContainer.classList.add('hidden');
+            const equationsClientContainer = document.getElementById('equations-client-container');
+            if (equationsClientContainer) equationsClientContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
             if (headerEl) headerEl.classList.remove('hidden'); // 確保永遠顯示
         };
@@ -418,6 +421,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (surveyClientContainer) surveyClientContainer.classList.remove('hidden');
                 } else if (currentQuizPhase === 'idea-active') {
                     if (ideaClientContainer) ideaClientContainer.classList.remove('hidden');
+                } else if (currentQuizPhase === 'equations-active') {
+                    const equationsClientContainer = document.getElementById('equations-client-container');
+                    if (equationsClientContainer) equationsClientContainer.classList.remove('hidden');
                 }
                 if (btnViewChat) btnViewChat.classList.remove('hidden');
                 if (btnViewGame) btnViewGame.classList.add('hidden');
@@ -710,6 +716,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (oldQuizState?.phase === 'podium') renderPodium();
             if (typeof window.renderUserList === 'function') window.renderUserList();
         }));
+
+        // Real-time Cooperative Equations Game listener
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
+            const state = snapshot.val();
+            if (state && state.active) {
+                currentQuizPhase = 'equations-active';
+                updateVisibilityState();
+
+                const myUid = auth.currentUser?.uid;
+                const roleIndexObj = state.players || {};
+                const myRoleIndex = myUid ? roleIndexObj[myUid] : null;
+
+                const listContainer = document.getElementById('equations-list');
+                if (listContainer) {
+                    listContainer.innerHTML = '';
+                    if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
+                        const rows = EQUATIONS_MATRIX[myRoleIndex];
+                        rows.forEach(eqText => {
+                            const row = document.createElement('div');
+                            row.className = 'equation-row';
+                            row.textContent = eqText;
+                            listContainer.appendChild(row);
+                        });
+                    } else {
+                        listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
+                    }
+                }
+
+                // Reset input UI on state change
+                const passcodeForm = document.getElementById('equations-submission-area');
+                const successMsg = document.getElementById('equations-success-msg');
+                const submitBtn = document.getElementById('btn-equations-submit');
+                const inputField = document.getElementById('equations-passcode-input');
+                if (passcodeForm) passcodeForm.classList.remove('hidden');
+                if (successMsg) successMsg.classList.add('hidden');
+                if (submitBtn) submitBtn.disabled = false;
+                if (inputField) {
+                    inputField.disabled = false;
+                    inputField.value = '';
+                }
+            } else {
+                if (currentQuizPhase === 'equations-active') {
+                    currentQuizPhase = 'idle';
+                    updateVisibilityState();
+                }
+            }
+        }));
+
+        // Asynchronous Passcode Submission Handler
+        const btnEqSubmit = document.getElementById('btn-equations-submit');
+        const inputEqPasscode = document.getElementById('equations-passcode-input');
+        const successMsg = document.getElementById('equations-success-msg');
+
+        if (btnEqSubmit && inputEqPasscode) {
+            btnEqSubmit.addEventListener('click', async () => {
+                const val = parseInt(inputEqPasscode.value) || 0;
+                if (val === EQUATIONS_PASSCODE) {
+                    if (successMsg) successMsg.classList.remove('hidden');
+                    btnEqSubmit.disabled = true;
+                    inputEqPasscode.disabled = true;
+
+                    // Push dynamic victory log to chat for visual celebration
+                    const name = auth.currentUser?.displayName || 'Someone';
+                    await push(ref(db, 'messages'), {
+                        uid: auth.currentUser?.uid || 'system',
+                        name: '🎉 SYSTEM',
+                        text: `🏆 ${name} cracked the system passcode (32) and unlocked the Equations grid!`,
+                        timestamp: serverTimestamp()
+                    });
+                } else {
+                    alert("❌ Passcode Denied! Check calculations or cooperate with others!");
+                }
+            });
+        }
     });
 
     function renderPodium() {

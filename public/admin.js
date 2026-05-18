@@ -1,6 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { ROLE_LABELS } from './equations_config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("admin.js started initializing...");
@@ -83,9 +84,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnQuizNext = document.getElementById('btn-quiz-next');
     const btnQuizCrown = document.getElementById('btn-quiz-crown');
     const btnQuizReturn = document.getElementById('btn-quiz-return');
+    const btnEmergencyLobby = document.getElementById('btn-emergency-lobby');
+    
+    // Equations Command Elements
+    const btnEquationsStart = document.getElementById('btn-equations-start');
+    const btnEquationsEnd = document.getElementById('btn-equations-end');
+    const equationsLiveStatus = document.getElementById('equations-admin-live-status');
+    const equationsPlayerListEl = document.getElementById('equations-admin-player-list');
     
     let storedQuizBanks = {};
     let currentQuizStateObj = null;
+    let currentKbcStateObj = null;
+    let currentEquationsStateObj = null;
 
     // Extra Elements to Hide During Quiz
     const headerEl = document.querySelector('header');
@@ -307,6 +317,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             adminRoomBanner.style.borderColor = '#059669';
             adminRoomLabel.style.color = '#6ee7b7';
             adminRoomLabel.textContent = `📊 SURVEY ROOM in Progress`;
+        } else if (currentQuizPhase === 'equations-active') {
+            adminRoomBanner.style.background = 'rgba(245, 158, 11, 0.15)';
+            adminRoomBanner.style.borderColor = '#f59e0b';
+            adminRoomLabel.style.color = '#fbbf24';
+            adminRoomLabel.textContent = `🎯 EQUATIONS ROOM in Progress (Active: true)`;
         } else if (currentIdeaStateObj?.active) {
             adminRoomBanner.style.background = 'rgba(37, 99, 235, 0.15)';
             adminRoomBanner.style.borderColor = '#2563eb';
@@ -550,6 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof renderQuizBankList === 'function') renderQuizBankList();
         if (typeof renderSurveyBank === 'function') renderSurveyBank();
         if (typeof renderIdeaBank === 'function') renderIdeaBank();
+        if (typeof renderEquationsStatusList === 'function') renderEquationsStatusList();
     }
 
     initDatabaseFuncs.push(() => {
@@ -667,6 +683,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const stateObj = { ...currentQuizStateObj, phase: 'question', questionIndex: nextIdx };
                 if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
                 await set(ref(db, 'admin/quizState'), stateObj);
+            }
+        });
+    }
+
+    if (btnEmergencyLobby) {
+        btnEmergencyLobby.addEventListener('click', async () => {
+            if (confirm("🚨 EMERGENCY MASTER RESET: Are you sure you want to forcefully deactivate all running room sessions (Quiz, KBC, Survey, Ideation, Equations) and unlock the lobby?")) {
+                console.warn("Broadcasting global master reset to active: false across all room endpoints...");
+                await set(ref(db, 'admin/quizState/active'), false);
+                await set(ref(db, 'admin/kbcState/active'), false);
+                await set(ref(db, 'admin/surveyState/active'), false);
+                await set(ref(db, 'admin/ideaState/active'), false);
+                await set(ref(db, 'admin/equationsState/active'), false);
+                currentQuizPhase = 'idle';
+                updateVisibilityState();
+                alert("🚨 Master reset broadcast completed. All room locks unlatched!");
             }
         });
     }
@@ -1977,5 +2009,97 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             await set(ref(db, 'admin/surveyState/active'), false);
         });
+    }
+
+    // --- COOPERATIVE EQUATIONS MASTER CONTROLS ---
+    if (btnEquationsStart) {
+        btnEquationsStart.addEventListener('click', async () => {
+            if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+            
+            // Pool active online users from presence
+            const activePlayers = [];
+            for (const [uid, pData] of Object.entries(onlinePresence)) {
+                const isOnline = pData && (pData === true || pData.online);
+                if (isOnline) {
+                    const name = (typeof pData === 'object' && pData.name) ? pData.name : (allUsers[uid]?.name || 'Anonymous User');
+                    activePlayers.push({ uid, name });
+                }
+            }
+            
+            if (activePlayers.length === 0) {
+                alert("❌ Need at least 1 online player to start the Equations Game!");
+                return;
+            }
+
+            // Distribute 6 role indices (0 to 5) in round-robin pattern
+            const playerRoles = {};
+            activePlayers.sort((a, b) => a.uid.localeCompare(b.uid)).forEach((player, idx) => {
+                playerRoles[player.uid] = idx % 6;
+            });
+
+            console.log("Launching Cooperative Equations Game with assignments:", playerRoles);
+            await set(ref(db, 'admin/equationsState'), {
+                active: true,
+                players: playerRoles
+            });
+            
+            // Dynamic victory message trigger
+            await push(ref(db, 'messages'), {
+                uid: 'system',
+                name: '📢 SYSTEM',
+                text: "🎯 A symmetric Cooperative Equations puzzle room has locked the大廳! Cooperate to sum A+B+C+D+E+F!",
+                timestamp: serverTimestamp()
+            });
+        });
+    }
+
+    if (btnEquationsEnd) {
+        btnEquationsEnd.addEventListener('click', async () => {
+            await set(ref(db, 'admin/equationsState/active'), false);
+        });
+    }
+
+    // Live Equations state listener inside Host Console
+    initDatabaseFuncs.push(() => {
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
+            const state = snapshot.val();
+            currentEquationsStateObj = state;
+
+            if (state && state.active) {
+                currentQuizPhase = 'equations-active';
+                updateVisibilityState();
+                if (btnEquationsStart) btnEquationsStart.classList.add('hidden');
+                if (btnEquationsEnd) btnEquationsEnd.classList.remove('hidden');
+                if (equationsLiveStatus) equationsLiveStatus.classList.remove('hidden');
+                renderEquationsStatusList();
+            } else {
+                if (currentQuizPhase === 'equations-active') {
+                    currentQuizPhase = 'idle';
+                    updateVisibilityState();
+                }
+                if (btnEquationsStart) btnEquationsStart.classList.remove('hidden');
+                if (btnEquationsEnd) btnEquationsEnd.classList.add('hidden');
+                if (equationsLiveStatus) equationsLiveStatus.classList.add('hidden');
+            }
+        }));
+    });
+
+    function renderEquationsStatusList() {
+        if (!equationsPlayerListEl || !currentEquationsStateObj) return;
+        equationsPlayerListEl.innerHTML = '';
+
+        const assignments = currentEquationsStateObj.players || {};
+        for (const [uid, roleIndex] of Object.entries(assignments)) {
+            const labelObj = ROLE_LABELS[roleIndex] || { name: 'Unknown Role', variable: '?' };
+            const pName = allUsers[uid]?.name || 'Anonymous';
+            const li = document.createElement('li');
+            li.className = 'user-list-item';
+            li.innerHTML = `
+                <span class="status-indicator online"></span>
+                <span style="flex: 1; font-weight: bold;">${pName}</span>
+                <span style="color: #f59e0b; font-weight: 800; font-family: monospace;">[${labelObj.name} (Variable ${labelObj.variable})]</span>
+            `;
+            equationsPlayerListEl.appendChild(li);
+        }
     }
 });
