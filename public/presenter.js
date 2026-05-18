@@ -279,6 +279,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (userSidebar) userSidebar.classList.add('hidden');
             if (surveyPresenterContainer) surveyPresenterContainer.classList.add('hidden');
             if (ideaPresenterContainer) ideaPresenterContainer.classList.add('hidden');
+            const equationsPresenterContainer = document.getElementById('equations-presenter-container');
+            if (equationsPresenterContainer) equationsPresenterContainer.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
         };
 
@@ -310,6 +312,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (currentQuizPhase === 'idea-active') {
             hideAll();
             if (ideaPresenterContainer) ideaPresenterContainer.classList.remove('hidden');
+        } else if (currentQuizPhase === 'equations-active') {
+            hideAll();
+            const equationsPresenterContainer = document.getElementById('equations-presenter-container');
+            if (equationsPresenterContainer) equationsPresenterContainer.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             hideAll();
@@ -342,6 +348,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         dbListenersUnsubscribes.push(onValue(globalViewRef, (snapshot) => {
             const data = snapshot.val();
             currentGlobalViewMode = (data && data.view) || 'main';
+            updateVisibilityState();
+        }));
+
+        // Real-time Equations state listener for Presenter
+        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
+            const state = snapshot.val();
+            if (state && state.active) {
+                currentQuizPhase = 'equations-active';
+            } else {
+                if (currentQuizPhase === 'equations-active') {
+                    currentQuizPhase = 'idle';
+                }
+            }
             updateVisibilityState();
         }));
     });

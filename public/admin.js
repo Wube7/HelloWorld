@@ -2042,14 +2042,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 active: true,
                 players: playerRoles
             });
-            
-            // Dynamic victory message trigger
-            await push(ref(db, 'messages'), {
-                uid: 'system',
-                name: '📢 SYSTEM',
-                text: "🎯 A symmetric Cooperative Equations puzzle room has locked the大廳! Cooperate to sum A+B+C+D+E+F!",
-                timestamp: serverTimestamp()
-            });
         });
     }
 

@@ -772,21 +772,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnEqSubmit && inputEqPasscode) {
             btnEqSubmit.addEventListener('click', async () => {
                 const val = parseInt(inputEqPasscode.value) || 0;
-                if (val === EQUATIONS_PASSCODE) {
                     if (successMsg) successMsg.classList.remove('hidden');
                     btnEqSubmit.disabled = true;
                     inputEqPasscode.disabled = true;
-
-                    // Push dynamic victory log to chat for visual celebration
-                    const name = auth.currentUser?.displayName || 'Someone';
-                    await push(ref(db, 'messages'), {
-                        uid: auth.currentUser?.uid || 'system',
-                        name: '🎉 SYSTEM',
-                        text: `🏆 ${name} cracked the system passcode (32) and unlocked the Equations grid!`,
-                        timestamp: serverTimestamp()
-                    });
                 } else {
-                    alert("❌ Passcode Denied! Check calculations or cooperate with others!");
+                    alert("❌ Passcode Denied! Check calculations!");
                 }
             });
         }
