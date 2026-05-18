@@ -778,6 +778,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }));
 
+        // Asynchronous Passcode Submission Handler
+        const btnEqSubmit = document.getElementById('btn-equations-submit');
+        const inputEqPasscode = document.getElementById('equations-passcode-input');
+
         if (btnEqSubmit && inputEqPasscode) {
             btnEqSubmit.addEventListener('click', async () => {
                 const val = parseInt(inputEqPasscode.value) || 0;
