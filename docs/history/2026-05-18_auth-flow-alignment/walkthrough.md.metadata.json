@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting successful alignment of Google Auth flow with Firebase onAuthStateChanged best practices.",
+  "updatedAt":  "2026-05-18T12:56:07.945763645Z"
+}
