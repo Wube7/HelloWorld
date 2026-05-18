@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnEmergencyLobby = document.getElementById('btn-emergency-lobby');
     
     // Equations Command Elements
+    const btnEquationsWarmupStart = document.getElementById('btn-equations-warmup-start');
     const btnEquationsStart = document.getElementById('btn-equations-start');
     const btnEquationsEnd = document.getElementById('btn-equations-end');
     const equationsLiveStatus = document.getElementById('equations-admin-live-status');
@@ -317,11 +318,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             adminRoomBanner.style.borderColor = '#059669';
             adminRoomLabel.style.color = '#6ee7b7';
             adminRoomLabel.textContent = `📊 SURVEY ROOM in Progress`;
-        } else if (currentQuizPhase === 'equations-active') {
+        } else if (currentQuizPhase === 'equations-active' || currentQuizPhase === 'equations-warmup') {
             adminRoomBanner.style.background = 'rgba(245, 158, 11, 0.15)';
             adminRoomBanner.style.borderColor = '#f59e0b';
             adminRoomLabel.style.color = '#fbbf24';
-            adminRoomLabel.textContent = `🎯 EQUATIONS ROOM in Progress (Active: true)`;
+            const phaseTxt = currentQuizPhase === 'equations-warmup' ? 'WARM-UP' : 'ACTIVE';
+            adminRoomLabel.textContent = `🎯 EQUATIONS ROOM in Progress (${phaseTxt})`;
         } else if (currentIdeaStateObj?.active) {
             adminRoomBanner.style.background = 'rgba(37, 99, 235, 0.15)';
             adminRoomBanner.style.borderColor = '#2563eb';
@@ -2012,6 +2014,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- COOPERATIVE EQUATIONS MASTER CONTROLS ---
+    if (btnEquationsWarmupStart) {
+        btnEquationsWarmupStart.addEventListener('click', async () => {
+            if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
+            
+            // Pool active online users from presence
+            const activePlayers = [];
+            for (const [uid, pData] of Object.entries(onlinePresence)) {
+                const isOnline = pData && (pData === true || pData.online);
+                if (isOnline) {
+                    const name = (typeof pData === 'object' && pData.name) ? pData.name : (allUsers[uid]?.name || 'Anonymous User');
+                    activePlayers.push({ uid, name });
+                }
+            }
+            
+            if (activePlayers.length === 0) {
+                alert("❌ Need at least 1 online player to start the Equations Game!");
+                return;
+            }
+
+            // Assign default zero assignment object to everyone (everyone gets identical warmup sheet)
+            const playerRoles = {};
+            activePlayers.forEach(player => {
+                playerRoles[player.uid] = {
+                    roleIndex: 0, // Identical index placeholder
+                    solved: false
+                };
+            });
+
+            console.log("Launching Equations Warm-Up Game...");
+            await set(ref(db, 'admin/equationsState'), {
+                active: true,
+                phase: 'warmup',
+                players: playerRoles
+            });
+        });
+    }
+
     if (btnEquationsStart) {
         btnEquationsStart.addEventListener('click', async () => {
             if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
@@ -2043,6 +2082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Launching Cooperative Equations Game with assignments:", playerRoles);
             await set(ref(db, 'admin/equationsState'), {
                 active: true,
+                phase: 'active',
                 players: playerRoles
             });
         });
@@ -2061,17 +2101,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentEquationsStateObj = state;
 
             if (state && state.active) {
-                currentQuizPhase = 'equations-active';
+                currentQuizPhase = state.phase === 'warmup' ? 'equations-warmup' : 'equations-active';
                 updateVisibilityState();
+                if (btnEquationsWarmupStart) btnEquationsWarmupStart.classList.add('hidden');
                 if (btnEquationsStart) btnEquationsStart.classList.add('hidden');
                 if (btnEquationsEnd) btnEquationsEnd.classList.remove('hidden');
                 if (equationsLiveStatus) equationsLiveStatus.classList.remove('hidden');
                 renderEquationsStatusList();
             } else {
-                if (currentQuizPhase === 'equations-active') {
+                if (currentQuizPhase === 'equations-active' || currentQuizPhase === 'equations-warmup') {
                     currentQuizPhase = 'idle';
                     updateVisibilityState();
                 }
+                if (btnEquationsWarmupStart) btnEquationsWarmupStart.classList.remove('hidden');
                 if (btnEquationsStart) btnEquationsStart.classList.remove('hidden');
                 if (btnEquationsEnd) btnEquationsEnd.classList.add('hidden');
                 if (equationsLiveStatus) equationsLiveStatus.classList.add('hidden');
@@ -2095,10 +2137,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const statusDotClass = isSolved ? 'online' : 'offline';
             const statusLabel = isSolved ? '<span style="color: #10b981; font-weight: bold; margin-left: 10px;">🟢 SOLVED</span>' : '<span style="color: #ef4444; font-weight: bold; margin-left: 10px;">🔴 DECODING</span>';
 
+            // Format display labels matching active phase
+            const isWarmup = currentEquationsStateObj.phase === 'warmup';
+            const roleBadge = isWarmup ? '<span style="color: #d97706; font-weight: bold; font-family: monospace;">[Warm-Up solver]</span>' : `<span style="color: #f59e0b; font-weight: bold; font-family: monospace;">[${labelObj.name} (Variable ${labelObj.variable})]</span>`;
+
             li.innerHTML = `
                 <span class="status-indicator ${statusDotClass}"></span>
                 <span style="flex: 1; font-weight: bold;">${pName}</span>
-                <span style="color: #f59e0b; font-weight: bold; font-family: monospace;">[${labelObj.name} (Variable ${labelObj.variable})]</span>
+                ${roleBadge}
                 ${statusLabel}
             `;
             equationsPlayerListEl.appendChild(li);

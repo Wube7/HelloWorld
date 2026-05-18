@@ -62,3 +62,11 @@ export const ROLE_LABELS = {
 };
 
 export const EQUATIONS_PASSCODE = 32;
+
+// Equations Warm-up configuration (Standard system of 2 linear equations, 2 variables)
+export const WARMUP_EQUATIONS = [
+    "A + A - B = 10",
+    "B + B - A = 1"
+];
+export const WARMUP_PASSCODE = 11;
+

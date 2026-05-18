@@ -1,7 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, runTransaction, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
-import { EQUATIONS_MATRIX, EQUATIONS_PASSCODE } from './equations_config.js';
+import { EQUATIONS_MATRIX, EQUATIONS_PASSCODE, WARMUP_EQUATIONS, WARMUP_PASSCODE } from './equations_config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -721,7 +721,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
             const state = snapshot.val();
             if (state && state.active) {
-                currentQuizPhase = 'equations-active';
+                if (state.phase === 'warmup') {
+                    currentQuizPhase = 'equations-warmup';
+                } else {
+                    currentQuizPhase = 'equations-active';
+                }
                 updateVisibilityState();
 
                 const myUid = auth.currentUser?.uid;
@@ -745,16 +749,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (listContainer) {
                         listContainer.classList.remove('hidden');
                         listContainer.innerHTML = '';
-                        if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
-                            const rows = EQUATIONS_MATRIX[myRoleIndex];
-                            rows.forEach(eqText => {
+                        
+                        const isWarmup = state.phase === 'warmup';
+                        if (isWarmup) {
+                            // Warm-up Phase: everyone gets identical 2 equations
+                            WARMUP_EQUATIONS.forEach(eqText => {
                                 const row = document.createElement('div');
                                 row.className = 'equation-row';
                                 row.textContent = eqText;
                                 listContainer.appendChild(row);
                             });
                         } else {
-                            listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
+                            // Active Phase: role assigned symmetric matrix
+                            if (myRoleIndex !== null && myRoleIndex !== undefined && EQUATIONS_MATRIX[myRoleIndex]) {
+                                const rows = EQUATIONS_MATRIX[myRoleIndex];
+                                rows.forEach(eqText => {
+                                    const row = document.createElement('div');
+                                    row.className = 'equation-row';
+                                    row.textContent = eqText;
+                                    listContainer.appendChild(row);
+                                });
+                            } else {
+                                listContainer.innerHTML = '<div style="color: #ef4444; font-weight: bold;">⚠️ Role Assignment Pending...</div>';
+                            }
                         }
                     }
                     
@@ -771,7 +788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             } else {
-                if (currentQuizPhase === 'equations-active') {
+                if (currentQuizPhase === 'equations-active' || currentQuizPhase === 'equations-warmup') {
                     currentQuizPhase = 'idle';
                     updateVisibilityState();
                 }
@@ -785,7 +802,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnEqSubmit && inputEqPasscode) {
             btnEqSubmit.addEventListener('click', async () => {
                 const val = parseInt(inputEqPasscode.value) || 0;
-                if (val === EQUATIONS_PASSCODE) {
+                
+                // Dynamically resolve target passcode matching current phase
+                let targetPasscode = EQUATIONS_PASSCODE; // Default active 32
+                const stateSnap = await get(ref(db, 'admin/equationsState'));
+                if (stateSnap.exists() && stateSnap.val().phase === 'warmup') {
+                    targetPasscode = WARMUP_PASSCODE; // Warmup 11
+                }
+
+                if (val === targetPasscode) {
                     btnEqSubmit.disabled = true;
                     inputEqPasscode.disabled = true;
 

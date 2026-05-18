@@ -281,6 +281,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (ideaPresenterContainer) ideaPresenterContainer.classList.add('hidden');
             const equationsPresenterContainer = document.getElementById('equations-presenter-container');
             if (equationsPresenterContainer) equationsPresenterContainer.classList.add('hidden');
+            const equationsPresenterWarmup = document.getElementById('equations-presenter-warmup');
+            if (equationsPresenterWarmup) equationsPresenterWarmup.classList.add('hidden');
             if (chatContainer) chatContainer.classList.remove('big-chat-mode');
         };
 
@@ -316,6 +318,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             hideAll();
             const equationsPresenterContainer = document.getElementById('equations-presenter-container');
             if (equationsPresenterContainer) equationsPresenterContainer.classList.remove('hidden');
+        } else if (currentQuizPhase === 'equations-warmup') {
+            hideAll();
+            const equationsPresenterWarmup = document.getElementById('equations-presenter-warmup');
+            if (equationsPresenterWarmup) equationsPresenterWarmup.classList.remove('hidden');
         } else {
             // Idle Phase (Quiz inactive)
             hideAll();
@@ -355,7 +361,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
             const state = snapshot.val();
             if (state && state.active) {
-                currentQuizPhase = 'equations-active';
+                if (state.phase === 'warmup') {
+                    currentQuizPhase = 'equations-warmup';
+                } else {
+                    currentQuizPhase = 'equations-active';
+                }
                 updateVisibilityState();
 
                 // Track solved count and total active players
@@ -364,12 +374,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const totalPlayers = playersArr.length;
                 const solvedCount = playersArr.filter(p => p && typeof p === 'object' && p.solved === true).length;
 
-                const countEl = document.getElementById('equations-presenter-count');
-                const totalEl = document.getElementById('equations-presenter-total');
-                if (countEl) countEl.textContent = solvedCount;
-                if (totalEl) totalEl.textContent = totalPlayers;
+                if (state.phase === 'warmup') {
+                    const countEl = document.getElementById('equations-warmup-count');
+                    const totalEl = document.getElementById('equations-warmup-total');
+                    if (countEl) countEl.textContent = solvedCount;
+                    if (totalEl) totalEl.textContent = totalPlayers;
+                } else {
+                    const countEl = document.getElementById('equations-presenter-count');
+                    const totalEl = document.getElementById('equations-presenter-total');
+                    if (countEl) countEl.textContent = solvedCount;
+                    if (totalEl) totalEl.textContent = totalPlayers;
+                }
             } else {
-                if (currentQuizPhase === 'equations-active') {
+                if (currentQuizPhase === 'equations-active' || currentQuizPhase === 'equations-warmup') {
                     currentQuizPhase = 'idle';
                     updateVisibilityState();
                 }

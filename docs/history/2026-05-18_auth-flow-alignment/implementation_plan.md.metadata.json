@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to align Google Auth flow with Firebase onAuthStateChanged best practices to resolve presence latency.",
+  "updatedAt":  "2026-05-18T11:20:31.328562587Z",
+  "requestFeedback":  true
+}
