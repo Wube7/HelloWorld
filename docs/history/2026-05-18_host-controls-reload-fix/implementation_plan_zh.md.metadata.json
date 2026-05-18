@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "繁體中文版實作計畫：修正管理台重新載入時，進行中競賽控制項被強制收合的錯誤。",
+  "updatedAt":  "2026-05-18T12:24:43.875533347Z"
+}

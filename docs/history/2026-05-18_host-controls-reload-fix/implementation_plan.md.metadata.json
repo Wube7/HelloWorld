@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan to fix Host Active Controls collapse bug on page reload during active sessions in admin.js.",
+  "updatedAt":  "2026-05-18T12:24:39.446316330Z",
+  "requestFeedback":  true
+}

@@ -363,6 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 if (adminActiveIdeaControls) adminActiveIdeaControls.classList.add('hidden');
             }
+            updateVisibilityState();
         }));
     });
 
@@ -546,9 +547,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // Idle Phase (Quiz inactive)
             hideAll();
-            if (adminActiveKbcControls) adminActiveKbcControls.classList.add('hidden');
-            if (adminActiveSurveyControls) adminActiveSurveyControls.classList.add('hidden');
-            if (adminActiveIdeaControls) adminActiveIdeaControls.classList.add('hidden');
+            if (adminActiveKbcControls && !currentKbcStateObj?.active) adminActiveKbcControls.classList.add('hidden');
+            if (adminActiveSurveyControls && !currentSurveyState?.active) adminActiveSurveyControls.classList.add('hidden');
+            if (adminActiveIdeaControls && !currentIdeaStateObj?.active) adminActiveIdeaControls.classList.add('hidden');
             if (headerEl) headerEl.classList.remove('hidden');
             if (qrCodeEl) qrCodeEl.classList.remove('hidden');
             if (chatDemoSection) chatDemoSection.classList.remove('hidden');
@@ -1845,6 +1846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 if (adminActiveSurveyControls) adminActiveSurveyControls.classList.add('hidden');
             }
+            updateVisibilityState();
         }));
     });
 
