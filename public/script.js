@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (surveyClientContainer) surveyClientContainer.classList.remove('hidden');
                 } else if (currentQuizPhase === 'idea-active') {
                     if (ideaClientContainer) ideaClientContainer.classList.remove('hidden');
-                } else if (currentQuizPhase === 'equations-active') {
+                } else if (currentQuizPhase === 'equations-active' || currentQuizPhase === 'equations-warmup') {
                     const equationsClientContainer = document.getElementById('equations-client-container');
                     if (equationsClientContainer) equationsClientContainer.classList.remove('hidden');
                 }
