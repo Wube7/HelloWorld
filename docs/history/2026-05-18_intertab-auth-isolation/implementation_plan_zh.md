@@ -1,28 +1,36 @@
-# 跨分頁驗證隔離實作計畫
+# 跨分頁會話隔離與 rel="opener" 憑證繼承實作計畫
 
-針對您回報的「大廳登出後保留分頁，閒置一段時間會自己神奇地以 'Loading...' 登入並在在線列表多出一個 User」這一極具深度、涉及瀏覽器底層同源 LocalStorage 通訊的**史詩級 Bug**，我們抓出了真正的元凶！
-這完全是由於 Firebase 預設在同瀏覽器跨分頁共用 LocalStorage 憑證。當大廳登出時，無人操作的 Presenter（投影幕）分頁偵測到登出，為了維持讀取資料庫的權限，**在背景自動發起了靜態匿名登入**。這一登入憑證被 LocalStorage 瞬間廣播給了大廳分頁，導致大廳分頁在無人操作的情況下被「背後綁架」登入，並以 null 名稱在列表寫入了 `'Loading...'` 匿名人！
-我們將全面啟用 Firebase 官方標準的 **`browserSessionPersistence`（分頁會話隔離）**，將所有分頁的 Session 完美隔絕，徹底拔除跨分頁憑證綁架！
+為了解決您提出的「全面分頁會話隔離 `browserSessionPersistence` 會導致點擊 Admin 按鈕開啟新分頁時，新分頁無法繼承 Google 管理員權限」這一經典衝突，我們將採用**最優雅、最精簡且完全不增加代碼複雜度**的解決方案！
+
+我們將在所有網頁繼續維持最安全的 `browserSessionPersistence`（會話隔離）。同時，我們將利用 HTML5 官方標準的 **`rel="opener"`（開啟者關聯屬性）**，讓瀏覽器在新分頁開啟時，自動將大廳分頁的 `sessionStorage` 憑證拷貝一份給管理台新分頁，實現完美的權限繼承！
 
 ## 使用者審查事項
-請審查將 `browserLocalPersistence` 升級為分頁獨立 `browserSessionPersistence` 的架構變更。
+請審查 `public/index.html` 中新增 `rel="opener"` 的 HTML 標記。
 
-## 建議修改計畫
+---
 
-### 1. 全面實施分頁會話隔離 (`script.js`, `admin.js`, `presenter.js`)
-- 在三個檔案中，從 Firebase Auth 模組導入 `setPersistence` 與 `browserSessionPersistence`。
-- 在 Firebase Auth 初始化後，立刻安全執行隔離設定：
-  ```javascript
-  app = initializeApp(config);
-  auth = getAuth(app);
-  db = getDatabase(app);
-  await setPersistence(auth, browserSessionPersistence).catch(console.error);
+## Proposed Changes
+
+### Public Assets
+
+#### [MODIFY] [public/index.html](file:///usr/local/google/home/wube/.gemini/jetski/brain/9130eb8d-7df8-4400-b6f6-bbd2f10f4710/scratch/HelloWorld_GitRepo/public/index.html)
+- 將 Admin 控制台與 Presenter 看板的超連結（第 22-23 行）加上 `rel="opener"` 屬性：
+  ```html
+  <a id="link-admin-panel" href="admin.html" target="_blank" rel="opener" class="hidden glass-panel-small user-badge" ...>👑 Admin</a>
+  <a id="link-presenter-page" href="presenter.html" target="_blank" rel="opener" class="hidden glass-panel-small user-badge" ...>📺 Presenter</a>
   ```
+  這能指示現代瀏覽器在保留 `window.opener` 關係的同時，**將父分頁的 `sessionStorage` 實時拷貝一份給新開啟的分頁**，從而讓管理台完美繼承 Google 登入狀態！
+
+#### [MODIFY] [public/script.js](file:///usr/local/google/home/wube/.gemini/jetski/brain/9130eb8d-7df8-4400-b6f6-bbd2f10f4710/scratch/HelloWorld_GitRepo/public/script.js)
+- 於初始化時，強制將 persistence 設定為分頁獨立的 `browserSessionPersistence`。
+
+#### [MODIFY] [public/admin.js](file:///usr/local/google/home/wube/.gemini/jetski/brain/9130eb8d-7df8-4400-b6f6-bbd2f10f4710/scratch/HelloWorld_GitRepo/public/admin.js)
+- 於初始化時，強制將 persistence 設定為分頁獨立的 `browserSessionPersistence`。
+
+#### [MODIFY] [public/presenter.js](file:///usr/local/google/home/wube/.gemini/jetski/brain/9130eb8d-7df8-4400-b6f6-bbd2f10f4710/scratch/HelloWorld_GitRepo/public/presenter.js)
+- 於初始化時，強制將 persistence 設定為分頁獨立 the `browserSessionPersistence`。
 
 ## 驗證計畫
-
-### 手動驗證
-- 同時開啟大廳（Tab 1）、投影幕（Tab 2）與管理台（Tab 3）。
-- 大廳 Google 登出。
-- 靜置一段時間，觀察大廳分頁，確認**大廳穩穩停留在登出登入頁，絕不會再自己神奇地被登入成 'Loading...' 人**！
-- **附加巨大好處**：現在您可以在同一個瀏覽器開啟 3 個大廳分頁，分別登入為 3 個不同的匿名玩家進行實機競賽測試，彼此互不干擾，開發測試效率提升 300%！
+- 登入 Google 管理員帳號。
+- 點擊 `👑 Admin`，驗證管理台是否**在新分頁順暢打開、且立刻成功認證為管理員**！
+- 大廳登出，靜置不動，驗證大廳分頁絕無自動登入。
