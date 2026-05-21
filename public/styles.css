@@ -1427,3 +1427,29 @@ body.logged-in-white #equations-victory-badge {
     background: #ffffff !important; /* Solid white contrast for presentation readability */
     cursor: default; /* Normal cursor inside modal */
 }
+
+/* Limit typical idea cards to at most 6 lines of text with a scrollbar */
+.presenter-mode .idea-card-body {
+    max-height: 17.3rem !important; /* 6 lines limit: 1.8rem font * 1.6 line-height * 6 */
+    overflow-y: auto !important;
+    padding-right: 6px;
+}
+
+/* Reset card body height to show full text when zoomed */
+.presenter-mode .idea-card.zoomed .idea-card-body {
+    max-height: none !important;
+    overflow-y: visible !important;
+    padding-right: 0;
+}
+
+/* Minimal elegant scrollbar for idea card bodies */
+.presenter-mode .idea-card-body::-webkit-scrollbar {
+    width: 4px;
+}
+.presenter-mode .idea-card-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.presenter-mode .idea-card-body::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 10px;
+}
