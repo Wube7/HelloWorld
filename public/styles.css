@@ -1413,7 +1413,7 @@ body.logged-in-white #equations-victory-badge {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, position 0.2s ease;
 }
 
-/* Zoom Modal View on Presenter Screen */
+/* Zoom Modal View on Presenter Screen - Uses 100vmax box shadow mask to bypass Stacking Context bugs */
 .presenter-mode .idea-card.zoomed {
     position: fixed !important;
     top: 50% !important;
@@ -1422,21 +1422,8 @@ body.logged-in-white #equations-victory-badge {
     width: 650px !important;
     max-width: 90vw !important;
     z-index: 999999 !important;
-    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.75) !important;
+    box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.65), 0 30px 100px rgba(0, 0, 0, 0.75) !important; /* Massive viewport shadow dimming */
     border-color: #3b82f6 !important;
     background: #ffffff !important; /* Solid white contrast for presentation readability */
-}
-
-/* Dark backdrop dimming when an idea is zoomed */
-body.presenter-mode:has(.idea-card.zoomed)::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.65); /* Dim backdrop */
-    backdrop-filter: blur(4px);
-    z-index: 999998; /* Just below the zoomed card */
-    animation: fadeIn 0.2s ease-out;
+    cursor: default; /* Normal cursor inside modal */
 }

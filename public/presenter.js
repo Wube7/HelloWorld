@@ -1561,8 +1561,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.className = 'idea-card';
             card.style.fontSize = '1.5rem';
             
-            // Zoom on click listener
-            card.addEventListener('click', () => {
+            // Zoom on double-click listener
+            card.addEventListener('dblclick', () => {
                 const wasZoomed = card.classList.contains('zoomed');
                 // Clear zoomed state on all other cards first
                 ideaPresenterBoard.querySelectorAll('.idea-card').forEach(c => c.classList.remove('zoomed'));
