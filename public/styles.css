@@ -1387,3 +1387,25 @@ body.logged-in-white #equations-victory-badge {
     border-color: rgba(109, 40, 217, 0.2) !important;
     color: #6d28d9 !important;
 }
+
+/* Presenter Mode Layout Extensions (Landscape Projection Optimization) */
+.presenter-mode .container {
+    max-width: 96vw !important; /* Stretch horizontally to utilize landscape display fully */
+    padding: 1rem 2rem;
+}
+
+.presenter-mode .glass-panel {
+    padding: 1.5rem 2rem !important; /* Reduce unnecessary outer borders/padding */
+}
+
+.presenter-mode .idea-board {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Allow cards to stretch wider on landscape screens */
+    gap: 1.2rem;
+    padding: 0.8rem;
+    max-height: 76vh; /* Fill up more vertical space */
+}
+
+.presenter-mode .idea-card {
+    padding: 1.2rem !important; /* Tighten padding for more text visibility */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}

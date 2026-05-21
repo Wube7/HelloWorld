@@ -1566,7 +1566,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div>
                     <div class="idea-card-header" style="font-size: 1.1rem;">
                         <span class="idea-author" style="font-size: 1.3rem;">${authorDisplay}</span>
-                        <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                        <span>${new Date(item.timestamp || 0).toLocaleString([], {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false})}</span>
                     </div>
                     <div class="idea-card-body" style="font-size: 1.8rem; margin-bottom: 1rem;">${item.text}</div>
                 </div>

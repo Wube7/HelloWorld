@@ -1772,7 +1772,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div>
                     <div class="idea-card-header">
                         <span class="idea-author">${authorDisplay}</span>
-                        <span>${new Date(item.timestamp || 0).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                        <span>${new Date(item.timestamp || 0).toLocaleString([], {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false})}</span>
                     </div>
                     <div class="idea-card-body">${item.text}</div>
                 </div>
