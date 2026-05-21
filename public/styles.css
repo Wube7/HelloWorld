@@ -1395,17 +1395,48 @@ body.logged-in-white #equations-victory-badge {
 }
 
 .presenter-mode .glass-panel {
-    padding: 1.5rem 2rem !important; /* Reduce unnecessary outer borders/padding */
+    padding: 1.2rem 2rem !important; /* Reduce unnecessary outer borders/padding */
+    margin-bottom: 1rem !important; /* Minimize bottom blank margins */
 }
 
 .presenter-mode .idea-board {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Allow cards to stretch wider on landscape screens */
     gap: 1.2rem;
     padding: 0.8rem;
-    max-height: 76vh; /* Fill up more vertical space */
+    max-height: 82vh !important; /* Fill up more vertical space to utilize screen fully */
 }
 
 .presenter-mode .idea-card {
     padding: 1.2rem !important; /* Tighten padding for more text visibility */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    cursor: pointer; /* Indicate clickable */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, position 0.2s ease;
+}
+
+/* Zoom Modal View on Presenter Screen */
+.presenter-mode .idea-card.zoomed {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1.45) !important;
+    width: 650px !important;
+    max-width: 90vw !important;
+    z-index: 999999 !important;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.75) !important;
+    border-color: #3b82f6 !important;
+    background: #ffffff !important; /* Solid white contrast for presentation readability */
+}
+
+/* Dark backdrop dimming when an idea is zoomed */
+body.presenter-mode:has(.idea-card.zoomed)::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65); /* Dim backdrop */
+    backdrop-filter: blur(4px);
+    z-index: 999998; /* Just below the zoomed card */
+    animation: fadeIn 0.2s ease-out;
 }

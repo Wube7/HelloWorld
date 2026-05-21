@@ -1560,6 +1560,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const card = document.createElement('div');
             card.className = 'idea-card';
             card.style.fontSize = '1.5rem';
+            
+            // Zoom on click listener
+            card.addEventListener('click', () => {
+                const wasZoomed = card.classList.contains('zoomed');
+                // Clear zoomed state on all other cards first
+                ideaPresenterBoard.querySelectorAll('.idea-card').forEach(c => c.classList.remove('zoomed'));
+                if (!wasZoomed) {
+                    card.classList.add('zoomed');
+                }
+            });
+
             const authorDisplay = isAnonMode ? '🥷 Anonymous' : item.author;
             
             card.innerHTML = `
