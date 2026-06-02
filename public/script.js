@@ -756,9 +756,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                         listContainer.innerHTML = '';
                         
                         const isWarmup = state.phase === 'warmup';
+                        
+                        // Dynamically adjust passcode label text
+                        const passcodeLabel = document.getElementById('equations-passcode-label');
+                        if (passcodeLabel) {
+                            if (isWarmup) {
+                                passcodeLabel.textContent = "🔑 Enter Decoded Passcode (A+B):";
+                            } else {
+                                passcodeLabel.textContent = "🔑 Enter Decoded Passcode (A+B+C+D+E+F):";
+                            }
+                        }
+
                         if (isWarmup) {
                             // Warm-up Phase: everyone gets identical 2 equations
-                            WARMUP_EQUATIONS.forEach(eqText => {
+                            const activeWarmupEqs = state.warmupEquations || WARMUP_EQUATIONS;
+                            activeWarmupEqs.forEach(eqText => {
                                 const row = document.createElement('div');
                                 row.className = 'equation-row';
                                 row.textContent = eqText;
@@ -812,7 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let targetPasscode = EQUATIONS_PASSCODE; // Default active 32
                 const stateSnap = await get(ref(db, 'admin/equationsState'));
                 if (stateSnap.exists() && stateSnap.val().phase === 'warmup') {
-                    targetPasscode = WARMUP_PASSCODE; // Warmup 11
+                    targetPasscode = stateSnap.val().warmupPasscode !== undefined ? stateSnap.val().warmupPasscode : WARMUP_PASSCODE;
                 }
 
                 if (val === targetPasscode) {

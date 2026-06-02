@@ -2045,11 +2045,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
             });
 
-            console.log("Launching Equations Warm-Up Game...");
+            // Dynamically generate randomized warmup equations (A + A - B = X, B + B - A = Y)
+            let A, B;
+            do {
+                A = Math.floor(Math.random() * 14) + 2; // [2, 15]
+                B = Math.floor(Math.random() * 14) + 2; // [2, 15]
+            } while (A === B || B >= 2 * A || A >= 2 * B);
+
+            const X = A + A - B;
+            const Y = B + B - A;
+            const warmupPasscode = A + B;
+            const warmupEquations = [
+                `A + A - B = ${X}`,
+                `B + B - A = ${Y}`
+            ];
+
+            console.log(`Launching Equations Warm-Up Game with A=${A}, B=${B}, Passcode=${warmupPasscode}...`);
             await set(ref(db, 'admin/equationsState'), {
                 active: true,
                 phase: 'warmup',
-                players: playerRoles
+                players: playerRoles,
+                warmupEquations: warmupEquations,
+                warmupPasscode: warmupPasscode
             });
         });
     }

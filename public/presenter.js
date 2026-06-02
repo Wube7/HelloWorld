@@ -380,6 +380,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const totalEl = document.getElementById('equations-warmup-total');
                     if (countEl) countEl.textContent = solvedCount;
                     if (totalEl) totalEl.textContent = totalPlayers;
+
+                    // Dynamically update presenter clues
+                    const eq1El = document.getElementById('warmup-eq-1');
+                    const eq2El = document.getElementById('warmup-eq-2');
+                    if (state.warmupEquations && state.warmupEquations.length >= 2) {
+                        if (eq1El) eq1El.textContent = "First Operator Relation: " + state.warmupEquations[0];
+                        if (eq2El) eq2El.textContent = "Second Operator Relation: " + state.warmupEquations[1];
+                    } else {
+                        // Fallback to hardcoded defaults
+                        if (eq1El) eq1El.textContent = "First Operator Relation: A + A - B = 10";
+                        if (eq2El) eq2El.textContent = "Second Operator Relation: B + B - A = 1";
+                    }
                 } else {
                     const countEl = document.getElementById('equations-presenter-count');
                     const totalEl = document.getElementById('equations-presenter-total');
