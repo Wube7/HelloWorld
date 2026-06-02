@@ -1,6 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, updateProfile, signOut, deleteUser, setPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+import { ROLE_LABELS } from './equations_config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
@@ -371,11 +372,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Track solved count and total active players
                 const playersMap = state.players || {};
-                const playersArr = Object.values(playersMap);
-                const totalPlayers = playersArr.length;
-                const solvedCount = playersArr.filter(p => p && typeof p === 'object' && p.solved === true).length;
+                const playersEntries = Object.entries(playersMap);
+                const totalPlayers = playersEntries.length;
+                const solvedCount = playersEntries.filter(([uid, p]) => p && typeof p === 'object' && p.solved === true).length;
 
-                if (state.phase === 'warmup') {
+                // Dynamically update live escaped / decoding progress lists
+                const isWarmup = state.phase === 'warmup';
+                const escapedList = document.getElementById(isWarmup ? 'warmup-escaped-list' : 'active-escaped-list');
+                const decodingList = document.getElementById(isWarmup ? 'warmup-decoding-list' : 'active-decoding-list');
+
+                if (escapedList && decodingList) {
+                    escapedList.innerHTML = "";
+                    decodingList.innerHTML = "";
+
+                    playersEntries.forEach(([uid, pData]) => {
+                        if (!pData || typeof pData !== 'object') return;
+                        const name = allUsers[uid]?.name || "Anonymous";
+                        let label = name;
+                        if (!isWarmup) {
+                            const roleIndex = pData.roleIndex !== undefined ? pData.roleIndex : -1;
+                            const varLetter = ROLE_LABELS[roleIndex]?.variable || "?";
+                            label = `${name} (${varLetter})`;
+                        }
+
+                        const li = document.createElement('li');
+                        li.style.padding = "6px 12px";
+                        li.style.borderRadius = "8px";
+                        li.style.display = "flex";
+                        li.style.alignItems = "center";
+                        li.style.gap = "8px";
+
+                        if (pData.solved === true) {
+                            li.style.background = "rgba(16, 185, 129, 0.12)";
+                            li.style.border = "1px solid rgba(16, 185, 129, 0.3)";
+                            li.innerHTML = `<span>✅</span> <span>${label}</span>`;
+                            escapedList.appendChild(li);
+                        } else {
+                            li.style.background = "rgba(148, 163, 184, 0.12)";
+                            li.style.border = "1px solid rgba(148, 163, 184, 0.3)";
+                            li.innerHTML = `<span>⏳</span> <span>${label}</span>`;
+                            decodingList.appendChild(li);
+                        }
+                    });
+                }
+
+                if (isWarmup) {
                     const countEl = document.getElementById('equations-warmup-count');
                     const totalEl = document.getElementById('equations-warmup-total');
                     if (countEl) countEl.textContent = solvedCount;
