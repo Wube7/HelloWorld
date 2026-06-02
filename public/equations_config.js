@@ -3,7 +3,7 @@
 
 export const EQUATIONS_MATRIX = {
     0: [
-        "A = 6 - 3 + 2",
+        "A = 8 - 4 + 1",
         "B = D - C + 7",
         "C = E - D + 4",
         "D = F - E - 1",
@@ -12,7 +12,7 @@ export const EQUATIONS_MATRIX = {
     ],
     1: [
         "A = C - B + 2",
-        "B = 2 - 6 + 7",
+        "B = 9 - 8 + 2",
         "C = E - D + 4",
         "D = F - E - 1",
         "E = A - F + 6",
@@ -21,7 +21,7 @@ export const EQUATIONS_MATRIX = {
     2: [
         "A = C - B + 2",
         "B = D - C + 7",
-        "C = 4 - 2 + 4",
+        "C = 7 - 4 + 3",
         "D = F - E - 1",
         "E = A - F + 6",
         "F = B - A + 9"
@@ -30,7 +30,7 @@ export const EQUATIONS_MATRIX = {
         "A = C - B + 2",
         "B = D - C + 7",
         "C = E - D + 4",
-        "D = 7 - 4 - 1",
+        "D = 8 - 4 - 2",
         "E = A - F + 6",
         "F = B - A + 9"
     ],
@@ -39,7 +39,7 @@ export const EQUATIONS_MATRIX = {
         "B = D - C + 7",
         "C = E - D + 4",
         "D = F - E - 1",
-        "E = 5 - 7 + 6",
+        "E = 9 - 7 + 2",
         "F = B - A + 9"
     ],
     5: [
@@ -48,7 +48,7 @@ export const EQUATIONS_MATRIX = {
         "C = E - D + 4",
         "D = F - E - 1",
         "E = A - F + 6",
-        "F = 3 - 5 + 9"
+        "F = 8 - 5 + 4"
     ]
 };
 
