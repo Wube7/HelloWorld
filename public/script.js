@@ -51,6 +51,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chatContainer = document.querySelector('.chat-container');
 
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
+    const SUPER_ADMIN_EMAIL = 'wube@google.com';
+
+    // Room Portal Elements
+    const roomPortalSection = document.getElementById('room-portal-section');
+    const btnTabJoin = document.getElementById('btn-tab-join');
+    const btnTabCreate = document.getElementById('btn-tab-create');
+    const panelJoinRoom = document.getElementById('panel-join-room');
+    const panelCreateRoom = document.getElementById('panel-create-room');
+    const inputJoinRoomId = document.getElementById('input-join-room-id');
+    const inputJoinRoomPwd = document.getElementById('input-join-room-pwd');
+    const btnSubmitJoinRoom = document.getElementById('btn-submit-join-room');
+    const inputCreateRoomName = document.getElementById('input-create-room-name');
+    const inputCreateRoomPwd = document.getElementById('input-create-room-pwd');
+    const btnSubmitCreateRoom = document.getElementById('btn-submit-create-room');
+
+    // Tab Switching Logic
+    if (btnTabJoin && btnTabCreate && panelJoinRoom && panelCreateRoom) {
+        btnTabJoin.addEventListener('click', () => {
+            panelJoinRoom.classList.remove('hidden');
+            panelCreateRoom.classList.add('hidden');
+            btnTabJoin.style.background = 'rgba(59, 130, 246, 0.1)';
+            btnTabJoin.style.borderColor = '#3b82f6';
+            btnTabJoin.style.color = '#3b82f6';
+            btnTabJoin.style.fontWeight = 'bold';
+            btnTabCreate.style.background = 'transparent';
+            btnTabCreate.style.borderColor = 'transparent';
+            btnTabCreate.style.color = '#64748b';
+            btnTabCreate.style.fontWeight = 'normal';
+        });
+
+        btnTabCreate.addEventListener('click', () => {
+            panelJoinRoom.classList.add('hidden');
+            panelCreateRoom.classList.remove('hidden');
+            btnTabJoin.style.background = 'transparent';
+            btnTabJoin.style.borderColor = 'transparent';
+            btnTabJoin.style.color = '#64748b';
+            btnTabJoin.style.fontWeight = 'normal';
+            btnTabCreate.style.background = 'rgba(59, 130, 246, 0.1)';
+            btnTabCreate.style.borderColor = '#3b82f6';
+            btnTabCreate.style.color = '#3b82f6';
+            btnTabCreate.style.fontWeight = 'bold';
+        });
+    }
 
     // Quiz Elements
     const quizContainer = document.getElementById('quiz-container');
@@ -261,6 +304,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // Check for Room ID in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+
+            if (!roomId) {
+                // Scenario B: No Room selected yet -> Hide login, reveal Room Portal
+                loginSection.classList.add('hidden');
+                if (roomPortalSection) roomPortalSection.classList.remove('hidden');
+                
+                // Keep main-content hidden
+                mainContent.classList.add('hidden');
+
+                // Render Super Admin redirection if user is wube@google.com
+                const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+                if (isSuperAdmin && linkAdminPanel) {
+                    // Super admin gets special link
+                    linkAdminPanel.textContent = "👑 System Admin";
+                    linkAdminPanel.href = "super-admin.html";
+                    linkAdminPanel.classList.remove('hidden');
+                }
+                
+                // Populate Profile Badge in Header
+                if (userProfilePanel && userNameDisplay) {
+                    userNameDisplay.textContent = user.displayName || user.email || 'Admin';
+                    userProfilePanel.classList.remove('hidden');
+                    if (btnLogout) btnLogout.classList.remove('hidden');
+                }
+                
+                // Stop further lobby setup until room is joined
+                return;
+            }
+
+            // Scenario A: Room ID is present in URL -> Proceed to standard Room/Lobby setup
             await enterLobby(user);
 
             // Listen to forceful logout kick
