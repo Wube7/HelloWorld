@@ -4,20 +4,129 @@
       ".read": "auth != null",
       ".write": "auth != null && auth.token.email == 'wube@google.com'"
     },
+    
+    // =========================================================================
+    // TEMPORARY ROOT PATHS FOR BACKWARD COMPATIBILITY (Will be removed after client migration)
+    // =========================================================================
+    "presence": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'wube@google.com')"
+      }
+    },
+    "messages": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["timestamp"],
+      "$messageId": {
+        ".validate": "newData.hasChildren(['text', 'uid', 'name']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length < 500"
+      }
+    },
+    "admin": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email == 'wube@google.com'",
+      "kbcArchive": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "quizBanks": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "kicklist": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.token.email == 'wube@google.com' || auth.uid == $uid)"
+        }
+      },
+      "globalView": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "quizState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "currentQuizData": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "kbcState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'",
+        "players": {
+          "$uid": {
+            "submitted": {
+              ".write": "auth != null && auth.uid == $uid"
+            }
+          }
+        }
+      },
+      "surveys": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "surveyState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'",
+        "submissions": {
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        }
+      },
+      "ideaSurveys": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'"
+      },
+      "ideaState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'",
+        "ideas": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$ideaId": {
+            ".write": "auth != null",
+            "voters": {
+              "$uid": {
+                ".write": "auth != null && auth.uid == $uid"
+              }
+            }
+          }
+        }
+      },
+      "equationsState": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'wube@google.com'",
+        "players": {
+          "$uid": {
+            "solved": {
+              ".write": "auth != null && auth.uid == $uid"
+            }
+          }
+        }
+      }
+    },
+    "quizScores": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email == 'wube@google.com'",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    // =========================================================================
+    
     "rooms": {
       ".read": "auth != null",
       "$roomId": {
-        // Anyone logged in can read the metadata, but writing is restricted
         "metadata": {
           ".read": "auth != null",
           ".write": "auth != null && (!data.exists() || data.child('creatorUid').val() == auth.uid || auth.token.email == 'wube@google.com')"
         },
         "state": {
-          // Only the room creator (admin) or super admin can write/modify the active state
           ".read": "auth != null",
           ".write": "auth != null && (data.parent().child('metadata').child('creatorUid').val() == auth.uid || auth.token.email == 'wube@google.com')",
           
-          // Exception: Players submit their own answers
           "kbcState": {
             "players": {
               "$uid": {
