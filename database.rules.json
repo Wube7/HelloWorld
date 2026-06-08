@@ -119,6 +119,7 @@
     "rooms": {
       ".read": "auth != null",
       "$roomId": {
+        ".write": "auth != null && (!data.exists() || data.child('metadata').child('creatorUid').val() == auth.uid || auth.token.email == 'wube@google.com')",
         "metadata": {
           ".read": "auth != null",
           ".write": "auth != null && (!data.exists() || data.child('creatorUid').val() == auth.uid || auth.token.email == 'wube@google.com')"
