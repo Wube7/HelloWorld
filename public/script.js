@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!user) return false;
         try {
             const restrictionSnap = await get(ref(db, 'systemConfig/roomCreationRestriction'));
-            const rule = restrictionSnap.exists() ? restrictionSnap.val() : 'googler_and_admin';
+            const rule = restrictionSnap.exists() ? restrictionSnap.val() : 'anyone';
             
             if (rule === 'anyone') return true;
             if (rule === 'admin_only') return user.email === SUPER_ADMIN_EMAIL;
