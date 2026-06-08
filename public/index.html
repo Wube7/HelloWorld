@@ -46,6 +46,37 @@
             </div>
         </div>
 
+        <!-- Room Portal Section (Visible after login if no room is selected) -->
+        <div id="room-portal-section" class="glass-panel text-center hidden" style="margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; padding: 2.5rem;">
+            <h2 style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">🔑 房間大廳入口 Portal</h2>
+            
+            <!-- Tab Headers -->
+            <div style="display: flex; gap: 10px; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+                <button id="btn-tab-join" class="primary-btn" style="flex: 1; background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; color: #3b82f6; font-weight: bold;">🚪 加入現有房間</button>
+                <button id="btn-tab-create" class="primary-btn" style="flex: 1; background: transparent; border-color: transparent; color: #64748b;">➕ 創建全新房間</button>
+            </div>
+
+            <!-- Panel A: Join Room -->
+            <div id="panel-join-room" class="">
+                <p style="color: #64748b; margin-bottom: 1.5rem;">請輸入 6 位數房間代碼與密碼加入協作：</p>
+                <div style="display: flex; flex-direction: column; gap: 15px; max-width: 380px; margin: 0 auto;">
+                    <input type="text" id="input-join-room-id" placeholder="房間代碼 (例如 K8A9D3)" maxlength="6" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; text-transform: uppercase; color: #0f172a; background: white;">
+                    <input type="password" id="input-join-room-pwd" placeholder="房間密碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
+                    <button id="btn-submit-join-room" class="primary-btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); margin-top: 1rem;">進入房間</button>
+                </div>
+            </div>
+
+            <!-- Panel B: Create Room -->
+            <div id="panel-create-room" class="hidden">
+                <p style="color: #64748b; margin-bottom: 1.5rem;">為您的團隊建立一個專屬獨立的解密房間：</p>
+                <div style="display: flex; flex-direction: column; gap: 15px; max-width: 380px; margin: 0 auto;">
+                    <input type="text" id="input-create-room-name" placeholder="房間名稱 (例如 DeepMind Team A)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
+                    <input type="password" id="input-create-room-pwd" placeholder="設定房間密碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
+                    <button id="btn-submit-create-room" class="primary-btn" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); margin-top: 1rem;">創建並進入房間</button>
+                </div>
+            </div>
+        </div>
+
         <main id="main-content" class="hidden main-layout">
             <div class="main-left">
 
