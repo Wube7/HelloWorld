@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const interactiveDemo = document.querySelector('.interactive-demo');
     const chatContainer = document.querySelector('.chat-container');
 
-    const ADMIN_EMAILS = ['wube8816@gmail.com'];
+
 
     // Quiz Elements
     const quizContainer = document.getElementById('quiz-container');
@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let autoJumpTimeoutId = null;
     let clientTimerIntervalId = null;
 
+    let isAuthorizedHost = false;
     let allUsers = {};
     let onlinePresence = {};
     let allQuizScores = {};
@@ -297,6 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
 
                 if (isCreator || isSuperAdmin) {
+                    isAuthorizedHost = true;
                     if (adminStatus) adminStatus.textContent = `👑 Active Creator: ${user.displayName || user.email || 'Admin'} (Room: ${metadata.roomName})`;
                     if (adminMain) adminMain.classList.remove('hidden');
                     if (adminPanel) adminPanel.classList.remove('hidden');
@@ -313,13 +315,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         initDatabaseFuncs.forEach(f => f());
                     }
                 } else {
+                    isAuthorizedHost = false;
                     if (adminStatus) adminStatus.textContent = "⛔ Access Denied: You are not the creator of this room!";
                     if (adminMain) adminMain.classList.add('hidden');
                 }
             }).catch(err => {
+                isAuthorizedHost = false;
                 if (adminStatus) adminStatus.textContent = "⛔ Authorization Error: " + err.message;
             });
         } else {
+            isAuthorizedHost = false;
             if (adminStatus) adminStatus.textContent = "🔒 Please log in as an administrator on the main page first.";
             if (adminMain) adminMain.classList.add('hidden');
             if (listenersInitialized) {
@@ -914,7 +919,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             clearAutoJump();
-            if (auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
+            if (isAuthorizedHost) {
                 const timerSecs = parseInt(state?.timerSecs) || 0;
                 if (timerSecs > 0) {
                     autoJumpTimeoutId = setTimeout(() => {
@@ -1100,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Merge legacy users and purge offline anonymous accounts
             const combinedUsers = { ...allUsers };
-            const isAdmin = auth.currentUser && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email);
+            const isAdmin = isAuthorizedHost;
             
             const now = Date.now();
             for (const [uid, uObj] of Object.entries(combinedUsers)) {
@@ -1724,7 +1729,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Check if all active players submitted → admin auto-resolves
             if (submittedCount >= activePlayers.length && activePlayers.length > 0) {
-                if (auth.currentUser?.email && ADMIN_EMAILS.includes(auth.currentUser.email)) {
+                if (isAuthorizedHost) {
                     resolveKbcRound(false);
                 }
             }
