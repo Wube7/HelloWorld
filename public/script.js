@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusMessage = document.getElementById('status-message');
 
     // Admin & Global View UI Elements
+    const linkSystemAdmin = document.getElementById('link-system-admin');
     const linkAdminPanel = document.getElementById('link-admin-panel');
     const linkPresenterPage = document.getElementById('link-presenter-page');
     const btnViewChat = document.getElementById('btn-view-chat');
@@ -430,6 +431,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                     password: roomPwd // Optional plain text password for simple client-side verification
                 });
 
+                // Pre-populate default quiz banks, survey questions, and ideation prompts for out-of-the-box playability
+                const defaultRoomSetup = {
+                    quizBanks: {
+                        "default_tech": {
+                            topic: "Default Technology Trivia",
+                            timerSecs: 15,
+                            quizData: [
+                                { question: "What does CPU stand for?", options: ["Central Process Unit", "Central Processing Unit", "Computer Personal Unit", "Central Processor Unifier"], answer: 1 },
+                                { question: "Which programming language is known for its snake logo?", options: ["Java", "C++", "Python", "Ruby"], answer: 2 },
+                                { question: "What is the primary version control system used at Google?", options: ["Git", "SVN", "Piper", "Mercurial"], answer: 2 },
+                                { question: "Which protocol is used to fetch web pages?", options: ["FTP", "SMTP", "HTTP", "SSH"], answer: 2 },
+                                { question: "What is the default port for HTTP?", options: ["80", "443", "22", "8080"], answer: 0 }
+                            ]
+                        }
+                    },
+                    surveys: {
+                        "default_survey_1": {
+                            question: "How would you rate the overall clarity of this session?",
+                            scale: 5,
+                            minLabel: "Very Unclear",
+                            maxLabel: "Extremely Clear"
+                        },
+                        "default_survey_2": {
+                            question: "How engaged did you feel during the collaborative activities?",
+                            scale: 5,
+                            minLabel: "Bored / Distracted",
+                            maxLabel: "Highly Engaged"
+                        }
+                    },
+                    ideaSurveys: {
+                        "default_idea_1": {
+                            question: "What are the top 3 product features we should prioritize next?"
+                        },
+                        "default_idea_2": {
+                            question: "Share your wild brainstorm ideas for improving team velocity:"
+                        }
+                    }
+                };
+
+                await set(ref(db, `rooms/${roomId}/state/quizBanks`), defaultRoomSetup.quizBanks);
+                await set(ref(db, `rooms/${roomId}/state/surveys`), defaultRoomSetup.surveys);
+                await set(ref(db, `rooms/${roomId}/state/ideaSurveys`), defaultRoomSetup.ideaSurveys);
+
                 console.log(`🎉 Room ${roomId} created successfully! Redirecting...`);
                 // Clear inputs
                 inputCreateRoomName.value = '';
@@ -630,10 +674,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const isCreator = metadata.creatorUid === user.uid;
                     const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
 
+                    if (isSuperAdmin) {
+                        if (linkSystemAdmin) {
+                            linkSystemAdmin.href = "super-admin.html";
+                            linkSystemAdmin.classList.remove('hidden');
+                        }
+                    } else {
+                        if (linkSystemAdmin) linkSystemAdmin.classList.add('hidden');
+                    }
+
                     if (isCreator || isSuperAdmin) {
                         if (linkAdminPanel) {
-                            linkAdminPanel.textContent = isSuperAdmin ? "👑 System Admin" : "👑 Admin Panel";
-                            linkAdminPanel.href = isSuperAdmin ? "super-admin.html" : `admin.html?room=${roomId}`;
+                            linkAdminPanel.textContent = currentLanguage === 'zh' ? "👑 房主主控台" : "👑 Admin Panel";
+                            linkAdminPanel.href = `admin.html?room=${roomId}`;
                             linkAdminPanel.classList.remove('hidden');
                         }
                         if (linkPresenterPage) {
@@ -763,12 +816,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Render Super Admin redirection if user is wube@google.com
                 const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
-                if (isSuperAdmin && linkAdminPanel) {
-                    // Super admin gets special link
-                    linkAdminPanel.textContent = "👑 System Admin";
-                    linkAdminPanel.href = "super-admin.html";
-                    linkAdminPanel.classList.remove('hidden');
+                if (isSuperAdmin) {
+                    if (linkSystemAdmin) {
+                        linkSystemAdmin.href = "super-admin.html";
+                        linkSystemAdmin.classList.remove('hidden');
+                    }
+                } else {
+                    if (linkSystemAdmin) linkSystemAdmin.classList.add('hidden');
                 }
+                
+                // Hide room specific links in portal
+                if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
+                if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
                 
                 // Populate Profile Badge in Header
                 if (userProfilePanel && userNameDisplay) {
@@ -884,6 +943,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             onlineCounter.classList.add('hidden');
             userProfilePanel.classList.add('hidden');
             if(btnLogout) btnLogout.classList.add('hidden');
+            if (linkSystemAdmin) linkSystemAdmin.classList.add('hidden');
             if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
             if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
 

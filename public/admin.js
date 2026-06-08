@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const nextLocked = !currentIdeaStateObj.locked;
             await set(ref(db, getRoomPath('state/ideaState/locked')), nextLocked);
             if (nextLocked && currentIdeaStateObj.surveyId) {
-                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`))), currentIdeaStateObj.ideas || {});
+                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`)), currentIdeaStateObj.ideas || {});
             }
         });
     }
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnIdeaEnd) {
         btnIdeaEnd.addEventListener('click', async () => {
             if (currentIdeaStateObj?.surveyId) {
-                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`))), currentIdeaStateObj.ideas || {});
+                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`)), currentIdeaStateObj.ideas || {});
             }
             await set(ref(db, getRoomPath('state/ideaState/active')), false);
         });
