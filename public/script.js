@@ -95,6 +95,161 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Helper: Generate random 6-character room ID
+    function generateRoomId() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    // Helper: Check if user is authorized to create a room
+    async function checkCanCreateRoom(user) {
+        if (!user) return false;
+        try {
+            const restrictionSnap = await get(ref(db, 'systemConfig/roomCreationRestriction'));
+            const rule = restrictionSnap.exists() ? restrictionSnap.val() : 'googler_and_admin';
+            
+            if (rule === 'anyone') return true;
+            if (rule === 'admin_only') return user.email === SUPER_ADMIN_EMAIL;
+            if (rule === 'googler_and_admin') {
+                return user.email === SUPER_ADMIN_EMAIL || (user.email && user.email.endsWith('@google.com'));
+            }
+            if (rule === 'all_logged_in') {
+                return !user.isAnonymous; // Must not be anonymous (i.e. logged in with Google)
+            }
+            return false;
+        } catch (e) {
+            console.error("Error checking room creation permission:", e);
+            return false;
+        }
+    }
+
+    // Bind Portal Action Buttons
+    if (btnSubmitCreateRoom && inputCreateRoomName && inputCreateRoomPwd) {
+        btnSubmitCreateRoom.addEventListener('click', async () => {
+            const roomName = inputCreateRoomName.value.trim();
+            const roomPwd = inputCreateRoomPwd.value.trim();
+            
+            if (!roomName) {
+                alert("❌ 請輸入房間名稱！");
+                return;
+            }
+            
+            btnSubmitCreateRoom.disabled = true;
+            btnSubmitCreateRoom.textContent = "正在創建...";
+
+            const user = auth.currentUser;
+            const hasPermission = await checkCanCreateRoom(user);
+            
+            if (!hasPermission) {
+                alert("❌ 您的帳號無權限創建房間！");
+                btnSubmitCreateRoom.disabled = false;
+                btnSubmitCreateRoom.textContent = "創建並進入房間";
+                return;
+            }
+
+            try {
+                // Generate and verify unique room ID
+                let roomId = generateRoomId();
+                let isUnique = false;
+                let attempts = 0;
+                
+                while (!isUnique && attempts < 5) {
+                    const checkSnap = await get(ref(db, `rooms/${roomId}/metadata`));
+                    if (!checkSnap.exists()) {
+                        isUnique = true;
+                    } else {
+                        roomId = generateRoomId();
+                        attempts++;
+                    }
+                }
+
+                // Write metadata
+                const metaRef = ref(db, `rooms/${roomId}/metadata`);
+                await set(metaRef, {
+                    roomName: roomName,
+                    creatorUid: user.uid,
+                    creatorEmail: user.email || 'Anonymous',
+                    createdAt: serverTimestamp(),
+                    password: roomPwd // Optional plain text password for simple client-side verification
+                });
+
+                console.log(`🎉 Room ${roomId} created successfully! Redirecting...`);
+                // Clear inputs
+                inputCreateRoomName.value = '';
+                inputCreateRoomPwd.value = '';
+
+                // Save unlock state to sessionStorage
+                if (roomPwd) {
+                    sessionStorage.setItem(`unlocked_room_${roomId}`, 'true');
+                }
+
+                // Redirect to the newly created room
+                window.location.href = `index.html?room=${roomId}`;
+
+            } catch (err) {
+                alert("創建房間失敗: " + err.message);
+                btnSubmitCreateRoom.disabled = false;
+                btnSubmitCreateRoom.textContent = "創建並進入房間";
+            }
+        });
+    }
+
+    if (btnSubmitJoinRoom && inputJoinRoomId && inputJoinRoomPwd) {
+        btnSubmitJoinRoom.addEventListener('click', async () => {
+            const roomId = inputJoinRoomId.value.trim().toUpperCase();
+            const inputPwd = inputJoinRoomPwd.value.trim();
+            
+            if (!roomId || roomId.length !== 6) {
+                alert("❌ 請輸入合法的 6 位數房間代碼！");
+                return;
+            }
+
+            btnSubmitJoinRoom.disabled = true;
+            btnSubmitJoinRoom.textContent = "正在驗證...";
+
+            try {
+                const metaSnap = await get(ref(db, `rooms/${roomId}/metadata`));
+                if (!metaSnap.exists()) {
+                    alert("❌ 房間不存在，請確認代碼是否輸入正確！");
+                    btnSubmitJoinRoom.disabled = false;
+                    btnSubmitJoinRoom.textContent = "進入房間";
+                    return;
+                }
+
+                const metadata = metaSnap.val();
+                const requiredPwd = metadata.password || "";
+
+                if (requiredPwd !== "" && requiredPwd !== inputPwd) {
+                    alert("❌ 房間密碼錯誤！");
+                    btnSubmitJoinRoom.disabled = false;
+                    btnSubmitJoinRoom.textContent = "進入房間";
+                    return;
+                }
+
+                console.log(`🚪 Password match! Joining room ${roomId}...`);
+                inputJoinRoomId.value = '';
+                inputJoinRoomPwd.value = '';
+
+                // Save unlock state to sessionStorage
+                if (requiredPwd) {
+                    sessionStorage.setItem(`unlocked_room_${roomId}`, 'true');
+                }
+
+                // Redirect to the room URL
+                window.location.href = `index.html?room=${roomId}`;
+
+            } catch (err) {
+                alert("加入房間失敗: " + err.message);
+                btnSubmitJoinRoom.disabled = false;
+                btnSubmitJoinRoom.textContent = "進入房間";
+            }
+        });
+    }
+
     // Quiz Elements
     const quizContainer = document.getElementById('quiz-container');
     const quizQuestionEl = document.getElementById('quiz-question');
