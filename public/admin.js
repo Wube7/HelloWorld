@@ -26,6 +26,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         app = initializeApp(config);
         auth = getAuth(app);
         db = getDatabase(app);
+
+
+    // Centralized Path Scoping Helper
+    function getRoomPath(subPath) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'lobby';
+        return `rooms/${roomId}/${subPath}`;
+    }
         await setPersistence(auth, browserSessionPersistence).catch(console.error);
     } catch (e) {
         console.error("Firebase init failed. Ensure you are running via Firebase Hosting (e.g. firebase serve/deploy):", e);
@@ -270,19 +278,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Auth state changed:", user ? (user.email || "Anon") : "null");
         authResolved = true;
         if (user) {
-            if (user.email && ADMIN_EMAILS.includes(user.email)) {
-                if (adminStatus) adminStatus.textContent = `👑 Active Admin: ${user.displayName || user.email}`;
-                if (adminMain) adminMain.classList.remove('hidden');
-                if (adminPanel) adminPanel.classList.remove('hidden');
-                
-                if (!listenersInitialized) {
-                    listenersInitialized = true;
-                    initDatabaseFuncs.forEach(f => f());
-                }
-            } else {
-                if (adminStatus) adminStatus.textContent = "⛔ Access Denied: You must log in as an authorized administrator!";
-                if (adminMain) adminMain.classList.add('hidden');
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+            if (!roomId) {
+                if (adminStatus) adminStatus.textContent = "⛔ Error: No Room ID provided in the URL!";
+                return;
             }
+
+            // Fetch metadata to verify room ownership
+            get(ref(db, `rooms/${roomId}/metadata`)).then((metaSnap) => {
+                if (!metaSnap.exists()) {
+                    if (adminStatus) adminStatus.textContent = "⛔ Error: Room does not exist!";
+                    return;
+                }
+
+                const metadata = metaSnap.val();
+                const isCreator = metadata.creatorUid === user.uid;
+                const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+
+                if (isCreator || isSuperAdmin) {
+                    if (adminStatus) adminStatus.textContent = `👑 Active Creator: ${user.displayName || user.email || 'Admin'} (Room: ${metadata.roomName})`;
+                    if (adminMain) adminMain.classList.remove('hidden');
+                    if (adminPanel) adminPanel.classList.remove('hidden');
+
+                    // Dynamically update QR code with auto-login join URL
+                    const joinUrl = `${window.location.origin}/index.html?room=${roomId}${metadata.password ? '&pwd=' + encodeURIComponent(metadata.password) : ''}`;
+                    const qrLink = document.getElementById('qr-code-link');
+                    const qrImg = document.getElementById('qr-code-img');
+                    if (qrLink) qrLink.href = joinUrl;
+                    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
+
+                    if (!listenersInitialized) {
+                        listenersInitialized = true;
+                        initDatabaseFuncs.forEach(f => f());
+                    }
+                } else {
+                    if (adminStatus) adminStatus.textContent = "⛔ Access Denied: You are not the creator of this room!";
+                    if (adminMain) adminMain.classList.add('hidden');
+                }
+            }).catch(err => {
+                if (adminStatus) adminStatus.textContent = "⛔ Authorization Error: " + err.message;
+            });
         } else {
             if (adminStatus) adminStatus.textContent = "🔒 Please log in as an administrator on the main page first.";
             if (adminMain) adminMain.classList.add('hidden');
@@ -335,7 +371,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initDatabaseFuncs.push(() => {
         // Real-time KBC Archive listener
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcArchive'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/kbcArchive')), (snapshot) => {
             lastKbcArchive = snapshot.val();
             if (btnKbcRes) {
                 btnKbcRes.disabled = (!lastKbcArchive || currentQuizPhase !== 'idle');
@@ -343,7 +379,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }));
 
         // Real-time Survey Ideas Master listeners
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaSurveys'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/ideaSurveys')), (snapshot) => {
             storedIdeaPrompts = snapshot.val() || {};
             renderIdeaBank();
         }));
@@ -451,7 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const pid = e.target.dataset.pid;
                 if (confirm("Are you sure you want to delete this brainstorming prompt?")) {
-                    await remove(ref(db, `admin/ideaSurveys/${pid}`));
+                    await remove(ref(db, getRoomPath(`state/ideaSurveys/${pid}`)));
                 }
             });
         });
@@ -464,11 +500,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const editingPid = btnIdeaCreate.dataset.editingPid;
             if (editingPid) {
-                await set(ref(db, `admin/ideaSurveys/${editingPid}`), { question: q });
+                await set(ref(db, getRoomPath(`state/ideaSurveys/${editingPid}`)), { question: q });
                 btnIdeaCreate.textContent = "+ Add to Prompt Bank";
                 delete btnIdeaCreate.dataset.editingPid;
             } else {
-                const newRef = push(ref(db, 'admin/ideaSurveys'));
+                const newRef = push(ref(db, getRoomPath('state/ideaSurveys')));
                 await set(newRef, { question: q });
             }
             ideaAddQ.value = '';
@@ -479,9 +515,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnIdeaLock.addEventListener('click', async () => {
             if (!currentIdeaStateObj) return;
             const nextLocked = !currentIdeaStateObj.locked;
-            await set(ref(db, 'admin/ideaState/locked'), nextLocked);
+            await set(ref(db, getRoomPath('state/ideaState/locked')), nextLocked);
             if (nextLocked && currentIdeaStateObj.surveyId) {
-                await set(ref(db, `admin/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`), currentIdeaStateObj.ideas || {});
+                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`))), currentIdeaStateObj.ideas || {});
             }
         });
     }
@@ -489,14 +525,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnIdeaEnd) {
         btnIdeaEnd.addEventListener('click', async () => {
             if (currentIdeaStateObj?.surveyId) {
-                await set(ref(db, `admin/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`), currentIdeaStateObj.ideas || {});
+                await set(ref(db, getRoomPath(`state/ideaSurveys/${currentIdeaStateObj.surveyId}/lastSession/ideas`))), currentIdeaStateObj.ideas || {});
             }
-            await set(ref(db, 'admin/ideaState/active'), false);
+            await set(ref(db, getRoomPath('state/ideaState/active')), false);
         });
     }
 
     // 4. Track Total Online Users
-    const presenceRef = ref(db, 'presence');
+    const presenceRef = ref(db, getRoomPath('presence'));
     initDatabaseFuncs.push(() => {
         dbListenersUnsubscribes.push(onValue(presenceRef, (snapshot) => {
             const onlineUsersCount = snapshot.size;
@@ -573,12 +609,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/quizBanks'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/quizBanks')), (snapshot) => {
             storedQuizBanks = snapshot.val() || {};
             if (typeof renderQuizBankList === 'function') renderQuizBankList();
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/currentQuizData')), (snapshot) => {
             if (snapshot.exists() && Array.isArray(snapshot.val())) {
                 quizData = snapshot.val();
             } else {
@@ -586,7 +622,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }));
 
-        const globalViewRef = ref(db, 'admin/globalView');
+        const globalViewRef = ref(db, getRoomPath('state/globalView'));
         dbListenersUnsubscribes.push(onValue(globalViewRef, (snapshot) => {
             const data = snapshot.val();
             currentGlobalViewMode = (data && data.view) || 'main';
@@ -610,7 +646,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             chatInput.value = '';
             
-            const msgRef = ref(db, 'messages');
+            const msgRef = ref(db, getRoomPath('messages'));
             try {
                 await push(msgRef, {
                     text: text,
@@ -626,7 +662,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Receive messages
         initDatabaseFuncs.push(() => {
-            const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
+            const recentMessagesQuery = query(ref(db, getRoomPath('messages')), orderByChild('timestamp'), limitToLast(50));
             
             dbListenersUnsubscribes.push(onChildAdded(recentMessagesQuery, (snapshot) => {
                 const data = snapshot.val();
@@ -674,10 +710,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!currentQuizStateObj) return;
             const nextIdx = (currentQuizStateObj.questionIndex || 0) + 1;
             if (nextIdx >= quizData.length) {
-                await set(ref(db, 'admin/quizState/phase'), 'podium');
+                await set(ref(db, getRoomPath('state/quizState/phase')), 'podium');
                 if (currentQuizStateObj.bankId) {
-                    const scoresSnap = await get(ref(db, 'quizScores'));
-                    await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                    const scoresSnap = await get(ref(db, getRoomPath('quizScores')));
+                    await set(ref(db, getRoomPath(`state/quizBanks/${currentQuizStateObj.bankId}/lastSession`)), {
                         quizScores: scoresSnap.val() || {},
                         podiumData: { finishedAt: Date.now() }
                     });
@@ -686,7 +722,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const timerSecs = currentQuizStateObj.timerSecs || 0;
                 const stateObj = { ...currentQuizStateObj, phase: 'question', questionIndex: nextIdx };
                 if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                await set(ref(db, 'admin/quizState'), stateObj);
+                await set(ref(db, getRoomPath('state/quizState')), stateObj);
             }
         });
     }
@@ -695,11 +731,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnEmergencyLobby.addEventListener('click', async () => {
             if (confirm("🚨 EMERGENCY MASTER RESET: Are you sure you want to forcefully deactivate all running room sessions (Quiz, KBC, Survey, Ideation, Equations) and unlock the lobby?")) {
                 console.warn("Broadcasting global master reset to active: false across all room endpoints...");
-                await set(ref(db, 'admin/quizState/active'), false);
-                await set(ref(db, 'admin/kbcState/active'), false);
-                await set(ref(db, 'admin/surveyState/active'), false);
-                await set(ref(db, 'admin/ideaState/active'), false);
-                await set(ref(db, 'admin/equationsState/active'), false);
+                await set(ref(db, getRoomPath('state/quizState/active')), false);
+                await set(ref(db, getRoomPath('state/kbcState/active')), false);
+                await set(ref(db, getRoomPath('state/surveyState/active')), false);
+                await set(ref(db, getRoomPath('state/ideaState/active')), false);
+                await set(ref(db, getRoomPath('state/equationsState/active')), false);
                 currentQuizPhase = 'idle';
                 updateVisibilityState();
                 alert("🚨 Master reset broadcast completed. All room locks unlatched!");
@@ -710,10 +746,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnQuizCrown) {
         btnQuizCrown.addEventListener('click', async () => {
             if (confirm("Are you sure you want to end the quiz early and crown the winner based on current scores?")) {
-                await set(ref(db, 'admin/quizState/phase'), 'podium');
+                await set(ref(db, getRoomPath('state/quizState/phase')), 'podium');
                 if (currentQuizStateObj?.bankId) {
-                    const scoresSnap = await get(ref(db, 'quizScores'));
-                    await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                    const scoresSnap = await get(ref(db, getRoomPath('quizScores')));
+                    await set(ref(db, getRoomPath(`state/quizBanks/${currentQuizStateObj.bankId}/lastSession`)), {
                         quizScores: scoresSnap.val() || {},
                         podiumData: { finishedAt: Date.now() }
                     });
@@ -725,13 +761,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnQuizReturn) {
         btnQuizReturn.addEventListener('click', async () => {
             if (currentQuizStateObj?.bankId) {
-                const scoresSnap = await get(ref(db, 'quizScores'));
-                await set(ref(db, `admin/quizBanks/${currentQuizStateObj.bankId}/lastSession`), {
+                const scoresSnap = await get(ref(db, getRoomPath('quizScores')));
+                await set(ref(db, getRoomPath(`state/quizBanks/${currentQuizStateObj.bankId}/lastSession`)), {
                     quizScores: scoresSnap.val() || {},
                     podiumData: { finishedAt: Date.now() }
                 });
             }
-            await set(ref(db, 'admin/quizState/active'), false);
+            await set(ref(db, getRoomPath('state/quizState/active')), false);
         });
     }
 
@@ -762,7 +798,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             alert("Invalid JSON format: must be an array of question objects.");
                             return;
                         }
-                        const newRef = push(ref(db, 'admin/quizBanks'));
+                        const newRef = push(ref(db, getRoomPath('state/quizBanks')));
                         await set(newRef, {
                             topic: topic,
                             timerSecs: timer,
@@ -777,7 +813,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 reader.readAsText(file);
             } else {
-                const newRef = push(ref(db, 'admin/quizBanks'));
+                const newRef = push(ref(db, getRoomPath('state/quizBanks')));
                 await set(newRef, {
                     topic: topic,
                     timerSecs: timer,
@@ -851,7 +887,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const qObj = storedQuizBanks[qid];
                 if (!qObj || !qObj.quizData) return;
                 
-                await set(ref(db, 'admin/currentQuizData'), qObj.quizData);
+                await set(ref(db, getRoomPath('state/currentQuizData')), qObj.quizData);
                 const timerSecs = qObj.timerSecs || 0;
                 const stateObj = {
                     active: true,
@@ -862,8 +898,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     questionIndex: 0
                 };
                 if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                await set(ref(db, 'admin/quizState'), stateObj);
-                await remove(ref(db, 'quizScores'));
+                await set(ref(db, getRoomPath('state/quizState')), stateObj);
+                await remove(ref(db, getRoomPath('quizScores')));
                 answeredQuestions.clear();
             });
         });
@@ -875,7 +911,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const qObj = storedQuizBanks[qid];
                 const sess = qObj?.lastSession;
                 if (!sess) return;
-                await set(ref(db, 'admin/quizState'), {
+                await set(ref(db, getRoomPath('state/quizState')), {
                     active: true,
                     bankId: qid,
                     topic: qObj.topic || 'Quiz',
@@ -891,7 +927,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const qid = e.target.dataset.qid;
                 if (confirm("Are you sure you want to delete this quiz bank?")) {
-                    await remove(ref(db, `admin/quizBanks/${qid}`));
+                    await remove(ref(db, getRoomPath(`state/quizBanks/${qid}`)));
                 }
             });
         });
@@ -914,7 +950,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/quizState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/quizState')), (snapshot) => {
             const state = snapshot.val();
         
         // Evaluate previous answer if phase changed or question advanced
@@ -924,7 +960,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const correctIdx = quizData[oldQuizState.questionIndex].correctIndex;
                 if (currentSelectedAnswer === correctIdx && !answeredQuestions.has(oldQuizState.questionIndex)) {
                     answeredQuestions.add(oldQuizState.questionIndex);
-                    set(ref(db, `quizScores/${auth.currentUser.uid}`), {
+                    set(ref(db, getRoomPath(`quizScores/${auth.currentUser.uid}`)), {
                         score: myScore + 1,
                         name: auth.currentUser.displayName || 'Unknown'
                     });
@@ -946,11 +982,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     autoJumpTimeoutId = setTimeout(() => {
                         const nextIdx = state.questionIndex + 1;
                         if (nextIdx >= quizData.length) {
-                            set(ref(db, 'admin/quizState'), { ...state, active: true, phase: 'podium' });
+                            set(ref(db, getRoomPath('state/quizState')), { ...state, active: true, phase: 'podium' });
                         } else {
                             const stateObj = { ...state, active: true, phase: 'question', questionIndex: nextIdx };
                             if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                            set(ref(db, 'admin/quizState'), stateObj);
+                            set(ref(db, getRoomPath('state/quizState')), stateObj);
                         }
                     }, timerSecs * 1000);
                 }
@@ -1018,8 +1054,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderPodium();
 
             if (state.bankId) {
-                get(ref(db, 'quizScores')).then(scoresSnap => {
-                    set(ref(db, `admin/quizBanks/${state.bankId}/lastSession`), {
+                get(ref(db, getRoomPath('quizScores'))).then(scoresSnap => {
+                    set(ref(db, getRoomPath(`state/quizBanks/${state.bankId}/lastSession`)), {
                         quizScores: scoresSnap.val() || {},
                         podiumData: { finishedAt: Date.now() }
                     });
@@ -1028,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'quizScores'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('quizScores')), (snapshot) => {
             allQuizScores = snapshot.val() || {};
             if (oldQuizState?.phase === 'podium') renderPodium();
         }));
@@ -1039,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof window.renderUserList === 'function') window.renderUserList();
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'presence'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('presence')), (snapshot) => {
             onlinePresence = snapshot.val() || {};
             if (oldQuizState?.phase === 'podium') renderPodium();
             if (typeof window.renderUserList === 'function') window.renderUserList();
@@ -1211,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     kickBtn.onclick = (e) => {
                         e.stopPropagation();
                         if (confirm(`Are you sure you want to forcefully disconnect ${u.name}?`)) {
-                            set(ref(db, `admin/kicklist/${u.uid}`), true).catch(err => alert("Kick failed: " + err.message));
+                            set(ref(db, getRoomPath(`kicklist/${u.uid}`)), true).catch(err => alert("Kick failed: " + err.message));
                         }
                     };
                     li.appendChild(kickBtn);
@@ -1345,7 +1381,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Need at least 2 online users to start a contest!');
                 return;
             }
-            set(ref(db, 'admin/kbcState'), {
+            set(ref(db, getRoomPath('state/kbcState')), {
                 active: true,
                 round: 1,
                 phase: 'input',
@@ -1357,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnKbcRes) {
         btnKbcRes.addEventListener('click', async () => {
             if (currentQuizPhase !== 'idle' || !lastKbcArchive) return;
-            await set(ref(db, 'admin/kbcState'), {
+            await set(ref(db, getRoomPath('state/kbcState')), {
                 active: true,
                 round: lastKbcArchive.round || 1,
                 phase: 'ended',
@@ -1372,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnKbcEnd) {
         btnKbcEnd.addEventListener('click', async () => {
             if (confirm("Are you sure you want to end the KBC game early and crown the winner based on current points?")) {
-                const snap = await get(ref(db, 'admin/kbcState'));
+                const snap = await get(ref(db, getRoomPath('state/kbcState')));
                 const state = snap.val();
                 if (!state || !state.active || !state.players) return;
                 
@@ -1383,15 +1419,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     history: state.history || [],
                     deadlockRuleActive: !!state.deadlockRuleActive
                 };
-                await set(ref(db, 'admin/kbcState'), { ...state, phase: 'ended' });
-                await set(ref(db, 'admin/kbcArchive'), archiveObj);
+                await set(ref(db, getRoomPath('state/kbcState')), { ...state, phase: 'ended' });
+                await set(ref(db, getRoomPath('state/kbcArchive')), archiveObj);
             }
         });
     }
 
     if (btnKbcReturn) {
         btnKbcReturn.addEventListener('click', async () => {
-            await set(ref(db, 'admin/kbcState/active'), false);
+            await set(ref(db, getRoomPath('state/kbcState/active')), false);
         });
     }
 
@@ -1411,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Please pick a number between 0 and 100.');
                 return;
             }
-            set(ref(db, `admin/kbcState/players/${auth.currentUser.uid}/submitted`), val)
+            set(ref(db, getRoomPath(`state/kbcState/players/${auth.currentUser.uid}/submitted`)), val)
                 .catch(err => {
                     console.error('KBC submit failed:', err);
                     alert('Failed to submit: ' + err.message);
@@ -1426,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             // Read current state
-            const snap = await get(ref(db, 'admin/kbcState'));
+            const snap = await get(ref(db, getRoomPath('state/kbcState')));
             const state = snap.val();
             if (!state || !state.active || state.phase !== 'input' || !state.players) {
                 kbcResolving = false;
@@ -1596,11 +1632,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 history: existingHistory,
                 deadlockRuleActive: nextDeadlockRuleActive
             };
-            await set(ref(db, 'admin/kbcArchive'), currentArchiveObj);
+            await set(ref(db, getRoomPath('state/kbcArchive')), currentArchiveObj);
 
             if (remainingActive.length <= 1) {
                 // Game over
-                await set(ref(db, 'admin/kbcState'), {
+                await set(ref(db, getRoomPath('state/kbcState')), {
                     active: true,
                     round: state.round,
                     phase: 'ended',
@@ -1611,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             } else {
                 // Show result, then auto-advance to next round after a delay
-                await set(ref(db, 'admin/kbcState'), {
+                await set(ref(db, getRoomPath('state/kbcState')), {
                     active: true,
                     round: state.round,
                     phase: 'result',
@@ -1627,7 +1663,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     for (const [uid, p] of Object.entries(updatedPlayers)) {
                         nextPlayers[uid] = { name: p.name, points: p.points };
                     }
-                    await set(ref(db, 'admin/kbcState'), {
+                    await set(ref(db, getRoomPath('state/kbcState')), {
                         active: true,
                         round: state.round + 1,
                         phase: 'input',
@@ -1646,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Real-time KBC state listener
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/kbcState')), (snapshot) => {
         const state = snapshot.val();
 
         if (!state || !state.active) {
@@ -1832,12 +1868,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }));
 
         // Real-time Survey Master listeners
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveys'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/surveys')), (snapshot) => {
             storedSurveys = snapshot.val() || {};
             renderSurveyBank();
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveyState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/surveyState')), (snapshot) => {
             currentSurveyState = snapshot.val();
             if (currentSurveyState && currentSurveyState.active) {
                 if (adminActiveSurveyControls) adminActiveSurveyControls.classList.remove('hidden');
@@ -1886,7 +1922,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const sid = e.target.dataset.sid;
                 const sObj = storedSurveys[sid];
                 if (!sObj) return;
-                await set(ref(db, 'admin/surveyState'), {
+                await set(ref(db, getRoomPath('state/surveyState')), {
                     active: true,
                     surveyId: sid,
                     question: sObj.question,
@@ -1923,7 +1959,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const sObj = storedSurveys[sid];
                 const sess = sObj?.lastSession;
                 if (!sess) return;
-                await set(ref(db, 'admin/surveyState'), {
+                await set(ref(db, getRoomPath('state/surveyState')), {
                     active: true,
                     surveyId: sid,
                     question: sObj.question,
@@ -1942,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (currentQuizPhase !== 'idle') { alert("Please return to lobby first!"); return; }
                 const sid = e.target.dataset.sid;
                 if (confirm("Are you sure you want to delete this survey question?")) {
-                    await remove(ref(db, `admin/surveys/${sid}`));
+                    await remove(ref(db, getRoomPath(`state/surveys/${sid}`)));
                 }
             });
         });
@@ -1958,11 +1994,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const editingSid = btnSurveyCreate.dataset.editingSid;
             if (editingSid) {
-                await set(ref(db, `admin/surveys/${editingSid}`), { question: q, scale: scale, minLabel: minL, maxLabel: maxL });
+                await set(ref(db, getRoomPath(`state/surveys/${editingSid}`)), { question: q, scale: scale, minLabel: minL, maxLabel: maxL });
                 btnSurveyCreate.textContent = "+ Add to Question Bank";
                 delete btnSurveyCreate.dataset.editingSid;
             } else {
-                const newRef = push(ref(db, 'admin/surveys'));
+                const newRef = push(ref(db, getRoomPath('state/surveys')));
                 await set(newRef, { question: q, scale: scale, minLabel: minL, maxLabel: maxL });
             }
             surveyAddQ.value = '';
@@ -1992,11 +2028,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const avg = total > 0 ? parseFloat((sum / total).toFixed(2)) : 0;
             
             const resObj = { counts: counts, average: avg, total: total };
-            await set(ref(db, 'admin/surveyState/results'), resObj);
-            await set(ref(db, 'admin/surveyState/phase'), 'result');
+            await set(ref(db, getRoomPath('state/surveyState/results')), resObj);
+            await set(ref(db, getRoomPath('state/surveyState/phase')), 'result');
             
             if (currentSurveyState?.surveyId) {
-                await set(ref(db, `admin/surveys/${currentSurveyState.surveyId}/lastSession`), {
+                await set(ref(db, getRoomPath(`state/surveys/${currentSurveyState.surveyId}/lastSession`)), {
                     submissions: subs,
                     results: resObj
                 });
@@ -2007,12 +2043,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnSurveyEnd) {
         btnSurveyEnd.addEventListener('click', async () => {
             if (currentSurveyState?.surveyId) {
-                await set(ref(db, `admin/surveys/${currentSurveyState.surveyId}/lastSession`), {
+                await set(ref(db, getRoomPath(`state/surveys/${currentSurveyState.surveyId}/lastSession`)), {
                     submissions: currentSurveyState.submissions || {},
                     results: currentSurveyState.results || {}
                 });
             }
-            await set(ref(db, 'admin/surveyState/active'), false);
+            await set(ref(db, getRoomPath('state/surveyState/active')), false);
         });
     }
 
@@ -2061,7 +2097,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ];
 
             console.log(`Launching Equations Warm-Up Game with A=${A}, B=${B}, Passcode=${warmupPasscode}...`);
-            await set(ref(db, 'admin/equationsState'), {
+            await set(ref(db, getRoomPath('state/equationsState')), {
                 active: true,
                 phase: 'warmup',
                 players: playerRoles,
@@ -2100,7 +2136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             console.log("Launching Cooperative Equations Game with assignments:", playerRoles);
-            await set(ref(db, 'admin/equationsState'), {
+            await set(ref(db, getRoomPath('state/equationsState')), {
                 active: true,
                 phase: 'active',
                 players: playerRoles
@@ -2110,13 +2146,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnEquationsEnd) {
         btnEquationsEnd.addEventListener('click', async () => {
-            await set(ref(db, 'admin/equationsState/active'), false);
+            await set(ref(db, getRoomPath('state/equationsState/active')), false);
         });
     }
 
     // Live Equations state listener inside Host Console
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/equationsState')), (snapshot) => {
             const state = snapshot.val();
             currentEquationsStateObj = state;
 

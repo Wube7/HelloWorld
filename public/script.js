@@ -53,6 +53,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ADMIN_EMAILS = ['wube8816@gmail.com'];
     const SUPER_ADMIN_EMAIL = 'wube@google.com';
 
+    // Centralized Path Scoping Helper
+    function getRoomPath(subPath) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'lobby';
+        return `rooms/${roomId}/${subPath}`;
+    }
+
     // Room Portal Elements
     const roomPortalSection = document.getElementById('room-portal-section');
     const btnTabJoin = document.getElementById('btn-tab-join');
@@ -408,7 +415,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     lastActive: Date.now()
                 }).catch(console.error);
                 
-                await set(ref(db, `presence/${myUid}`), {
+                await set(ref(db, getRoomPath(`presence/${myUid}`)), {
                     online: true,
                     name: anonName,
                     isAnon: true
@@ -491,11 +498,53 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Scenario A: Room ID is present in URL -> Proceed to standard Room/Lobby setup
-            await enterLobby(user);
+            // Scenario A: Room ID is present in URL -> Verify Password before entering Lobby
+            try {
+                const metaSnap = await get(ref(db, `rooms/${roomId}/metadata`));
+                if (!metaSnap.exists()) {
+                    alert("❌ 房間不存在，將引導您回到大廳首頁！");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                const metadata = metaSnap.val();
+                const requiredPwd = metadata.password || "";
+                
+                if (requiredPwd !== "") {
+                    // Check URL parameter bypass first
+                    const urlPwd = urlParams.get('pwd');
+                    const sessionUnlocked = sessionStorage.getItem(`unlocked_room_${roomId}`) === 'true';
+                    
+                    if (urlPwd !== requiredPwd && !sessionUnlocked) {
+                        // Prompt password modal
+                        const userEnteredPwd = prompt("🔑 此房間已受密碼保護，請輸入密碼進入：");
+                        if (userEnteredPwd !== requiredPwd) {
+                            alert("❌ 密碼錯誤！將返回大廳首頁。");
+                            window.location.href = "index.html";
+                            return;
+                        }
+                        sessionStorage.setItem(`unlocked_room_${roomId}`, 'true');
+                    } else if (urlPwd === requiredPwd) {
+                        // URL password bypass is valid -> Save to session for subsequent refreshes
+                        sessionStorage.setItem(`unlocked_room_${roomId}`, 'true');
+                    }
+                }
+
+                // Update QR Code on player lobby to point to the current room
+                const joinUrl = `${window.location.origin}/index.html?room=${roomId}${requiredPwd ? '&pwd=' + encodeURIComponent(requiredPwd) : ''}`;
+                const qrLink = document.getElementById('qr-code-link');
+                const qrImg = document.getElementById('qr-code-img');
+                if (qrLink) qrLink.href = joinUrl;
+                if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
+
+                await enterLobby(user);
+            } catch (e) {
+                console.error("Error verifying room credentials:", e);
+                window.location.href = "index.html";
+            }
 
             // Listen to forceful logout kick
-            const kickRef = ref(db, `admin/kicklist/${user.uid}`);
+            const kickRef = ref(db, getRoomPath(`kicklist/${user.uid}`));
             onValue(kickRef, async (snap) => {
                 if (snap.exists() && snap.val() === true) {
                     alert("🚷 You have been forcefully logged out by an administrator!");
@@ -522,12 +571,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (userScoreListener) { userScoreListener(); }
-            userScoreListener = onValue(ref(db, `quizScores/${user.uid}`), (snap) => {
+            userScoreListener = onValue(ref(db, getRoomPath(`quizScores/${user.uid}`)), (snap) => {
                 myScore = snap.val()?.score || 0;
             });
 
             // Setup Presence Write
-            userPresenceRef = ref(db, `presence/${user.uid}`);
+            userPresenceRef = ref(db, getRoomPath(`presence/${user.uid}`));
             const connectedRef = ref(db, '.info/connected');
             
             if (connectedUnsubscribe) connectedUnsubscribe();
@@ -580,7 +629,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // 4. Track Total Online Users
-    const presenceRef = ref(db, 'presence');
+    const presenceRef = ref(db, getRoomPath('presence'));
     initDatabaseFuncs.push(() => {
         dbListenersUnsubscribes.push(onValue(presenceRef, (snapshot) => {
             const onlineUsersCount = snapshot.size;
@@ -686,7 +735,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/currentQuizData'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/currentQuizData')), (snapshot) => {
             if (snapshot.exists() && Array.isArray(snapshot.val())) {
                 quizData = snapshot.val();
             } else {
@@ -694,7 +743,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }));
 
-        const globalViewRef = ref(db, 'admin/globalView');
+        const globalViewRef = ref(db, getRoomPath('state/globalView'));
         dbListenersUnsubscribes.push(onValue(globalViewRef, (snapshot) => {
             const data = snapshot.val();
             currentGlobalViewMode = (data && data.view) || 'main';
@@ -718,7 +767,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             chatInput.value = '';
             
-            const msgRef = ref(db, 'messages');
+            const msgRef = ref(db, getRoomPath('messages'));
             try {
                 await push(msgRef, {
                     text: text,
@@ -734,7 +783,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Receive messages
         initDatabaseFuncs.push(() => {
-            const recentMessagesQuery = query(ref(db, 'messages'), orderByChild('timestamp'), limitToLast(50));
+            const recentMessagesQuery = query(ref(db, getRoomPath('messages')), orderByChild('timestamp'), limitToLast(50));
             
             dbListenersUnsubscribes.push(onChildAdded(recentMessagesQuery, (snapshot) => {
                 const data = snapshot.val();
@@ -782,27 +831,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const timerSecs = parseInt(autoJumpInput?.value) || 0;
             const stateObj = { active: true, phase: 'question', questionIndex: 0 };
             if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-            set(ref(db, 'admin/quizState'), stateObj);
+            set(ref(db, getRoomPath('state/quizState')), stateObj);
         });
         btnQuizNext.addEventListener('click', () => {
             if (!oldQuizState) return;
             const nextIdx = (oldQuizState.questionIndex || 0) + 1;
             if (nextIdx >= quizData.length) {
-                set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+                set(ref(db, getRoomPath('state/quizState')), { active: true, phase: 'podium' });
             } else {
                 const timerSecs = parseInt(autoJumpInput?.value) || 0;
                 const stateObj = { active: true, phase: 'question', questionIndex: nextIdx };
                 if (timerSecs > 0) stateObj.timerEnd = Date.now() + timerSecs * 1000;
-                set(ref(db, 'admin/quizState'), stateObj);
+                set(ref(db, getRoomPath('state/quizState')), stateObj);
             }
         });
         btnQuizEnd.addEventListener('click', () => {
-            set(ref(db, 'admin/quizState'), { active: true, phase: 'podium' });
+            set(ref(db, getRoomPath('state/quizState')), { active: true, phase: 'podium' });
         });
         btnQuizReset.addEventListener('click', async () => {
             if (confirm("Are you sure you want to delete all scores and reset the quiz?")) {
-                await set(ref(db, 'admin/quizState'), { active: false });
-                await remove(ref(db, 'quizScores'));
+                await set(ref(db, getRoomPath('state/quizState')), { active: false });
+                await remove(ref(db, getRoomPath('quizScores')));
                 answeredQuestions.clear();
                 alert("Quiz reset!");
             }
@@ -842,7 +891,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/quizState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/quizState')), (snapshot) => {
             const state = snapshot.val();
         
         // Evaluate previous answer if phase changed or question advanced
@@ -852,7 +901,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const correctIdx = quizData[oldQuizState.questionIndex].correctIndex;
                 if (currentSelectedAnswer === correctIdx && !answeredQuestions.has(oldQuizState.questionIndex)) {
                     answeredQuestions.add(oldQuizState.questionIndex);
-                    set(ref(db, `quizScores/${auth.currentUser.uid}`), {
+                    set(ref(db, getRoomPath(`quizScores/${auth.currentUser.uid}`)), {
                         score: myScore + 1,
                         name: auth.currentUser.displayName || 'Unknown'
                     });
@@ -936,7 +985,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'quizScores'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('quizScores')), (snapshot) => {
             allQuizScores = snapshot.val() || {};
             if (oldQuizState?.phase === 'podium') renderPodium();
         }));
@@ -947,14 +996,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof window.renderUserList === 'function') window.renderUserList();
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'presence'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('presence')), (snapshot) => {
             onlinePresence = snapshot.val() || {};
             if (oldQuizState?.phase === 'podium') renderPodium();
             if (typeof window.renderUserList === 'function') window.renderUserList();
         }));
 
         // Real-time Cooperative Equations Game listener
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/equationsState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/equationsState')), (snapshot) => {
             const state = snapshot.val();
             if (state && state.active) {
                 if (state.phase === 'warmup') {
@@ -1053,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Dynamically resolve target passcode matching current phase
                 let targetPasscode = EQUATIONS_PASSCODE; // Default active 32
-                const stateSnap = await get(ref(db, 'admin/equationsState'));
+                const stateSnap = await get(ref(db, getRoomPath('state/equationsState')));
                 if (stateSnap.exists() && stateSnap.val().phase === 'warmup') {
                     targetPasscode = stateSnap.val().warmupPasscode !== undefined ? stateSnap.val().warmupPasscode : WARMUP_PASSCODE;
                 }
@@ -1065,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Broadcast solved: true securely to Firebase
                     const myUid = auth.currentUser?.uid;
                     if (myUid) {
-                        await set(ref(db, `admin/equationsState/players/${myUid}/solved`), true);
+                        await set(ref(db, getRoomPath(`state/equationsState/players/${myUid}/solved`)), true);
                     }
                 } else {
                     alert("❌ Passcode Denied! Check calculations!");
@@ -1157,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new Error(`Question ${idx + 1} has an invalid 'correctIndex'.`);
                     });
 
-                    set(ref(db, 'admin/currentQuizData'), parsed)
+                    set(ref(db, getRoomPath('state/currentQuizData')), parsed)
                         .then(() => {
                             alert("Custom quiz uploaded and deployed successfully!");
                             e.target.value = ''; // reset
@@ -1178,7 +1227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnQuizDefault) {
         btnQuizDefault.addEventListener('click', () => {
             if (confirm("Are you sure you want to revert to the default quiz data? All participants will immediately sync.")) {
-                remove(ref(db, 'admin/currentQuizData'))
+                remove(ref(db, getRoomPath('state/currentQuizData')))
                     .then(() => alert("Reverted to default quiz successfully!"))
                     .catch(err => alert("Failed to revert: " + err.message));
             }
@@ -1324,7 +1373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     kickBtn.onclick = (e) => {
                         e.stopPropagation();
                         if (confirm(`Are you sure you want to forcefully disconnect ${u.name}?`)) {
-                            set(ref(db, `admin/kicklist/${u.uid}`), true).catch(err => alert("Kick failed: " + err.message));
+                            set(ref(db, getRoomPath(`kicklist/${u.uid}`)), true).catch(err => alert("Kick failed: " + err.message));
                         }
                     };
                     li.appendChild(kickBtn);
@@ -1457,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Need at least 2 online users to start a contest!');
                 return;
             }
-            set(ref(db, 'admin/kbcState'), {
+            set(ref(db, getRoomPath('state/kbcState')), {
                 active: true,
                 round: 1,
                 phase: 'input',
@@ -1477,7 +1526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnKbcReset) {
         btnKbcReset.addEventListener('click', () => {
             if (confirm('Are you sure you want to reset the Keynesian Beauty Contest?')) {
-                remove(ref(db, 'admin/kbcState'));
+                remove(ref(db, getRoomPath('state/kbcState')));
             }
         });
     }
@@ -1486,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnKbcForce) {
         btnKbcForce.addEventListener('click', () => {
             // Trigger resolution manually via the listener by reading current state
-            const kbcRef = ref(db, 'admin/kbcState');
+            const kbcRef = ref(db, getRoomPath('state/kbcState'));
             onValue(kbcRef, (snapshot) => {
                 // one-shot read — we only want to run this once
             }, { onlyOnce: true });
@@ -1504,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Please pick a number between 0 and 100.');
                 return;
             }
-            set(ref(db, `admin/kbcState/players/${auth.currentUser.uid}/submitted`), val)
+            set(ref(db, getRoomPath(`state/kbcState/players/${auth.currentUser.uid}/submitted`)), val)
                 .catch(err => {
                     console.error('KBC submit failed:', err);
                     alert('Failed to submit: ' + err.message);
@@ -1520,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Read current state
             const snap = await new Promise(resolve => {
-                onValue(ref(db, 'admin/kbcState'), resolve, { onlyOnce: true });
+                onValue(ref(db, getRoomPath('state/kbcState')), resolve, { onlyOnce: true });
             });
             const state = snap.val();
             if (!state || !state.active || state.phase !== 'input' || !state.players) {
@@ -1686,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (remainingActive.length <= 1) {
                 // Game over
-                await set(ref(db, 'admin/kbcState'), {
+                await set(ref(db, getRoomPath('state/kbcState')), {
                     active: true,
                     round: state.round,
                     phase: 'ended',
@@ -1697,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             } else {
                 // Show result, then auto-advance to next round after a delay
-                await set(ref(db, 'admin/kbcState'), {
+                await set(ref(db, getRoomPath('state/kbcState')), {
                     active: true,
                     round: state.round,
                     phase: 'result',
@@ -1713,7 +1762,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     for (const [uid, p] of Object.entries(updatedPlayers)) {
                         nextPlayers[uid] = { name: p.name, points: p.points };
                     }
-                    await set(ref(db, 'admin/kbcState'), {
+                    await set(ref(db, getRoomPath('state/kbcState')), {
                         active: true,
                         round: state.round + 1,
                         phase: 'input',
@@ -1732,7 +1781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Real-time KBC state listener
     initDatabaseFuncs.push(() => {
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/kbcState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/kbcState')), (snapshot) => {
         const state = snapshot.val();
 
         if (!state || !state.active) {
@@ -1911,7 +1960,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }));
 
         // Real-time Survey listener
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/surveyState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/surveyState')), (snapshot) => {
             const state = snapshot.val();
             if (!state || !state.active) {
                 currentQuizPhase = (currentQuizPhase.startsWith('survey')) ? 'idle' : currentQuizPhase;
@@ -1957,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }));
 
         // Real-time Survey Ideas listener
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/ideaState')), (snapshot) => {
             currentIdeaStateObj = snapshot.val();
             if (!currentIdeaStateObj || !currentIdeaStateObj.active) {
                 currentQuizPhase = (currentQuizPhase.startsWith('idea')) ? 'idle' : currentQuizPhase;
@@ -2039,7 +2088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const clickVal = parseInt(e.target.dataset.val);
                 
                 try {
-                    const ideaRef = ref(db, `admin/ideaState/ideas/${iid}`);
+                    const ideaRef = ref(db, getRoomPath(`state/ideaState/ideas/${iid}`));
                     await runTransaction(ideaRef, (currentIdea) => {
                         if (!currentIdea || currentIdea.uid === auth.currentUser.uid) return currentIdea;
                         
@@ -2080,7 +2129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnSurveySubmit.disabled = true;
             if (surveyClientSlider) surveyClientSlider.disabled = true;
             try {
-                await set(ref(db, `admin/surveyState/submissions/${auth.currentUser.uid}`), val);
+                await set(ref(db, getRoomPath(`state/surveyState/submissions/${auth.currentUser.uid}`)), val);
                 if (surveySubmittedBanner) {
                     surveySubmittedBanner.textContent = "✅ Submitted successfully! Waiting for host to reveal results...";
                     surveySubmittedBanner.classList.remove('hidden');
@@ -2103,7 +2152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnIdeaSubmit.disabled = true;
             ideaClientInput.disabled = true;
             try {
-                const newIdeaRef = push(ref(db, 'admin/ideaState/ideas'));
+                const newIdeaRef = push(ref(db, getRoomPath('state/ideaState/ideas')));
                 const iid = newIdeaRef.key;
                 await set(newIdeaRef, {
                     id: iid,
