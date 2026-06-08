@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderIdeaBank();
         }));
 
-        dbListenersUnsubscribes.push(onValue(ref(db, 'admin/ideaState'), (snapshot) => {
+        dbListenersUnsubscribes.push(onValue(ref(db, getRoomPath('state/ideaState')), (snapshot) => {
             currentIdeaStateObj = snapshot.val();
             if (currentIdeaStateObj && currentIdeaStateObj.active) {
                 if (adminActiveIdeaControls) adminActiveIdeaControls.classList.remove('hidden');
@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const pObj = storedIdeaPrompts[pid];
                 if (!pObj) return;
                 const isAnon = document.getElementById('toggle-idea-anon')?.checked ?? true;
-                await set(ref(db, 'admin/ideaState'), {
+                await set(ref(db, getRoomPath('state/ideaState')), {
                     active: true,
                     surveyId: pid,
                     question: pObj.question,
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const pObj = storedIdeaPrompts[pid];
                 const sess = pObj?.lastSession;
                 if (!sess || !sess.ideas) return;
-                await set(ref(db, 'admin/ideaState'), {
+                await set(ref(db, getRoomPath('state/ideaState')), {
                     active: true,
                     surveyId: pid,
                     question: pObj.question,
