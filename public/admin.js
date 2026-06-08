@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const SUPER_ADMIN_EMAIL = 'wube@google.com';
     let quizData = [];
     let defaultQuizData = [];
     fetch('quiz.json').then(res => res.json()).then(data => {
