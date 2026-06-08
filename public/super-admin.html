@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超級管理控制台 - Brainstorm Room</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        @media (min-width: 768px) {
+            .admin-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+        .config-card, .rooms-card {
+            padding: 2rem;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+        .radio-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .radio-option input {
+            cursor: pointer;
+        }
+        .rooms-table-wrapper {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        .rooms-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .rooms-table th, .rooms-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .rooms-table th {
+            font-weight: bold;
+            color: var(--accent-1);
+        }
+        .btn-delete-room {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid #ef4444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete-room:hover {
+            background: #ef4444;
+            color: white;
+        }
+        .access-denied-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="logged-in-white">
+    <div class="background-animation"></div>
+    <div class="container">
+        <header class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 1.3rem; background: linear-gradient(135deg, #ec4899, #d946ef); color: white; padding: 4px 16px; border-radius: 20px; font-weight: bold; box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);">👑 SUPER ADMIN</span>
+                <h1 style="font-size: 2rem; margin: 0; color: #0f172a;">超級管理控制台</h1>
+            </div>
+            <div class="header-right">
+                <div id="user-profile" class="glass-panel-small user-badge" style="color: #0f172a; font-weight: bold;">
+                    👤 <span id="admin-email-display">Loading...</span>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- Access Denied Screen -->
+            <div id="access-denied-screen" class="hidden access-denied-container glass-panel">
+                <h2 style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;">🚷 權限不足</h2>
+                <p style="font-size: 1.25rem; color: #475569; max-width: 500px; margin: 0 auto 2rem auto;">此控制台僅限系統唯一超級管理員 <b>wube@google.com</b> 登入存取。請登出並使用正確的帳號重新登入。</p>
+                <button id="btn-admin-logout" class="primary-btn" style="background: #ef4444; border-color: #dc2626;">🚪 登出並返回</button>
+            </div>
+
+            <!-- Admin Grid Content -->
+            <div id="admin-dashboard-view" class="hidden admin-grid">
+                <!-- Left: Global Configuration -->
+                <section class="glass-panel config-card">
+                    <h2 style="color: #0f172a; font-size: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem;">⚙️ 全局創房限制</h2>
+                    <p style="color: #64748b; font-size: 0.95rem; margin-top: 0.5rem; line-height: 1.5;">設定哪些身份的使用者可以在平台上創建獨立房間與解密遊戲：</p>
+                    
+                    <div class="radio-group" id="restriction-group">
+                        <label class="radio-option">
+                            <input type="radio" name="creation-rule" value="admin_only">
+                            <span>僅限超級管理員 (wube)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="creation-rule" value="googler_and_admin">
+                            <span>僅限管理員與 Googler (*@google.com)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="creation-rule" value="all_logged_in">
+                            <span>所有已登入帳號 (含個人 Google 帳號)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="creation-rule" value="anyone">
+                            <span>任何人皆可創建 (包含匿名登入)</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Right: Active Rooms list -->
+                <section class="glass-panel rooms-card">
+                    <h2 style="color: #0f172a; font-size: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>🏢 活躍房間列表</span>
+                        <span style="font-size: 1rem; background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 4px 12px; border-radius: 12px;" id="total-rooms-badge">0 房間</span>
+                    </h2>
+                    
+                    <div class="rooms-table-wrapper">
+                        <table class="rooms-table">
+                            <thead>
+                                <tr>
+                                    <th>房間 ID</th>
+                                    <th>房間名稱</th>
+                                    <th>創立人</th>
+                                    <th>創立日期</th>
+                                    <th style="text-align: right;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rooms-list-body">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">🔄 正在載入房間資料...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="super-admin.js"></script>
+</body>
+</html>
