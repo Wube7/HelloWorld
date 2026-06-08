@@ -632,68 +632,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    // 5. Global Chat Logic
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-
-    if (chatForm) {
-        // Send message
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = chatInput.value.trim();
-            if (!text || !auth.currentUser) return;
-            
-            chatInput.value = '';
-            
-            const msgRef = ref(db, getRoomPath('messages'));
-            try {
-                await push(msgRef, {
-                    text: text,
-                    uid: auth.currentUser.uid,
-                    name: auth.currentUser.displayName || 'Unknown',
-                    timestamp: serverTimestamp()
-                });
-            } catch (err) {
-                console.error("Error sending message:", err);
-                alert("Failed to send message: " + err.message);
-            }
-        });
-
-        // Receive messages
-        initDatabaseFuncs.push(() => {
-            const recentMessagesQuery = query(ref(db, getRoomPath('messages')), orderByChild('timestamp'), limitToLast(50));
-            
-            dbListenersUnsubscribes.push(onChildAdded(recentMessagesQuery, (snapshot) => {
-                const data = snapshot.val();
-                
-                const wrapperDiv = document.createElement('div');
-                wrapperDiv.classList.add('chat-message-wrapper');
-                if (auth.currentUser && data.uid === auth.currentUser.uid) {
-                    wrapperDiv.classList.add('self');
-                }
-                
-                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleDateString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Just now';
-                
-                wrapperDiv.innerHTML = `
-                    <div class="msg-meta">
-                        <span class="msg-name"></span>
-                        <span class="msg-time"></span>
-                    </div>
-                    <div class="msg-bubble">
-                        <div class="msg-text"></div>
-                    </div>
-                `;
-                wrapperDiv.querySelector('.msg-name').textContent = data.name;
-                wrapperDiv.querySelector('.msg-time').textContent = timeString;
-                wrapperDiv.querySelector('.msg-text').textContent = data.text;
-
-                chatMessages.appendChild(wrapperDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
-            }));
-        });
-    }
-
     // --- QUIZ LOGIC ---
     quizBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
