@@ -143,6 +143,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inputCreateRoomPwd = document.getElementById('input-create-room-pwd');
     const btnSubmitCreateRoom = document.getElementById('btn-submit-create-room');
 
+    const btnLangToggle = document.getElementById('btn-lang-toggle');
+    const btnExitRoom = document.getElementById('btn-exit-room');
+    const panelMyRooms = document.getElementById('panel-my-rooms');
+    const myRoomsList = document.getElementById('my-rooms-list');
+
     async function renderMyRooms() {
         if (!myRoomsList || !panelMyRooms) return;
         const user = auth.currentUser;
@@ -312,12 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Trigger initial language layout on DOMContentLoaded
     setTimeout(applyLanguage, 100);
-    
-
-    const btnLangToggle = document.getElementById('btn-lang-toggle');
-    const btnExitRoom = document.getElementById('btn-exit-room');
-    const panelMyRooms = document.getElementById('panel-my-rooms');
-    const myRoomsList = document.getElementById('my-rooms-list');
     
 
     // Tab Switching Logic
