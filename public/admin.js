@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 5000);
 
+    // Centralized Path Scoping Helper
+    function getRoomPath(subPath) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'lobby';
+        return `rooms/${roomId}/${subPath}`;
+    }
+
     // 1. Initialize Firebase from Hosting Init URL
     let app, auth, db;
     try {
@@ -26,14 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         app = initializeApp(config);
         auth = getAuth(app);
         db = getDatabase(app);
-
-
-    // Centralized Path Scoping Helper
-    function getRoomPath(subPath) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomId = urlParams.get('room') || 'lobby';
-        return `rooms/${roomId}/${subPath}`;
-    }
         await setPersistence(auth, browserSessionPersistence).catch(console.error);
     } catch (e) {
         console.error("Firebase init failed. Ensure you are running via Firebase Hosting (e.g. firebase serve/deploy):", e);
