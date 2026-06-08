@@ -24,7 +24,9 @@
                 <div id="user-profile" class="hidden glass-panel-small user-badge">
                     👤 <span id="user-name-display"></span>
                 </div>
+                <button id="btn-exit-room" class="hidden btn-logout" style="border-color: #ef4444; color: #f87171; background: rgba(239, 68, 68, 0.1); font-weight: bold;">🚪 退出房間</button>
                 <button id="btn-logout" class="hidden btn-logout">🚪 Log Out</button>
+                <button id="btn-lang-toggle" class="btn-logout" style="border-color: #64748b; color: #64748b; font-weight: bold; background: rgba(255,255,255,0.02);">🌐 EN</button>
                 <div id="online-counter" class="hidden glass-panel-small" title="Click to toggle online users">
                     <span class="pulse-dot"></span> <span id="user-count">0</span> online
                 </div>
@@ -58,21 +60,29 @@
 
             <!-- Panel A: Join Room -->
             <div id="panel-join-room" class="">
-                <p style="color: #64748b; margin-bottom: 1.5rem;">請輸入 6 位數房間代碼與密碼加入協作：</p>
+                <p id="label-join-desc" style="color: #64748b; margin-bottom: 1.5rem;">請輸入 6 位數房間代碼與檢核碼加入協作：</p>
                 <div style="display: flex; flex-direction: column; gap: 15px; max-width: 380px; margin: 0 auto;">
                     <input type="text" id="input-join-room-id" placeholder="房間代碼 (例如 K8A9D3)" maxlength="6" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; text-transform: uppercase; color: #0f172a; background: white;">
-                    <input type="password" id="input-join-room-pwd" placeholder="房間密碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
+                    <input type="password" id="input-join-room-pwd" placeholder="房間檢核碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
                     <button id="btn-submit-join-room" class="primary-btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); margin-top: 1rem;">進入房間</button>
                 </div>
             </div>
 
             <!-- Panel B: Create Room -->
             <div id="panel-create-room" class="hidden">
-                <p style="color: #64748b; margin-bottom: 1.5rem;">為您的團隊建立一個專屬獨立的解密房間：</p>
+                <p id="label-create-desc" style="color: #64748b; margin-bottom: 1.5rem;">為您的團隊建立一個專屬獨立的解密房間：</p>
                 <div style="display: flex; flex-direction: column; gap: 15px; max-width: 380px; margin: 0 auto;">
                     <input type="text" id="input-create-room-name" placeholder="房間名稱 (例如 DeepMind Team A)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
-                    <input type="password" id="input-create-room-pwd" placeholder="設定房間密碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
+                    <input type="password" id="input-create-room-pwd" placeholder="設定房間檢核碼 (選填)" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.1rem; text-align: center; color: #0f172a; background: white;">
                     <button id="btn-submit-create-room" class="primary-btn" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); margin-top: 1rem;">創建並進入房間</button>
+                </div>
+            </div>
+
+            <!-- Panel C: My Rooms (Visible if logged-in user has created rooms) -->
+            <div id="panel-my-rooms" class="hidden" style="margin-top: 2.5rem; border-top: 1px dashed var(--glass-border); padding-top: 1.5rem; text-align: left;">
+                <h3 id="label-my-rooms-title" style="font-size: 1.25rem; font-weight: bold; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">🏢 我創立的房間 My Rooms</h3>
+                <div id="my-rooms-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Dynamically populated -->
                 </div>
             </div>
         </div>

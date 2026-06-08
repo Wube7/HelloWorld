@@ -3,6 +3,76 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuth
 import { getDatabase, ref, onValue, onDisconnect, set, remove, push, serverTimestamp, onChildAdded, query, orderByChild, limitToLast, runTransaction, get } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
 import { EQUATIONS_MATRIX, EQUATIONS_PASSCODE, WARMUP_EQUATIONS, WARMUP_PASSCODE } from './equations_config.js';
 
+    const translations = {
+        zh: {
+            welcome_title: "🚀 歡迎來到 Brainstorm Room ✨",
+            welcome_desc: "進入思想碰撞與魔法發生的競技場：",
+            btn_google: " 使用 Google 帳號登入",
+            btn_anon: "🐾 使用臨時動物帳號",
+            portal_title: "🔑 房間大廳入口 Portal",
+            tab_join: "🚪 加入現有房間",
+            tab_create: "➕ 創建全新房間",
+            join_desc: "請輸入 6 位數房間代碼與檢核碼加入協作：",
+            placeholder_room_id: "房間代碼 (例如 K8A9D3)",
+            placeholder_check_code: "房間檢核碼 (選填)",
+            btn_join: "進入房間",
+            create_desc: "為您的團隊建立一個專屬獨立的解密房間：",
+            placeholder_room_name: "房間名稱 (例如 DeepMind Team A)",
+            placeholder_set_check_code: "設定房間檢核碼 (選填)",
+            btn_create: "創建並進入房間",
+            my_rooms_title: "🏢 我創立的房間 My Rooms",
+            btn_exit_room: "🚪 退出房間",
+            btn_logout: "🚪 登出",
+            global_chat_title: "💬 房間聊天室",
+            btn_delete: "🗑️ 刪除",
+            btn_enter: "🚪 進入",
+            btn_copy: "📋 複製連結",
+            alert_no_room_name: "❌ 請輸入房間名稱！",
+            alert_invalid_room_id: "❌ 請輸入合法的 6 位數房間代碼！",
+            alert_room_not_exist: "❌ 房間不存在，請確認代碼是否輸入正確！",
+            alert_wrong_check_code: "❌ 房間檢核碼錯誤！",
+            alert_no_permission: "❌ 您的帳號無權限創建房間！",
+            prompt_need_check_code: "🔑 此房間已受檢核碼保護，請輸入檢核碼進入：",
+            alert_create_failed: "創建房間失敗: ",
+            alert_join_failed: "加入房間失敗: ",
+            confirm_delete_room: "⚠️ 確定要徹底刪除房間嗎？\n這會連同該房間的狀態、答題分數、實時對話完全清除，無法還原！"
+        },
+        en: {
+            welcome_title: "🚀 Welcome to the Brainstorm Room ✨",
+            welcome_desc: "Enter the arena where ideas collide and magic happens:",
+            btn_google: " Sign in with Google",
+            btn_anon: "🐾 Use Temp Animal Account",
+            portal_title: "🔑 Room Lobby Entrance Portal",
+            tab_join: "🚪 Join Existing Room",
+            tab_create: "➕ Create New Room",
+            join_desc: "Enter 6-digit Room Code and Check Code to join:",
+            placeholder_room_id: "Room Code (e.g. K8A9D3)",
+            placeholder_check_code: "Room Check Code (Optional)",
+            btn_join: "Enter Room",
+            create_desc: "Create an exclusive independent decryption room for your team:",
+            placeholder_room_name: "Room Name (e.g. DeepMind Team A)",
+            placeholder_set_check_code: "Set Room Check Code (Optional)",
+            btn_create: "Create & Enter Room",
+            my_rooms_title: "🏢 My Created Rooms",
+            btn_exit_room: "🚪 Exit Room",
+            btn_logout: "🚪 Log Out",
+            global_chat_title: "💬 Room Chat Room",
+            btn_delete: "🗑️ Delete",
+            btn_enter: "🚪 Join",
+            btn_copy: "📋 Copy Link",
+            alert_no_room_name: "❌ Please enter room name!",
+            alert_invalid_room_id: "❌ Please enter a valid 6-digit Room Code!",
+            alert_room_not_exist: "❌ Room does not exist. Please check the code!",
+            alert_wrong_check_code: "❌ Room Check Code is incorrect!",
+            alert_no_permission: "❌ Your account does not have permission to create rooms!",
+            prompt_need_check_code: "🔑 This room is protected by a Check Code, please enter to join:",
+            alert_create_failed: "Room creation failed: ",
+            alert_join_failed: "Room joining failed: ",
+            confirm_delete_room: "⚠️ Are you sure you want to completely delete this room?\nThis will wipe all active game state, scores, and chats permanently!"
+        }
+    };
+    
+
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Firebase from Hosting Init URL
     let app, auth, db;
@@ -73,6 +143,183 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inputCreateRoomPwd = document.getElementById('input-create-room-pwd');
     const btnSubmitCreateRoom = document.getElementById('btn-submit-create-room');
 
+    async function renderMyRooms() {
+        if (!myRoomsList || !panelMyRooms) return;
+        const user = auth.currentUser;
+        if (!user) {
+            panelMyRooms.classList.add('hidden');
+            return;
+        }
+
+        const t = translations[currentLanguage];
+
+        try {
+            const roomsSnap = await get(ref(db, 'rooms'));
+            myRoomsList.innerHTML = "";
+            
+            if (!roomsSnap.exists()) {
+                panelMyRooms.classList.add('hidden');
+                return;
+            }
+
+            const roomsObj = roomsSnap.val();
+            const myRoomsEntries = Object.entries(roomsObj).filter(([id, r]) => {
+                return r.metadata && r.metadata.creatorUid === user.uid;
+            });
+
+            if (myRoomsEntries.length === 0) {
+                panelMyRooms.classList.add('hidden');
+                return;
+            }
+
+            panelMyRooms.classList.remove('hidden');
+
+            myRoomsEntries.forEach(([rid, rObj]) => {
+                const metadata = rObj.metadata || {};
+                const roomName = metadata.roomName || "Room";
+                const requiredPwd = metadata.password || "";
+
+                const card = document.createElement('div');
+                card.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;";
+                
+                card.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold; color: #0f172a; font-size: 1.1rem;">${roomName}</div>
+                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                            Code: <code style="font-weight: bold; color: var(--accent-1);">${rid}</code> 
+                            ${requiredPwd ? '🔒 ' + t.placeholder_check_code.replace('(選填)','').replace('(Optional)','') + ': ' + requiredPwd : '🔓 Public'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="primary-btn btn-enter-myroom" style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 6px 12px; font-size: 0.85rem; border:none; height:auto; width:auto;"></button>
+                        <button class="primary-btn btn-copy-myroom" style="background: linear-gradient(135deg, #10b981, #059669); padding: 6px 12px; font-size: 0.85rem; border:none; height:auto; width:auto;"></button>
+                        <button class="primary-btn btn-delete-myroom" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #f87171; padding: 6px 12px; font-size: 0.85rem; border:1px solid #ef4444; height:auto; width:auto;"></button>
+                    </div>
+                `;
+
+                card.querySelector('.btn-enter-myroom').textContent = t.btn_enter;
+                card.querySelector('.btn-copy-myroom').textContent = t.btn_copy;
+                card.querySelector('.btn-delete-myroom').textContent = t.btn_delete;
+
+                // Bind buttons
+                card.querySelector('.btn-enter-myroom').addEventListener('click', () => {
+                    if (requiredPwd) {
+                        sessionStorage.setItem(`unlocked_room_${rid}`, 'true');
+                    }
+                    window.location.href = `index.html?room=${rid}`;
+                });
+
+                card.querySelector('.btn-copy-myroom').addEventListener('click', () => {
+                    const joinUrl = `${window.location.origin}/index.html?room=${rid}${requiredPwd ? '&pwd=' + encodeURIComponent(requiredPwd) : ''}`;
+                    navigator.clipboard.writeText(joinUrl).then(() => {
+                        alert(currentLanguage === 'zh' ? "📋 複製進入連結成功！" : "📋 Room Link Copied!");
+                    }).catch(e => {
+                        alert("Copy failed: " + e.message);
+                    });
+                });
+
+                card.querySelector('.btn-delete-myroom').addEventListener('click', async () => {
+                    if (confirm(t.confirm_delete_room)) {
+                        try {
+                            await remove(ref(db, `rooms/${rid}`));
+                            console.log(`Room ${rid} deleted.`);
+                            renderMyRooms(); // refresh
+                        } catch (err) {
+                            alert("Delete failed: " + err.message);
+                        }
+                    }
+                });
+
+                myRoomsList.appendChild(card);
+            });
+
+        } catch (e) {
+            console.error("Error loading my rooms:", e);
+        }
+    }
+    
+
+    if (btnExitRoom) {
+        btnExitRoom.addEventListener('click', async () => {
+            if (userPresenceRef) {
+                await remove(userPresenceRef).catch(() => {});
+            }
+            window.location.href = "index.html";
+        });
+    }
+    
+
+    let currentLanguage = localStorage.getItem('preferred_language');
+    if (!currentLanguage) {
+        currentLanguage = navigator.language.startsWith('zh') ? 'zh' : 'en';
+    }
+
+    function applyLanguage() {
+        const t = translations[currentLanguage];
+        if (!t) return;
+        
+        const welcomeTitle = document.querySelector('#login-section h2');
+        if (welcomeTitle) welcomeTitle.textContent = t.welcome_title;
+        
+        const welcomeDesc = document.querySelector('#login-section p');
+        if (welcomeDesc) welcomeDesc.textContent = t.welcome_desc;
+        
+        if (btnGoogle) {
+            btnGoogle.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google logo">${t.btn_google}`;
+        }
+        if (btnAnon) btnAnon.textContent = t.btn_anon;
+        
+        const portalTitle = document.querySelector('#room-portal-section h2');
+        if (portalTitle) portalTitle.textContent = t.portal_title;
+        
+        if (btnTabJoin) btnTabJoin.textContent = t.tab_join;
+        if (btnTabCreate) btnTabCreate.textContent = t.tab_create;
+        
+        const labelJoinDesc = document.getElementById('label-join-desc');
+        if (labelJoinDesc) labelJoinDesc.textContent = t.join_desc;
+        
+        if (inputJoinRoomId) inputJoinRoomId.placeholder = t.placeholder_room_id;
+        if (inputJoinRoomPwd) inputJoinRoomPwd.placeholder = t.placeholder_check_code;
+        if (btnSubmitJoinRoom) btnSubmitJoinRoom.textContent = t.btn_join;
+        
+        const labelCreateDesc = document.getElementById('label-create-desc');
+        if (labelCreateDesc) labelCreateDesc.textContent = t.create_desc;
+        
+        if (inputCreateRoomName) inputCreateRoomName.placeholder = t.placeholder_room_name;
+        if (inputCreateRoomPwd) inputCreateRoomPwd.placeholder = t.placeholder_set_check_code;
+        if (btnSubmitCreateRoom) btnSubmitCreateRoom.textContent = t.btn_create;
+        
+        const labelMyRoomsTitle = document.getElementById('label-my-rooms-title');
+        if (labelMyRoomsTitle) labelMyRoomsTitle.textContent = t.my_rooms_title;
+        
+        if (btnExitRoom) btnExitRoom.textContent = t.btn_exit_room;
+        if (btnLogout) btnLogout.textContent = t.btn_logout;
+        
+        if (btnLangToggle) {
+            btnLangToggle.textContent = currentLanguage === 'zh' ? '🌐 English' : '🌐 繁中';
+        }
+
+        renderMyRooms();
+    }
+
+    if (btnLangToggle) {
+        btnLangToggle.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('preferred_language', currentLanguage);
+            applyLanguage();
+        });
+    }
+
+    // Trigger initial language layout on DOMContentLoaded
+    setTimeout(applyLanguage, 100);
+    
+
+    const btnLangToggle = document.getElementById('btn-lang-toggle');
+    const btnExitRoom = document.getElementById('btn-exit-room');
+    const panelMyRooms = document.getElementById('panel-my-rooms');
+    const myRoomsList = document.getElementById('my-rooms-list');
+    
+
     // Tab Switching Logic
     if (btnTabJoin && btnTabCreate && panelJoinRoom && panelCreateRoom) {
         btnTabJoin.addEventListener('click', () => {
@@ -141,20 +388,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const roomPwd = inputCreateRoomPwd.value.trim();
             
             if (!roomName) {
-                alert("❌ 請輸入房間名稱！");
+                alert(translations[currentLanguage].alert_no_room_name);
                 return;
             }
             
             btnSubmitCreateRoom.disabled = true;
-            btnSubmitCreateRoom.textContent = "正在創建...";
+            btnSubmitCreateRoom.textContent = currentLanguage === 'zh' ? '正在創建...' : 'Creating...';
 
             const user = auth.currentUser;
             const hasPermission = await checkCanCreateRoom(user);
             
             if (!hasPermission) {
-                alert("❌ 您的帳號無權限創建房間！");
+                alert(translations[currentLanguage].alert_no_permission);
                 btnSubmitCreateRoom.disabled = false;
-                btnSubmitCreateRoom.textContent = "創建並進入房間";
+                btnSubmitCreateRoom.textContent = translations[currentLanguage].btn_create;
                 return;
             }
 
@@ -198,7 +445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = `index.html?room=${roomId}`;
 
             } catch (err) {
-                alert("創建房間失敗: " + err.message);
+                alert(translations[currentLanguage].alert_create_failed + err.message);
                 btnSubmitCreateRoom.disabled = false;
                 btnSubmitCreateRoom.textContent = "創建並進入房間";
             }
@@ -211,19 +458,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const inputPwd = inputJoinRoomPwd.value.trim();
             
             if (!roomId || roomId.length !== 6) {
-                alert("❌ 請輸入合法的 6 位數房間代碼！");
+                alert(translations[currentLanguage].alert_invalid_room_id);
                 return;
             }
 
             btnSubmitJoinRoom.disabled = true;
-            btnSubmitJoinRoom.textContent = "正在驗證...";
+            btnSubmitJoinRoom.textContent = currentLanguage === 'zh' ? '正在驗證...' : 'Verifying...';
 
             try {
                 const metaSnap = await get(ref(db, `rooms/${roomId}/metadata`));
                 if (!metaSnap.exists()) {
-                    alert("❌ 房間不存在，請確認代碼是否輸入正確！");
+                    alert(translations[currentLanguage].alert_room_not_exist);
                     btnSubmitJoinRoom.disabled = false;
-                    btnSubmitJoinRoom.textContent = "進入房間";
+                    btnSubmitJoinRoom.textContent = translations[currentLanguage].btn_join;
                     return;
                 }
 
@@ -231,7 +478,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const requiredPwd = metadata.password || "";
 
                 if (requiredPwd !== "" && requiredPwd !== inputPwd) {
-                    alert("❌ 房間密碼錯誤！");
+                    alert(translations[currentLanguage].alert_wrong_check_code);
                     btnSubmitJoinRoom.disabled = false;
                     btnSubmitJoinRoom.textContent = "進入房間";
                     return;
@@ -250,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = `index.html?room=${roomId}`;
 
             } catch (err) {
-                alert("加入房間失敗: " + err.message);
+                alert(translations[currentLanguage].alert_join_failed + err.message);
                 btnSubmitJoinRoom.disabled = false;
                 btnSubmitJoinRoom.textContent = "進入房間";
             }
@@ -373,13 +620,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         userNameDisplay.textContent = user.displayName || 'Loading...';
         console.log("Entered lobby as:", user.displayName || 'User');
 
-        if (user.email && ADMIN_EMAILS.includes(user.email)) {
-            if (linkAdminPanel) linkAdminPanel.classList.remove('hidden');
-            if (linkPresenterPage) linkPresenterPage.classList.remove('hidden');
-        } else {
-            if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
-            if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
+        // Dynamic Creator & Super Admin Authorization Check for Admin Panel / Presenter Screen
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room');
+        if (roomId) {
+            const metaRef = ref(db, `rooms/${roomId}/metadata`);
+            get(metaRef).then((snap) => {
+                if (snap.exists()) {
+                    const metadata = snap.val();
+                    const isCreator = metadata.creatorUid === user.uid;
+                    const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+
+                    if (isCreator || isSuperAdmin) {
+                        if (linkAdminPanel) {
+                            linkAdminPanel.textContent = isSuperAdmin ? "👑 System Admin" : "👑 Admin Panel";
+                            linkAdminPanel.href = isSuperAdmin ? "super-admin.html" : `admin.html?room=${roomId}`;
+                            linkAdminPanel.classList.remove('hidden');
+                        }
+                        if (linkPresenterPage) {
+                            linkPresenterPage.href = `presenter.html?room=${roomId}`;
+                            linkPresenterPage.classList.remove('hidden');
+                        }
+                    } else {
+                        if (linkAdminPanel) linkAdminPanel.classList.add('hidden');
+                        if (linkPresenterPage) linkPresenterPage.classList.add('hidden');
+                    }
+
+                    // Dynamically set room chat room title
+                    const chatTitleEl = document.querySelector('.chat-demo h2');
+                    if (chatTitleEl) {
+                        const roomName = metadata.roomName || 'Room';
+                        chatTitleEl.textContent = currentLanguage === 'zh' ? `💬 ${roomName} 聊天室` : `💬 ${roomName} Chat Room`;
+                    }
+                }
+            }).catch(console.error);
         }
+
+        // Show Exit Room button in lobby
+        if (btnExitRoom) btnExitRoom.classList.remove('hidden');
     }
 
     // 2. Authentication Logic
@@ -477,6 +755,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Keep main-content hidden
                 mainContent.classList.add('hidden');
+                
+                // Hide exit room button in portal portal
+                if (btnExitRoom) btnExitRoom.classList.add('hidden');
+                
+                // Render list of rooms created by this user
+                renderMyRooms();
 
                 // Render Super Admin redirection if user is wube@google.com
                 const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
@@ -502,7 +786,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const metaSnap = await get(ref(db, `rooms/${roomId}/metadata`));
                 if (!metaSnap.exists()) {
-                    alert("❌ 房間不存在，將引導您回到大廳首頁！");
+                    alert(translations[currentLanguage].alert_room_not_exist);
                     window.location.href = "index.html";
                     return;
                 }
@@ -517,9 +801,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     if (urlPwd !== requiredPwd && !sessionUnlocked) {
                         // Prompt password modal
-                        const userEnteredPwd = prompt("🔑 此房間已受密碼保護，請輸入密碼進入：");
+                        const userEnteredPwd = prompt(translations[currentLanguage].prompt_need_check_code);
                         if (userEnteredPwd !== requiredPwd) {
-                            alert("❌ 密碼錯誤！將返回大廳首頁。");
+                            alert(translations[currentLanguage].alert_wrong_check_code);
                             window.location.href = "index.html";
                             return;
                         }
